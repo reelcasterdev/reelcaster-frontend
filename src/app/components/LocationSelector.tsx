@@ -8,6 +8,18 @@ interface FishingLocation {
   hotspots: string[]
 }
 
+interface FishSpecies {
+  id: string
+  name: string
+  scientificName: string
+  minSize: string
+  dailyLimit: string
+  status: 'Open' | 'Closed' | 'Non Retention'
+  gear: string
+  season: string
+  description: string
+}
+
 const fishingLocations: FishingLocation[] = [
   {
     id: 'victoria-sidney',
@@ -145,22 +157,170 @@ const fishingLocations: FishingLocation[] = [
   },
 ]
 
+const fishSpecies: FishSpecies[] = [
+  {
+    id: 'chinook-salmon',
+    name: 'Chinook Salmon',
+    scientificName: 'Oncorhynchus tshawytscha',
+    minSize: '62cm',
+    dailyLimit: '0',
+    status: 'Non Retention',
+    gear: 'Barbless hook and line',
+    season: 'Year-round (varies by area)',
+    description: 'King salmon, largest Pacific salmon species',
+  },
+  {
+    id: 'coho-salmon',
+    name: 'Coho Salmon',
+    scientificName: 'Oncorhynchus kisutch',
+    minSize: '30cm',
+    dailyLimit: '2 (hatchery marked only)',
+    status: 'Open',
+    gear: 'Barbless hook and line',
+    season: 'June - October',
+    description: 'Silver salmon, excellent fighting fish',
+  },
+  {
+    id: 'chum-salmon',
+    name: 'Chum Salmon',
+    scientificName: 'Oncorhynchus keta',
+    minSize: '30cm',
+    dailyLimit: '0',
+    status: 'Non Retention',
+    gear: 'Barbless hook and line',
+    season: 'September - December',
+    description: 'Dog salmon, spawning runs in fall',
+  },
+  {
+    id: 'pink-salmon',
+    name: 'Pink Salmon',
+    scientificName: 'Oncorhynchus gorbuscha',
+    minSize: '30cm',
+    dailyLimit: '4',
+    status: 'Open',
+    gear: 'Barbless hook and line',
+    season: 'July - September (odd years)',
+    description: 'Humpy salmon, abundant in odd years',
+  },
+  {
+    id: 'sockeye-salmon',
+    name: 'Sockeye Salmon',
+    scientificName: 'Oncorhynchus nerka',
+    minSize: '30cm',
+    dailyLimit: '0',
+    status: 'Non Retention',
+    gear: 'Barbless hook and line',
+    season: 'June - August',
+    description: 'Red salmon, prized for eating quality',
+  },
+  {
+    id: 'halibut',
+    name: 'Pacific Halibut',
+    scientificName: 'Hippoglossus stenolepis',
+    minSize: '83cm',
+    dailyLimit: '1',
+    status: 'Open',
+    gear: 'Hook and line',
+    season: 'Year-round',
+    description: 'Large flatfish, excellent table fare',
+  },
+  {
+    id: 'lingcod',
+    name: 'Lingcod',
+    scientificName: 'Ophiodon elongatus',
+    minSize: '65cm',
+    dailyLimit: '1',
+    status: 'Open',
+    gear: 'Hook and line',
+    season: 'Year-round',
+    description: 'Large predatory fish, great eating',
+  },
+  {
+    id: 'rockfish',
+    name: 'Rockfish (Various)',
+    scientificName: 'Sebastes spp.',
+    minSize: 'Varies by species',
+    dailyLimit: '5 combined',
+    status: 'Open',
+    gear: 'Hook and line',
+    season: 'Year-round (some restrictions)',
+    description: 'Bottom dwelling fish, many species',
+  },
+  {
+    id: 'dungeness-crab',
+    name: 'Dungeness Crab',
+    scientificName: 'Metacarcinus magister',
+    minSize: '165mm carapace',
+    dailyLimit: '4 (males only)',
+    status: 'Open',
+    gear: 'Crab trap or ring net',
+    season: 'Year-round (check closures)',
+    description: 'Popular crab species, males only',
+  },
+  {
+    id: 'steelhead',
+    name: 'Steelhead Trout',
+    scientificName: 'Oncorhynchus mykiss',
+    minSize: '50cm',
+    dailyLimit: '0',
+    status: 'Non Retention',
+    gear: 'Barbless hook and line',
+    season: 'Varies by system',
+    description: 'Sea-run rainbow trout, catch and release',
+  },
+]
+
 export default function LocationSelector() {
   const [selectedLocation, setSelectedLocation] = useState<string>('')
   const [selectedHotspot, setSelectedHotspot] = useState<string>('')
+  const [selectedSpecies, setSelectedSpecies] = useState<string>('')
 
   const currentLocation = fishingLocations.find(loc => loc.id === selectedLocation)
+  const currentSpecies = fishSpecies.find(species => species.id === selectedSpecies)
 
   const handleLocationChange = (locationId: string) => {
     setSelectedLocation(locationId)
     setSelectedHotspot('') // Reset hotspot when location changes
+    setSelectedSpecies('') // Reset species when location changes
+  }
+
+  const handleHotspotChange = (hotspot: string) => {
+    setSelectedHotspot(hotspot)
+    setSelectedSpecies('') // Reset species when hotspot changes
   }
 
   const handleGetForecast = () => {
     if (selectedLocation && selectedHotspot) {
       const locationName = currentLocation?.name
-      alert(`Getting forecast for ${selectedHotspot} in ${locationName}`)
+      const speciesName = selectedSpecies ? ` for ${currentSpecies?.name}` : ''
+      alert(`Getting forecast for ${selectedHotspot} in ${locationName}${speciesName}`)
       // Here you would typically navigate to forecast page or fetch forecast data
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Open':
+        return 'text-green-400'
+      case 'Closed':
+        return 'text-red-400'
+      case 'Non Retention':
+        return 'text-yellow-400'
+      default:
+        return 'text-gray-400'
+    }
+  }
+
+  const getStatusBgColor = (status: string) => {
+    switch (status) {
+      case 'Open':
+        return 'bg-green-500/20 border-green-500/30'
+      case 'Closed':
+        return 'bg-red-500/20 border-red-500/30'
+      case 'Non Retention':
+        return 'bg-yellow-500/20 border-yellow-500/30'
+      default:
+        return 'bg-gray-500/20 border-gray-500/30'
     }
   }
 
@@ -239,7 +399,7 @@ export default function LocationSelector() {
             {currentLocation.hotspots.map(hotspot => (
               <button
                 key={hotspot}
-                onClick={() => setSelectedHotspot(hotspot)}
+                onClick={() => handleHotspotChange(hotspot)}
                 className={`group p-4 text-left rounded-lg border transition-all duration-200 hover:scale-[1.02] ${
                   selectedHotspot === hotspot
                     ? 'border-gray-300 bg-gradient-to-br from-gray-700/50 to-gray-600/30 shadow-lg shadow-white/5'
@@ -270,6 +430,76 @@ export default function LocationSelector() {
         </div>
       )}
 
+      {/* Fish Species Selection */}
+      {selectedLocation && selectedHotspot && (
+        <div className="border-t border-gray-600 pt-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-r from-gray-500 to-gray-300 rounded-full flex items-center justify-center">
+              <span className="text-black font-bold text-sm">3</span>
+            </div>
+            <h3 className="text-3xl font-bold text-white">Target Species</h3>
+            <span className="text-gray-400 text-lg">(Optional)</span>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-gray-300 text-lg">Select your target fish species for detailed regulations and tips</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-track-gray-700 scrollbar-thumb-gray-500 pr-2">
+            {fishSpecies.map(species => (
+              <button
+                key={species.id}
+                onClick={() => setSelectedSpecies(species.id)}
+                className={`group p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02] ${
+                  selectedSpecies === species.id
+                    ? 'border-gray-300 bg-gradient-to-br from-gray-700/50 to-gray-600/30 shadow-lg shadow-white/5'
+                    : 'border-gray-600 bg-gray-800/30 hover:border-gray-500 hover:bg-gray-800/50'
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4
+                        className={`font-semibold text-base mb-1 ${
+                          selectedSpecies === species.id ? 'text-white' : 'text-gray-300 group-hover:text-white'
+                        }`}
+                      >
+                        {species.name}
+                      </h4>
+                      <p className="text-gray-400 text-xs italic">{species.scientificName}</p>
+                    </div>
+                    <div
+                      className={`px-2 py-1 rounded-full border text-xs font-medium ${getStatusBgColor(
+                        species.status,
+                      )} ${getStatusColor(species.status)}`}
+                    >
+                      {species.status}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-gray-400">
+                    <div className="flex justify-between">
+                      <span>Size:</span>
+                      <span className="text-gray-300">{species.minSize}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Limit:</span>
+                      <span className="text-gray-300">{species.dailyLimit}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Season:</span>
+                      <span className="text-gray-300">{species.season}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-400 leading-relaxed">{species.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Get Forecast Button */}
       {selectedLocation && selectedHotspot && (
         <div className="border-t border-gray-600 pt-8">
@@ -281,7 +511,10 @@ export default function LocationSelector() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span className="text-lg">Get Fishing Forecast for {selectedHotspot}</span>
+              <span className="text-lg">
+                Get Fishing Forecast for {selectedHotspot}
+                {selectedSpecies && ` (${currentSpecies?.name})`}
+              </span>
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
           </button>
@@ -289,7 +522,7 @@ export default function LocationSelector() {
       )}
 
       {/* Selection Summary */}
-      {(selectedLocation || selectedHotspot) && (
+      {(selectedLocation || selectedHotspot || selectedSpecies) && (
         <div className="bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-xl border border-gray-600">
           <h4 className="font-bold text-white mb-4 flex items-center gap-2">
             <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -315,6 +548,36 @@ export default function LocationSelector() {
                 <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
                 <span className="text-gray-300">Hotspot:</span>
                 <span className="text-gray-200 font-medium">{selectedHotspot}</span>
+              </div>
+            )}
+            {selectedSpecies && currentSpecies && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <span className="text-gray-300">Species:</span>
+                  <span className="text-gray-200 font-medium">{currentSpecies.name}</span>
+                  <span
+                    className={`px-2 py-1 rounded-full border text-xs font-medium ${getStatusBgColor(
+                      currentSpecies.status,
+                    )} ${getStatusColor(currentSpecies.status)}`}
+                  >
+                    {currentSpecies.status}
+                  </span>
+                </div>
+                <div className="ml-5 grid grid-cols-2 gap-4 text-sm">
+                  <div className="text-gray-400">
+                    Min Size: <span className="text-gray-300">{currentSpecies.minSize}</span>
+                  </div>
+                  <div className="text-gray-400">
+                    Daily Limit: <span className="text-gray-300">{currentSpecies.dailyLimit}</span>
+                  </div>
+                  <div className="text-gray-400">
+                    Gear: <span className="text-gray-300">{currentSpecies.gear}</span>
+                  </div>
+                  <div className="text-gray-400">
+                    Season: <span className="text-gray-300">{currentSpecies.season}</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
