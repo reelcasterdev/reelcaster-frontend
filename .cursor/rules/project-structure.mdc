@@ -1,0 +1,53 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# ReelCaster Frontend - Project Structure
+
+## Overview
+This is a Next.js 15.3.4 frontend application with TypeScript, Tailwind CSS v4, and the App Router architecture.
+
+## Directory Structure
+
+### Core Application
+- [src/app/](mdc:src/app) - Next.js App Router directory containing pages, layouts, and route components
+- [src/app/layout.tsx](mdc:src/app/layout.tsx) - Root layout component that wraps all pages
+- [src/app/page.tsx](mdc:src/app/page.tsx) - Homepage component
+- [src/app/globals.css](mdc:src/app/globals.css) - Global CSS styles and Tailwind imports
+
+### Configuration Files
+- [package.json](mdc:package.json) - Project dependencies and scripts (uses pnpm as package manager)
+- [next.config.ts](mdc:next.config.ts) - Next.js configuration
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration with path aliases (`@/*` → `./src/*`)
+- [eslint.config.mjs](mdc:eslint.config.mjs) - ESLint configuration extending Next.js and TypeScript rules
+- [postcss.config.mjs](mdc:postcss.config.mjs) - PostCSS configuration for Tailwind CSS
+
+### Public Assets
+- [public/](mdc:public) - Static assets served from the root domain
+
+## File Organization Conventions
+
+### Pages and Layouts
+- Use the App Router convention: create directories under `src/app/` for routes
+- Page components should be named `page.tsx`
+- Layout components should be named `layout.tsx`
+- Loading components should be named `loading.tsx`
+- Error components should be named `error.tsx`
+
+### Component Organization
+- Create components in `src/components/` (to be created as needed)
+- Use PascalCase for component files and directories
+- Group related components in subdirectories
+- Export components as default exports
+
+### Utility Functions
+- Create utilities in `src/lib/` or `src/utils/` (to be created as needed)
+- Use camelCase for utility functions
+- Group related utilities in modules
+
+## Import Conventions
+- Use the `@/` path alias for imports from the `src/` directory
+- Example: `import { Button } from '@/components/ui/Button'`
+- Prefer named exports for utilities and hooks
+- Use default exports for React components

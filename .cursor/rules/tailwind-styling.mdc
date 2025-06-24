@@ -1,0 +1,167 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Tailwind CSS Styling Conventions
+
+## Setup
+This project uses Tailwind CSS v4 with PostCSS. Configuration is handled through [postcss.config.mjs](mdc:postcss.config.mjs).
+
+## Class Organization
+
+### Responsive Design
+```typescript
+// Mobile-first approach with responsive prefixes
+<div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
+  Responsive width
+</div>
+
+// Common breakpoints: sm, md, lg, xl, 2xl
+<div className="text-sm md:text-base lg:text-lg">
+  Responsive text
+</div>
+```
+
+### Layout Patterns
+```typescript
+// Flexbox layouts
+<div className="flex items-center justify-between">
+  <span>Left content</span>
+  <span>Right content</span>
+</div>
+
+// Grid layouts
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {items.map(item => <div key={item.id}>{item.content}</div>)}
+</div>
+
+// Center content
+<div className="flex items-center justify-center min-h-screen">
+  <div>Centered content</div>
+</div>
+```
+
+### Component Styling Patterns
+
+### Button Components
+```typescript
+// Base button classes
+const baseButton = "px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2"
+
+// Variant patterns
+const buttonVariants = {
+  primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+  secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500",
+  danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+}
+```
+
+### Card Components
+```typescript
+<div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+  <h3 className="text-lg font-semibold mb-2">Card Title</h3>
+  <p className="text-gray-600">Card content</p>
+</div>
+```
+
+### Form Elements
+```typescript
+// Input fields
+<input
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  type="text"
+  placeholder="Enter text"
+/>
+
+// Labels
+<label className="block text-sm font-medium text-gray-700 mb-1">
+  Field Label
+</label>
+```
+
+## Color Conventions
+
+### Brand Colors (to be defined)
+- Primary: `blue-600` for main actions
+- Secondary: `gray-600` for secondary actions
+- Success: `green-600` for positive actions
+- Warning: `yellow-600` for warnings
+- Danger: `red-600` for destructive actions
+
+### Text Colors
+- Primary text: `text-gray-900`
+- Secondary text: `text-gray-600`
+- Muted text: `text-gray-500`
+- Light text on dark: `text-white`
+
+### Background Colors
+- Page background: `bg-gray-50` or `bg-white`
+- Card background: `bg-white`
+- Hover states: `hover:bg-gray-100`
+
+## Spacing Conventions
+
+### Consistent Spacing Scale
+- `space-y-2` - Tight vertical spacing (0.5rem)
+- `space-y-4` - Normal vertical spacing (1rem)
+- `space-y-6` - Loose vertical spacing (1.5rem)
+- `space-y-8` - Extra loose spacing (2rem)
+
+### Padding and Margins
+- Components: `p-4` or `p-6` for consistent internal spacing
+- Sections: `py-8` or `py-12` for vertical section spacing
+- Container: `px-4 md:px-6 lg:px-8` for responsive horizontal padding
+
+## Typography
+
+### Heading Hierarchy
+```typescript
+<h1 className="text-3xl md:text-4xl font-bold text-gray-900">Page Title</h1>
+<h2 className="text-2xl md:text-3xl font-semibold text-gray-900">Section Title</h2>
+<h3 className="text-xl md:text-2xl font-medium text-gray-900">Subsection Title</h3>
+```
+
+### Body Text
+```typescript
+<p className="text-base text-gray-700 leading-relaxed">Regular paragraph text</p>
+<p className="text-sm text-gray-600">Secondary text</p>
+<span className="text-xs text-gray-500">Small text</span>
+```
+
+## Best Practices
+
+### Class Order
+1. Layout (display, position, top, right, bottom, left)
+2. Flexbox/Grid (flex, grid properties)
+3. Spacing (margin, padding)
+4. Sizing (width, height)
+5. Typography (font, text)
+6. Colors (background, text, border)
+7. Effects (shadow, opacity, transform)
+8. Interactivity (cursor, select)
+
+### Component Composition
+```typescript
+// Use className prop for extensibility
+interface ComponentProps {
+  className?: string
+  children: React.ReactNode
+}
+
+function Card({ className = '', children, ...props }: ComponentProps) {
+  return (
+    <div className={`bg-white rounded-lg shadow-md p-6 ${className}`} {...props}>
+      {children}
+    </div>
+  )
+}
+```
+
+### Dark Mode Support (for future implementation)
+```typescript
+// Prepare classes for dark mode
+<div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+  Content that supports dark mode
+</div>
+```

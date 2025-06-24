@@ -1,0 +1,160 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Next.js Patterns and Conventions
+
+## App Router Structure
+This project uses Next.js 15.3.4 with the App Router. Reference [src/app/](mdc:src/app) for the current structure.
+
+## Page Components
+
+### Basic Page Structure
+```typescript
+// src/app/example/page.tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Page Title',
+  description: 'Page description for SEO',
+}
+
+interface PageProps {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default function ExamplePage({ params, searchParams }: PageProps) {
+  return (
+    <div>
+      <h1>Example Page</h1>
+    </div>
+  )
+}
+```
+
+### Layout Components
+Follow the pattern established in [src/app/layout.tsx](mdc:src/app/layout.tsx):
+
+```typescript
+// src/app/dashboard/layout.tsx
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="dashboard-layout">
+      <nav>Dashboard Navigation</nav>
+      <main>{children}</main>
+    </div>
+  )
+}
+```
+
+## Data Fetching Patterns
+
+### Server Components (Default)
+```typescript
+// Async server components for data fetching
+export default async function PostsPage() {
+  const posts = await fetchPosts() // Direct API call
+  
+  return (
+    <div>
+      {posts.map(post => (
+        <article key={post.id}>{post.title}</article>
+      ))}
+    </div>
+  )
+}
+```
+
+### Client Components
+```typescript
+'use client'
+
+import { useState, useEffect } from 'react'
+
+export default function InteractiveComponent() {
+  const [count, setCount] = useState(0)
+  
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Count: {count}
+    </button>
+  )
+}
+```
+
+## Routing Conventions
+
+### Dynamic Routes
+- `[id]` - Single dynamic segment
+- `[...slug]` - Catch-all routes
+- `[[...slug]]` - Optional catch-all routes
+
+### Special Files
+- `page.tsx` - Unique UI for a route
+- `layout.tsx` - Shared UI for a segment and its children
+- `loading.tsx` - Loading UI
+- `error.tsx` - Error UI
+- `not-found.tsx` - Not found UI
+- `global-error.tsx` - Global error UI
+
+## SEO and Metadata
+
+### Static Metadata
+```typescript
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'ReelCaster - Video Streaming Platform',
+  description: 'Stream and share your favorite videos',
+  keywords: 'video, streaming, content',
+}
+```
+
+### Dynamic Metadata
+```typescript
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const post = await fetchPost(params.id)
+  
+  return {
+    title: post.title,
+    description: post.excerpt,
+  }
+}
+```
+
+## Performance Optimizations
+
+### Image Optimization
+```typescript
+import Image from 'next/image'
+
+<Image
+  src="/hero-image.jpg"
+  alt="Hero image"
+  width={800}
+  height={600}
+  priority // For above-the-fold images
+/>
+```
+
+### Link Optimization
+```typescript
+import Link from 'next/link'
+
+<Link href="/dashboard" prefetch={false}>
+  Dashboard
+</Link>
+```
+
+## Development Scripts
+Reference [package.json](mdc:package.json) for available scripts:
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint

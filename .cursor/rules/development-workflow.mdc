@@ -1,0 +1,247 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Development Workflow
+
+## Package Management
+This project uses **pnpm** as specified in [package.json](mdc:package.json). Always use pnpm commands:
+
+```bash
+# Install dependencies
+pnpm install
+
+# Add new dependency
+pnpm add package-name
+
+# Add dev dependency
+pnpm add -D package-name
+
+# Remove dependency
+pnpm remove package-name
+```
+
+## Development Scripts
+
+### Available Scripts (from [package.json](mdc:package.json))
+- `pnpm dev` - Start development server with Turbopack
+- `pnpm build` - Build application for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint checks
+
+### Development Server
+```bash
+# Start with Turbopack (faster builds)
+pnpm dev
+
+# Server runs on http://localhost:3000
+```
+
+## Code Quality
+
+### Linting
+Run ESLint before committing:
+```bash
+pnpm lint
+
+# Fix auto-fixable issues
+pnpm lint -- --fix
+```
+
+### TypeScript Checking
+```bash
+# Type check without emitting files
+npx tsc --noEmit
+
+# Watch mode for type checking
+npx tsc --noEmit --watch
+```
+
+## Git Workflow
+
+### Branch Naming Conventions
+- `feature/feature-name` - New features
+- `bugfix/issue-description` - Bug fixes
+- `hotfix/critical-fix` - Critical production fixes
+- `refactor/component-name` - Code refactoring
+- `docs/update-readme` - Documentation updates
+
+### Commit Message Format
+```
+type(scope): description
+
+[optional body]
+
+[optional footer]
+```
+
+Types:
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation changes
+- `style` - Code style changes (formatting, etc.)
+- `refactor` - Code refactoring
+- `test` - Adding or updating tests
+- `chore` - Maintenance tasks
+
+Examples:
+```
+feat(auth): add user authentication flow
+fix(ui): resolve button accessibility issues
+docs(readme): update installation instructions
+refactor(components): extract common button logic
+```
+
+### Pre-commit Checklist
+1. Run `pnpm lint` and fix any issues
+2. Run type checking: `npx tsc --noEmit`
+3. Test locally: `pnpm dev`
+4. Ensure no console errors or warnings
+5. Check responsive design on different screen sizes
+
+## File Creation Guidelines
+
+### Component Creation
+```typescript
+// 1. Create component file: src/components/ComponentName.tsx
+// 2. Create index file if needed: src/components/ComponentName/index.ts
+// 3. Export from main component file
+// 4. Add to parent index if using barrel exports
+
+// Example component structure:
+// src/components/
+//   ├── ui/
+//   │   ├── Button/
+//   │   │   ├── Button.tsx
+//   │   │   ├── Button.test.tsx
+//   │   │   └── index.ts
+//   │   └── index.ts
+//   └── layout/
+//       ├── Header.tsx
+//       └── Footer.tsx
+```
+
+### Page Creation
+```typescript
+// 1. Create directory under src/app/
+// 2. Add page.tsx file
+// 3. Optionally add layout.tsx, loading.tsx, error.tsx
+// 4. Add metadata export for SEO
+
+// Example page structure:
+// src/app/
+//   ├── dashboard/
+//   │   ├── page.tsx
+//   │   ├── layout.tsx
+//   │   └── settings/
+//   │       └── page.tsx
+//   └── api/
+//       └── users/
+//           └── route.ts
+```
+
+### API Route Creation
+```typescript
+// 1. Create route.ts file under src/app/api/
+// 2. Export HTTP method functions
+// 3. Use proper TypeScript types
+
+// Example: src/app/api/users/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET() {
+  // Handle GET request
+}
+
+export async function POST(request: NextRequest) {
+  // Handle POST request
+}
+```
+
+## Environment Configuration
+
+### Environment Variables
+Create `.env.local` for local development:
+```bash
+# Database
+DATABASE_URL="postgresql://..."
+
+# Authentication
+NEXTAUTH_SECRET="your-secret"
+NEXTAUTH_URL="http://localhost:3000"
+
+# API Keys
+STRIPE_SECRET_KEY="sk_test_..."
+```
+
+### Environment Types
+Create `src/types/env.d.ts` for environment variable types:
+```typescript
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      DATABASE_URL: string
+      NEXTAUTH_SECRET: string
+      NEXTAUTH_URL: string
+      STRIPE_SECRET_KEY: string
+    }
+  }
+}
+
+export {}
+```
+
+## Performance Considerations
+
+### Bundle Analysis
+```bash
+# Analyze bundle size
+pnpm build
+npx @next/bundle-analyzer
+```
+
+### Image Optimization
+- Use Next.js `Image` component for all images
+- Provide appropriate `width` and `height`
+- Use `priority` for above-the-fold images
+- Optimize images before adding to `public/`
+
+### Code Splitting
+- Use dynamic imports for large components
+- Implement lazy loading for below-the-fold content
+- Split API routes appropriately
+
+```typescript
+// Dynamic import example
+const HeavyComponent = dynamic(() => import('@/components/HeavyComponent'), {
+  loading: () => <div>Loading...</div>,
+})
+```
+
+## Testing Strategy (Future Implementation)
+
+### Testing Setup
+```bash
+# Add testing dependencies (when ready)
+pnpm add -D @testing-library/react @testing-library/jest-dom jest jest-environment-jsdom
+```
+
+### Test File Conventions
+- Unit tests: `ComponentName.test.tsx`
+- Integration tests: `ComponentName.integration.test.tsx`
+- E2E tests: `ComponentName.e2e.test.tsx`
+
+### Test Structure
+```typescript
+// Example test file
+import { render, screen } from '@testing-library/react'
+import Button from './Button'
+
+describe('Button Component', () => {
+  it('renders with correct text', () => {
+    render(<Button>Click me</Button>)
+    expect(screen.getByText('Click me')).toBeInTheDocument()
+  })
+})
+```

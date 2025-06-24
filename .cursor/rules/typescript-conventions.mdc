@@ -1,0 +1,94 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# TypeScript Conventions
+
+## Configuration
+The project uses TypeScript 5 with strict mode enabled in [tsconfig.json](mdc:tsconfig.json).
+
+## Type Definitions
+
+### Component Props
+```typescript
+// Use interface for component props
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'danger';
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+export default function Button({ children, variant = 'primary', ...props }: ButtonProps) {
+  // component implementation
+}
+```
+
+### API Response Types
+```typescript
+// Define API response types in src/types/ (to be created)
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+}
+
+interface ApiResponse<T> {
+  data: T;
+  message: string;
+  success: boolean;
+}
+```
+
+### Page and Layout Props
+```typescript
+// Page component props
+interface PageProps {
+  params: { [key: string]: string | string[] };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+// Layout component props
+interface LayoutProps {
+  children: React.ReactNode;
+  params: { [key: string]: string | string[] };
+}
+```
+
+## Best Practices
+
+### Strict Typing
+- Always provide explicit types for function parameters and return values
+- Use `React.ReactNode` for children props
+- Use `React.ComponentProps<'element'>` for extending HTML element props
+- Avoid `any` type; use `unknown` when type is truly unknown
+
+### Next.js Specific Types
+- Use `Metadata` type for page metadata exports
+- Use `NextRequest` and `NextResponse` for API routes
+- Use proper types for generateStaticParams and generateMetadata functions
+
+### Import/Export Patterns
+- Import React types from 'react' namespace: `React.FC`, `React.ReactNode`
+- Use type-only imports when appropriate: `import type { User } from '@/types'`
+- Export types and interfaces for reuse across components
+
+### Error Handling
+```typescript
+// Use proper error types
+interface ApiError {
+  message: string;
+  code: string;
+  details?: Record<string, unknown>;
+}
+
+// Type-safe error handling
+function handleApiError(error: unknown): ApiError {
+  if (error instanceof Error) {
+    return { message: error.message, code: 'UNKNOWN_ERROR' };
+  }
+  return { message: 'An unexpected error occurred', code: 'UNKNOWN_ERROR' };
+}
+```

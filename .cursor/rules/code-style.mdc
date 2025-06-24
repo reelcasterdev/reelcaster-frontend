@@ -1,0 +1,260 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Code Style and Formatting
+
+## ESLint Configuration
+The project uses ESLint with Next.js and TypeScript rules configured in [eslint.config.mjs](mdc:eslint.config.mjs).
+
+## Code Formatting Rules
+
+### Import Organization
+```typescript
+// 1. React and Next.js imports
+import React from 'react'
+import { Metadata } from 'next'
+import Link from 'next/link'
+import Image from 'next/image'
+
+// 2. Third-party library imports
+import clsx from 'clsx'
+import { format } from 'date-fns'
+
+// 3. Internal imports (using @/ alias)
+import { Button } from '@/components/ui/Button'
+import { fetchUser } from '@/lib/api'
+import { cn } from '@/lib/utils'
+
+// 4. Relative imports
+import './component.css'
+```
+
+### Function Declaration Patterns
+
+### React Components
+```typescript
+// Use function declarations for components
+export default function ComponentName() {
+  return <div>Content</div>
+}
+
+// Use arrow functions for small utility components
+const SmallComponent = () => <span>Small content</span>
+
+// Use arrow functions for props destructuring when beneficial
+const Component = ({ title, children }: ComponentProps) => (
+  <div>
+    <h1>{title}</h1>
+    {children}
+  </div>
+)
+```
+
+### Utility Functions
+```typescript
+// Use function declarations for main utilities
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount)
+}
+
+// Use arrow functions for simple transformations
+export const capitalize = (str: string) => 
+  str.charAt(0).toUpperCase() + str.slice(1)
+```
+
+## Naming Conventions
+
+### Files and Directories
+- Components: `PascalCase` (e.g., `UserProfile.tsx`)
+- Pages: `kebab-case` for directories, `page.tsx` for files
+- Utilities: `camelCase` (e.g., `formatDate.ts`)
+- Types: `camelCase` with `.types.ts` suffix (e.g., `user.types.ts`)
+
+### Variables and Functions
+```typescript
+// Variables: camelCase
+const userName = 'john_doe'
+const isLoggedIn = true
+const userPreferences = { theme: 'dark' }
+
+// Functions: camelCase, descriptive verbs
+function fetchUserData() {}
+function handleSubmit() {}
+function validateEmail() {}
+
+// Constants: SCREAMING_SNAKE_CASE
+const API_BASE_URL = 'https://api.example.com'
+const MAX_RETRY_ATTEMPTS = 3
+```
+
+### React Patterns
+```typescript
+// Component props: PascalCase interfaces
+interface UserCardProps {
+  user: User
+  onEdit?: (user: User) => void
+  className?: string
+}
+
+// Event handlers: handle + EventName
+const handleClick = () => {}
+const handleInputChange = () => {}
+const handleFormSubmit = () => {}
+
+// Boolean props: is/has/can/should prefix
+interface ComponentProps {
+  isLoading?: boolean
+  hasError?: boolean
+  canEdit?: boolean
+  shouldAutoFocus?: boolean
+}
+```
+
+## Component Structure
+
+### Standard Component Layout
+```typescript
+'use client' // Only if client component
+
+import React from 'react'
+// ... other imports
+
+interface ComponentProps {
+  // props definition
+}
+
+export default function Component({ prop1, prop2 }: ComponentProps) {
+  // 1. Hooks (useState, useEffect, etc.)
+  const [state, setState] = useState()
+  
+  // 2. Derived state and computations
+  const computedValue = useMemo(() => {
+    return expensiveCalculation(prop1)
+  }, [prop1])
+  
+  // 3. Event handlers
+  const handleEvent = useCallback(() => {
+    // event handling logic
+  }, [])
+  
+  // 4. Effects
+  useEffect(() => {
+    // side effects
+  }, [])
+  
+  // 5. Early returns
+  if (!prop1) {
+    return <div>Loading...</div>
+  }
+  
+  // 6. Main render
+  return (
+    <div className="component-wrapper">
+      {/* JSX content */}
+    </div>
+  )
+}
+```
+
+## JSX Formatting
+
+### Element Structure
+```typescript
+// Self-closing elements
+<img src="image.jpg" alt="Description" />
+<Button variant="primary" />
+
+// Multi-line attributes
+<Button
+  variant="primary"
+  size="large"
+  onClick={handleClick}
+  disabled={isLoading}
+>
+  Submit
+</Button>
+
+// Conditional rendering
+{isLoggedIn && <UserMenu />}
+{error ? <ErrorMessage error={error} /> : <SuccessMessage />}
+
+// Lists
+{items.map(item => (
+  <div key={item.id} className="item">
+    {item.name}
+  </div>
+))}
+```
+
+### Comment Conventions
+```typescript
+// TODO: Implement user authentication
+// FIXME: Handle edge case when user is null
+// NOTE: This component will be refactored in next sprint
+
+/**
+ * Formats a date string for display
+ * @param date - ISO date string
+ * @param format - Date format pattern
+ * @returns Formatted date string
+ */
+function formatDate(date: string, format: string): string {
+  // implementation
+}
+```
+
+## Error Handling Patterns
+
+### Component Error Boundaries
+```typescript
+'use client'
+
+interface ErrorBoundaryState {
+  hasError: boolean
+  error?: Error
+}
+
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren<{}>,
+  ErrorBoundaryState
+> {
+  constructor(props: React.PropsWithChildren<{}>) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong.</h1>
+    }
+
+    return this.props.children
+  }
+}
+```
+
+### Async Error Handling
+```typescript
+// Use try-catch for async operations
+async function fetchData() {
+  try {
+    const response = await fetch('/api/data')
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Failed to fetch data:', error)
+    throw error
+  }
+}
+```
