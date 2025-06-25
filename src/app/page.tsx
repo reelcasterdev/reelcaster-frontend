@@ -7,13 +7,10 @@ export default function Home() {
         <header className="text-center py-12">
           <div className="mb-6">
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-gray-300 to-gray-400 bg-clip-text text-transparent mb-4">
-              BC Fishing Forecast
+              Fishing Forecast
             </h1>
             <div className="w-24 h-1 bg-gradient-to-r from-gray-400 to-gray-600 mx-auto rounded-full"></div>
           </div>
-          <p className="text-gray-300 text-xl md:text-2xl font-light max-w-2xl mx-auto leading-relaxed">
-            Discover prime fishing locations across British Columbia and get real-time forecasts
-          </p>
         </header>
 
         <main className="bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700/50 p-8 md:p-10">
