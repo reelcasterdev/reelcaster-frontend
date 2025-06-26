@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import FishingForecast from './FishingForecast'
 
 interface FishingLocation {
   id: string
   name: string
   hotspots: string[]
+  coordinates: { lat: number; lon: number }
 }
 
 interface FishSpecies {
@@ -24,6 +26,7 @@ const fishingLocations: FishingLocation[] = [
   {
     id: 'victoria-sidney',
     name: 'Victoria, Sidney',
+    coordinates: { lat: 48.4284, lon: -123.3656 }, // Victoria coordinates
     hotspots: [
       'Beacon Hill Park',
       'Clover Point',
@@ -50,6 +53,7 @@ const fishingLocations: FishingLocation[] = [
   {
     id: 'tofino-meares-vargas-flores',
     name: 'Tofino and Meares, Vargas, Flores Islands',
+    coordinates: { lat: 49.1533, lon: -125.9066 }, // Tofino coordinates
     hotspots: [
       'Tofino Harbour',
       'Clayoquot Sound',
@@ -81,6 +85,7 @@ const fishingLocations: FishingLocation[] = [
   {
     id: 'vancouver-bowen-indian-arm-squamish',
     name: 'Vancouver, Bowen Island, Indian Arm, Squamish',
+    coordinates: { lat: 49.2827, lon: -123.1207 }, // Vancouver coordinates
     hotspots: [
       'English Bay',
       'Spanish Banks',
@@ -122,6 +127,7 @@ const fishingLocations: FishingLocation[] = [
   {
     id: 'sooke-port-renfrew',
     name: 'Sooke, Port Renfrew',
+    coordinates: { lat: 48.3723, lon: -123.7365 }, // Sooke coordinates
     hotspots: [
       'Sooke Harbour',
       'Sooke Basin',
@@ -274,6 +280,7 @@ export default function LocationSelector() {
   const [selectedLocation, setSelectedLocation] = useState<string>('')
   const [selectedHotspot, setSelectedHotspot] = useState<string>('')
   const [selectedSpecies, setSelectedSpecies] = useState<string>('')
+  const [showForecast, setShowForecast] = useState(false)
 
   const currentLocation = fishingLocations.find(loc => loc.id === selectedLocation)
   const currentSpecies = fishSpecies.find(species => species.id === selectedSpecies)
@@ -290,12 +297,26 @@ export default function LocationSelector() {
   }
 
   const handleGetForecast = () => {
-    if (selectedLocation && selectedHotspot) {
-      const locationName = currentLocation?.name
-      const speciesName = selectedSpecies ? ` for ${currentSpecies?.name}` : ''
-      alert(`Getting forecast for ${selectedHotspot} in ${locationName}${speciesName}`)
-      // Here you would typically navigate to forecast page or fetch forecast data
+    if (selectedLocation && selectedHotspot && currentLocation) {
+      setShowForecast(true)
     }
+  }
+
+  const handleBackToSelection = () => {
+    setShowForecast(false)
+  }
+
+  // Show forecast component if requested
+  if (showForecast && currentLocation && selectedHotspot) {
+    return (
+      <FishingForecast
+        location={currentLocation.name}
+        hotspot={selectedHotspot}
+        species={currentSpecies?.name}
+        coordinates={currentLocation.coordinates}
+        onBack={handleBackToSelection}
+      />
+    )
   }
 
   const getStatusColor = (status: string) => {
