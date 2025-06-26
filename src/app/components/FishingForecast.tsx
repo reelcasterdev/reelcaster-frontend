@@ -269,7 +269,7 @@ export default function FishingForecast({ location, hotspot, species, coordinate
   const calculateTemperatureScore = (maxTemp: number, minTemp: number): number => {
     const avgTemp = (maxTemp + minTemp) / 2
 
-    // Optimal temperature range for BC fishing (5-20°C)
+    // Optimal temperature range for BC fishing (5-20°C)c
     if (avgTemp >= 8 && avgTemp <= 16) return 10
     if (avgTemp >= 5 && avgTemp <= 20) return 8
     if (avgTemp >= 2 && avgTemp <= 25) return 6
