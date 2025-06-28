@@ -12,6 +12,7 @@ import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../utils/f
 import { fetchWeatherData } from '../utils/weatherApi'
 import { LoadingStep, createLoadingSteps } from '../utils/loadingSteps'
 import HourlyBarChart from './HourlyBarChart'
+import WeatherComparison from './OpenMeteoDemo'
 
 interface ForecastProps {
   location: string
@@ -345,6 +346,10 @@ export default function FishingForecast({ location, hotspot, species, coordinate
             </div>
           </div>
         )}
+
+        {/* Open-Meteo 15-Minute Demo */}
+        {/* {showResults && <OpenMeteoDemo coordinates={coordinates} location={`${hotspot}, ${location}`} />} */}
+        <WeatherComparison coordinates={coordinates} location={`${hotspot}, ${location}`} />
 
         {tomorrowWeather && showResults && (
           <div className="grid gap-6 lg:grid-cols-3">
