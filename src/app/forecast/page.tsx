@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../utils/openMeteoApi'
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from '../utils/fishingCalculations'
 import { getScoreColor, getScoreLabel, formatDate } from '../utils/formatters'
+import ShadcnMinutelyBarChart from '../components/ShadcnMinutelyBarChart'
 
 // Component to handle search params (needs to be wrapped in Suspense)
 function ForecastContent() {
@@ -267,7 +268,7 @@ function ForecastContent() {
                     </h3>
                     <div className="text-right">
                       <p className="text-gray-400 text-sm">
-                        {forecasts[selectedDay].thirtyMinForecasts.length} forecast periods
+                        {forecasts[selectedDay].twoHourForecasts.length} forecast periods
                       </p>
                       <p className="text-gray-400 text-sm">
                         {forecasts[selectedDay].minutelyScores.length} data points
@@ -276,11 +277,11 @@ function ForecastContent() {
                   </div>
                 </div>
 
-                {/* 30-Minute Forecasts */}
+                {/* 2-Hour Forecasts */}
                 <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
-                  <h4 className="text-xl font-semibold text-white mb-4">🎣 30-Minute Fishing Forecasts</h4>
+                  <h4 className="text-xl font-semibold text-white mb-4">🎣 2-Hour Fishing Forecasts</h4>
                   <div className="grid gap-3">
-                    {forecasts[selectedDay].thirtyMinForecasts.map((forecast, index) => (
+                    {forecasts[selectedDay].twoHourForecasts.map((forecast, index) => (
                       <div key={index} className="bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800/70 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
@@ -311,33 +312,14 @@ function ForecastContent() {
                   </div>
                 </div>
 
-                {/* 15-Minute Details */}
-                <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
-                  <h4 className="text-xl font-semibold text-white mb-4">⏱️ 15-Minute Details (First 24 periods)</h4>
-                  <div className="grid gap-2">
-                    {forecasts[selectedDay].minutelyScores.slice(0, 24).map((minute, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-800/30 rounded-lg p-3 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="text-white font-medium w-16">{formatMinuteTime(minute.timestamp)}</div>
-                          <div className={`px-2 py-1 rounded text-xs font-bold ${getScoreColor(minute.score)}`}>
-                            {minute.score.toFixed(1)}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-300">
-                          <span title="Temperature">{Math.round(minute.temp)}°C</span>
-                          <span title="Wind Speed">{Math.round(minute.windSpeed)}km/h</span>
-                          <span title="Precipitation">{minute.precipitation.toFixed(1)}mm</span>
-                          <span className="capitalize text-xs" title="Conditions">
-                            {minute.conditions}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {/* 15-Minute Bar Chart */}
+                <ShadcnMinutelyBarChart
+                  minutelyScores={forecasts[selectedDay].minutelyScores}
+                  twoHourForecasts={forecasts[selectedDay].twoHourForecasts}
+                  sunrise={forecasts[selectedDay].sunrise}
+                  sunset={forecasts[selectedDay].sunset}
+                  dayName={forecasts[selectedDay].dayName}
+                />
               </div>
             )}
           </div>

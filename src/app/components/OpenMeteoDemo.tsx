@@ -10,6 +10,7 @@ import {
 } from '../utils/fishingCalculations'
 import { fetchWeatherData } from '../utils/weatherApi'
 import { getScoreColor, getScoreLabel, formatDate, formatTime } from '../utils/formatters'
+import ShadcnMinutelyBarChart from './ShadcnMinutelyBarChart'
 
 type ApiProvider = 'openmeteo' | 'openweather'
 
@@ -276,15 +277,15 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
 
           {currentForecasts[selectedDay] && (
             <div className="space-y-6">
-              {/* Open-Meteo 30-Minute Forecasts */}
-              {selectedApi === 'openmeteo' && 'thirtyMinForecasts' in currentForecasts[selectedDay] && (
+              {/* Open-Meteo 2-Hour Forecasts */}
+              {selectedApi === 'openmeteo' && 'twoHourForecasts' in currentForecasts[selectedDay] && (
                 <div>
                   <h4 className="text-lg font-semibold text-white mb-4">
-                    30-Minute Fishing Forecasts (
-                    {(currentForecasts[selectedDay] as OpenMeteoDailyForecast).thirtyMinForecasts.length} periods)
+                    2-Hour Fishing Forecasts (
+                    {(currentForecasts[selectedDay] as OpenMeteoDailyForecast).twoHourForecasts.length} periods)
                   </h4>
                   <div className="grid gap-3">
-                    {(currentForecasts[selectedDay] as OpenMeteoDailyForecast).thirtyMinForecasts
+                    {(currentForecasts[selectedDay] as OpenMeteoDailyForecast).twoHourForecasts
                       .slice(0, 12)
                       .map((forecast, index) => (
                         <div key={index} className="bg-gray-800/50 rounded-lg p-4">
@@ -357,31 +358,15 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
                 </div>
               )}
 
-              {/* 15-Minute Detailed View for Open-Meteo */}
+              {/* 15-Minute Bar Chart for Open-Meteo */}
               {selectedApi === 'openmeteo' && 'minutelyScores' in currentForecasts[selectedDay] && (
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-4">15-Minute Details (First 16 periods)</h4>
-                  <div className="grid gap-2">
-                    {(currentForecasts[selectedDay] as OpenMeteoDailyForecast).minutelyScores
-                      .slice(0, 16)
-                      .map((minute, index) => (
-                        <div key={index} className="bg-gray-800/30 rounded-lg p-3 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="text-white font-medium w-16">{formatMinuteTime(minute.timestamp)}</div>
-                            <div className={`px-2 py-1 rounded text-xs font-bold ${getScoreColor(minute.score)}`}>
-                              {minute.score.toFixed(1)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-gray-300">
-                            <span>{Math.round(minute.temp)}°C</span>
-                            <span>{Math.round(minute.windSpeed)}km/h</span>
-                            <span>{minute.precipitation.toFixed(1)}mm</span>
-                            <span className="capitalize text-xs">{minute.conditions}</span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
+                <ShadcnMinutelyBarChart
+                  minutelyScores={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).minutelyScores}
+                  twoHourForecasts={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).twoHourForecasts}
+                  sunrise={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).sunrise}
+                  sunset={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).sunset}
+                  dayName={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).dayName}
+                />
               )}
             </div>
           )}

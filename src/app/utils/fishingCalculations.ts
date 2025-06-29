@@ -424,7 +424,7 @@ export interface OpenMeteoDailyForecast {
     windSpeed: number
     precipitation: number
   }>
-  thirtyMinForecasts: MinutelyForecast[]
+  twoHourForecasts: MinutelyForecast[]
 }
 
 export const calculateOpenMeteoFishingScore = (
@@ -557,34 +557,51 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
       }
     })
 
-    // Generate 30-minute forecasts (average every 2 x 15-minute periods)
-    const thirtyMinForecasts: MinutelyForecast[] = []
-    for (let i = 0; i < dayMinutely.length; i += 2) {
-      if (i + 1 < dayMinutely.length) {
-        const minute1 = dayMinutely[i]
-        const minute2 = dayMinutely[i + 1]
+    // Generate 2-hour forecasts (average every 8 x 15-minute periods)
+    const twoHourForecasts: MinutelyForecast[] = []
+    for (let i = 0; i < dayMinutely.length; i += 8) {
+      // Get 8 consecutive 15-minute periods (2 hours total)
+      const segments = dayMinutely.slice(i, i + 8)
 
-        // Average the conditions for the 30-minute block
+      if (segments.length >= 4) {
+        // Need at least 4 segments (1 hour) to create a forecast
+        const firstSegment = segments[0]
+        const lastSegment = segments[segments.length - 1]
+
+        // Calculate averages across all segments
+        const avgTemp = segments.reduce((sum, seg) => sum + seg.temp, 0) / segments.length
+        const avgHumidity = segments.reduce((sum, seg) => sum + seg.humidity, 0) / segments.length
+        const maxPrecipitation = Math.max(...segments.map(seg => seg.precipitation))
+        const avgPressure = segments.reduce((sum, seg) => sum + seg.pressure, 0) / segments.length
+        const avgCloudCover = segments.reduce((sum, seg) => sum + seg.cloudCover, 0) / segments.length
+        const avgWindSpeed = segments.reduce((sum, seg) => sum + seg.windSpeed, 0) / segments.length
+        const maxWindGusts = Math.max(...segments.map(seg => seg.windGusts))
+
+        // Use the most common weather code or the first one
+        const weatherCode = firstSegment.weatherCode
+        const windDirection = firstSegment.windDirection
+
+        // Create averaged data for scoring
         const avgData: OpenMeteo15MinData = {
-          time: minute1.time,
-          timestamp: minute1.timestamp,
-          temp: (minute1.temp + minute2.temp) / 2,
-          humidity: (minute1.humidity + minute2.humidity) / 2,
-          precipitation: Math.max(minute1.precipitation, minute2.precipitation),
-          weatherCode: minute1.weatherCode,
-          pressure: (minute1.pressure + minute2.pressure) / 2,
-          cloudCover: (minute1.cloudCover + minute2.cloudCover) / 2,
-          windSpeed: (minute1.windSpeed + minute2.windSpeed) / 2,
-          windDirection: minute1.windDirection,
-          windGusts: Math.max(minute1.windGusts, minute2.windGusts),
+          time: firstSegment.time,
+          timestamp: firstSegment.timestamp,
+          temp: avgTemp,
+          humidity: avgHumidity,
+          precipitation: maxPrecipitation,
+          weatherCode: weatherCode,
+          pressure: avgPressure,
+          cloudCover: avgCloudCover,
+          windSpeed: avgWindSpeed,
+          windDirection: windDirection,
+          windGusts: maxWindGusts,
         }
 
         const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp)
         const weather = getWeatherDescription(avgData.weatherCode)
 
-        thirtyMinForecasts.push({
-          startTime: minute1.timestamp,
-          endTime: minute2.timestamp + 900, // Add 15 minutes
+        twoHourForecasts.push({
+          startTime: firstSegment.timestamp,
+          endTime: lastSegment.timestamp + 900, // Add 15 minutes to last segment
           score,
           avgTemp: avgData.temp,
           conditions: weather.description,
@@ -602,7 +619,7 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
       sunrise: sunriseTimestamp,
       sunset: sunsetTimestamp,
       minutelyScores,
-      thirtyMinForecasts,
+      twoHourForecasts,
     })
   })
 
