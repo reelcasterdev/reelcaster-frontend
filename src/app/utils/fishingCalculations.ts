@@ -1,3 +1,6 @@
+// Open-Meteo integration imports
+import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
+
 export interface FishingScore {
   total: number
   breakdown: {
@@ -387,6 +390,235 @@ export const generateDailyForecasts = (weatherData: WeatherData): DailyForecastD
       sunrise: dayData.sunrise,
       sunset: dayData.sunset,
       hourlyScores,
+      twoHourForecasts,
+    })
+  })
+
+  return dailyForecasts
+}
+
+export interface MinutelyForecast {
+  startTime: number
+  endTime: number
+  score: FishingScore
+  avgTemp: number
+  conditions: string
+  icon: string
+  windSpeed: number
+  precipitation: number
+  pressure: number
+}
+
+export interface OpenMeteoDailyForecast {
+  date: number
+  dayName: string
+  sunrise: number
+  sunset: number
+  minutelyScores: Array<{
+    time: string
+    timestamp: number
+    score: number
+    temp: number
+    conditions: string
+    icon: string
+    windSpeed: number
+    precipitation: number
+  }>
+  twoHourForecasts: MinutelyForecast[]
+}
+
+export const calculateOpenMeteoFishingScore = (
+  minuteData: OpenMeteo15MinData,
+  sunrise: number,
+  sunset: number,
+): FishingScore => {
+  // Barometric Pressure Score (Weight: 25%) - Open-Meteo gives hPa
+  const pressureScore = calculatePressureScore(minuteData.pressure)
+
+  // Wind Score (Weight: 20%) - Convert km/h to m/s for consistency
+  const windSpeedMs = minuteData.windSpeed / 3.6
+  const windScore = calculateWindScore(windSpeedMs, minuteData.windDirection)
+
+  // Temperature Score (Weight: 20%)
+  const temperatureScore = calculateHourlyTemperatureScore(minuteData.temp)
+
+  // Precipitation Score (Weight: 15%) - Open-Meteo gives mm/h, convert to probability
+  const precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation)
+
+  // Cloud Cover Score (Weight: 10%)
+  const cloudScore = calculateCloudScore(minuteData.cloudCover)
+
+  // Time of Day Score (Weight: 10%)
+  const timeScore = calculateHourlyTimeScore(minuteData.timestamp, sunrise, sunset)
+
+  const breakdown = {
+    pressure: Math.round(pressureScore * 100) / 100,
+    wind: Math.round(windScore * 100) / 100,
+    temperature: Math.round(temperatureScore * 100) / 100,
+    precipitation: Math.round(precipitationScore * 100) / 100,
+    cloudCover: Math.round(cloudScore * 100) / 100,
+    timeOfDay: Math.round(timeScore * 100) / 100,
+  }
+
+  const totalScore =
+    pressureScore * 0.25 +
+    windScore * 0.2 +
+    temperatureScore * 0.2 +
+    precipitationScore * 0.15 +
+    cloudScore * 0.1 +
+    timeScore * 0.1
+
+  return {
+    total: Math.round(totalScore * 100) / 100,
+    breakdown,
+  }
+}
+
+export const calculatePrecipitationScoreFromMM = (precipitationMM: number): number => {
+  // Convert mm/h precipitation to score
+  if (precipitationMM <= 0.1) return 10 // No rain
+  if (precipitationMM <= 0.5) return 8 // Light rain
+  if (precipitationMM <= 2.0) return 6 // Light to moderate rain
+  if (precipitationMM <= 5.0) return 4 // Moderate rain
+  if (precipitationMM <= 10.0) return 2 // Heavy rain
+  return 1 // Very heavy rain
+}
+
+export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMeteoData): OpenMeteoDailyForecast[] => {
+  const dailyForecasts: OpenMeteoDailyForecast[] = []
+
+  console.log('generateOpenMeteoDailyForecasts - Input data:', {
+    minutely15Count: openMeteoData.minutely15.length,
+    dailyCount: openMeteoData.daily.length,
+    firstMinutely: openMeteoData.minutely15[0]?.time,
+    lastMinutely: openMeteoData.minutely15[openMeteoData.minutely15.length - 1]?.time,
+  })
+
+  // Group 15-minute data by day
+  const minutelyByDay: { [key: string]: OpenMeteo15MinData[] } = {}
+
+  openMeteoData.minutely15.forEach(minuteData => {
+    const date = new Date(minuteData.timestamp * 1000)
+    const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+
+    if (!minutelyByDay[dayKey]) {
+      minutelyByDay[dayKey] = []
+    }
+    minutelyByDay[dayKey].push(minuteData)
+  })
+
+  const dayKeys = Object.keys(minutelyByDay).sort()
+  console.log(
+    '15-minute data grouped by days:',
+    dayKeys.map(key => ({
+      day: key,
+      count: minutelyByDay[key].length,
+      firstTime: minutelyByDay[key][0]?.time,
+      lastTime: minutelyByDay[key][minutelyByDay[key].length - 1]?.time,
+    })),
+  )
+
+  // Process each day (skip today, start from tomorrow)
+  // For Open-Meteo, we can process up to 14 days
+  const maxDays = Math.min(dayKeys.length - 1, 14) // Skip today, process up to 14 days
+  dayKeys.slice(1, maxDays + 1).forEach((dayKey, index) => {
+    const dayIndex = index + 1
+    const dayMinutely = minutelyByDay[dayKey]
+    const dayData = openMeteoData.daily[dayIndex]
+
+    if (!dayData || !dayMinutely || dayMinutely.length === 0) {
+      console.log(`Skipping Open-Meteo day ${dayIndex} - missing data`)
+      return
+    }
+
+    const sunriseTimestamp = new Date(dayData.sunrise).getTime() / 1000
+    const sunsetTimestamp = new Date(dayData.sunset).getTime() / 1000
+
+    console.log(`Processing Open-Meteo day ${dayIndex}:`, {
+      dayKey,
+      date: dayData.date,
+      minutelyCount: dayMinutely.length,
+      sunrise: dayData.sunrise,
+      sunset: dayData.sunset,
+    })
+
+    // Generate 15-minute scores
+    const minutelyScores = dayMinutely.map(minuteData => {
+      const weather = getWeatherDescription(minuteData.weatherCode)
+      return {
+        time: minuteData.time,
+        timestamp: minuteData.timestamp,
+        score: calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp).total,
+        temp: minuteData.temp,
+        conditions: weather.description,
+        icon: weather.icon,
+        windSpeed: minuteData.windSpeed,
+        precipitation: minuteData.precipitation,
+      }
+    })
+
+    // Generate 2-hour forecasts (average every 8 x 15-minute periods)
+    const twoHourForecasts: MinutelyForecast[] = []
+    for (let i = 0; i < dayMinutely.length; i += 8) {
+      // Get 8 consecutive 15-minute periods (2 hours total)
+      const segments = dayMinutely.slice(i, i + 8)
+
+      if (segments.length >= 4) {
+        // Need at least 4 segments (1 hour) to create a forecast
+        const firstSegment = segments[0]
+        const lastSegment = segments[segments.length - 1]
+
+        // Calculate averages across all segments
+        const avgTemp = segments.reduce((sum, seg) => sum + seg.temp, 0) / segments.length
+        const avgHumidity = segments.reduce((sum, seg) => sum + seg.humidity, 0) / segments.length
+        const maxPrecipitation = Math.max(...segments.map(seg => seg.precipitation))
+        const avgPressure = segments.reduce((sum, seg) => sum + seg.pressure, 0) / segments.length
+        const avgCloudCover = segments.reduce((sum, seg) => sum + seg.cloudCover, 0) / segments.length
+        const avgWindSpeed = segments.reduce((sum, seg) => sum + seg.windSpeed, 0) / segments.length
+        const maxWindGusts = Math.max(...segments.map(seg => seg.windGusts))
+
+        // Use the most common weather code or the first one
+        const weatherCode = firstSegment.weatherCode
+        const windDirection = firstSegment.windDirection
+
+        // Create averaged data for scoring
+        const avgData: OpenMeteo15MinData = {
+          time: firstSegment.time,
+          timestamp: firstSegment.timestamp,
+          temp: avgTemp,
+          humidity: avgHumidity,
+          precipitation: maxPrecipitation,
+          weatherCode: weatherCode,
+          pressure: avgPressure,
+          cloudCover: avgCloudCover,
+          windSpeed: avgWindSpeed,
+          windDirection: windDirection,
+          windGusts: maxWindGusts,
+        }
+
+        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp)
+        const weather = getWeatherDescription(avgData.weatherCode)
+
+        twoHourForecasts.push({
+          startTime: firstSegment.timestamp,
+          endTime: lastSegment.timestamp + 900, // Add 15 minutes to last segment
+          score,
+          avgTemp: avgData.temp,
+          conditions: weather.description,
+          icon: weather.icon,
+          windSpeed: avgData.windSpeed,
+          precipitation: avgData.precipitation,
+          pressure: avgData.pressure,
+        })
+      }
+    }
+
+    dailyForecasts.push({
+      date: dayData.timestamp,
+      dayName: new Date(dayData.timestamp * 1000).toLocaleDateString('en-US', { weekday: 'long' }),
+      sunrise: sunriseTimestamp,
+      sunset: sunsetTimestamp,
+      minutelyScores,
       twoHourForecasts,
     })
   })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import FishingForecast from './FishingForecast'
 
 interface FishingLocation {
@@ -277,6 +278,7 @@ const fishSpecies: FishSpecies[] = [
 ]
 
 export default function LocationSelector() {
+  const router = useRouter()
   const [selectedLocation, setSelectedLocation] = useState<string>('')
   const [selectedHotspot, setSelectedHotspot] = useState<string>('')
   const [selectedSpecies, setSelectedSpecies] = useState<string>('')
@@ -299,6 +301,23 @@ export default function LocationSelector() {
   const handleGetForecast = () => {
     if (selectedLocation && selectedHotspot && currentLocation) {
       setShowForecast(true)
+    }
+  }
+
+  const handleOpenMeteoForecast = () => {
+    if (selectedLocation && selectedHotspot && currentLocation) {
+      const params = new URLSearchParams({
+        location: currentLocation.name,
+        hotspot: selectedHotspot,
+        lat: currentLocation.coordinates.lat.toString(),
+        lon: currentLocation.coordinates.lon.toString(),
+      })
+
+      if (currentSpecies) {
+        params.set('species', currentSpecies.name)
+      }
+
+      router.push(`/forecast?${params.toString()}`)
     }
   }
 
@@ -521,9 +540,10 @@ export default function LocationSelector() {
         </div>
       )}
 
-      {/* Get Forecast Button */}
+      {/* Get Forecast Buttons */}
       {selectedLocation && selectedHotspot && (
-        <div className="border-t border-gray-600 pt-8">
+        <div className="border-t border-gray-600 pt-8 space-y-4">
+          {/* Standard Forecast (2 days) */}
           <button
             onClick={handleGetForecast}
             className="w-full group relative overflow-hidden bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 hover:from-gray-700 hover:via-gray-600 hover:to-gray-500 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-black/50 hover:shadow-white/10 hover:scale-[1.02] border border-gray-500"
@@ -533,12 +553,57 @@ export default function LocationSelector() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span className="text-lg">
-                Get Fishing Forecast for {selectedHotspot}
+                Get 2-Day Forecast for {selectedHotspot}
                 {selectedSpecies && ` (${currentSpecies?.name})`}
               </span>
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
           </button>
+
+          {/* Open-Meteo Extended Forecast (14 days) */}
+          <button
+            onClick={handleOpenMeteoForecast}
+            className="w-full group relative overflow-hidden bg-gradient-to-r from-green-800 via-green-700 to-green-600 hover:from-green-700 hover:via-green-600 hover:to-green-500 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-black/50 hover:shadow-green-500/20 hover:scale-[1.02] border border-green-500"
+          >
+            <div className="relative z-10 flex items-center justify-center gap-3">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <span className="text-lg">
+                Get 14-Day Extended Forecast
+                {selectedSpecies && ` (${currentSpecies?.name})`}
+              </span>
+              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">FREE</span>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+          </button>
+
+          {/* Forecast Options Info */}
+          <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+              <h5 className="text-white font-semibold mb-2">🌊 Standard Forecast</h5>
+              <ul className="text-gray-300 space-y-1">
+                <li>• OpenWeatherMap API</li>
+                <li>• 2 days forecast</li>
+                <li>• Hourly resolution</li>
+                <li>• Interactive bar charts</li>
+              </ul>
+            </div>
+            <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
+              <h5 className="text-white font-semibold mb-2">🌍 Extended Forecast</h5>
+              <ul className="text-green-300 space-y-1">
+                <li>• Open-Meteo API (Free)</li>
+                <li>• Up to 14 days forecast</li>
+                <li>• 15-minute resolution</li>
+                <li>• Detailed daily breakdown</li>
+              </ul>
+            </div>
+          </div>
         </div>
       )}
 
