@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../utils/openMeteoApi'
-import { FishingScore, OpenMeteoDailyForecast, generateOpenMeteoDailyForecasts } from '../utils/fishingCalculations'
-import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../utils/formatters'
-import { LoadingStep, createLoadingSteps } from '../utils/loadingSteps'
-import ShadcnMinutelyBarChart from './ShadcnMinutelyBarChart'
+import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
+import { FishingScore, OpenMeteoDailyForecast, generateOpenMeteoDailyForecasts } from '../../utils/fishingCalculations'
+import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../../utils/formatters'
+import { LoadingStep, createLoadingSteps } from '../../utils/loadingSteps'
+import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
 import WeatherComparison from './OpenMeteoDemo'
 
 interface ForecastProps {

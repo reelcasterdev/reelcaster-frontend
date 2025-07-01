@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../utils/openMeteoApi'
-import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from '../utils/fishingCalculations'
-import { getScoreColor, getScoreLabel, formatDate } from '../utils/formatters'
-import ShadcnMinutelyBarChart from './ShadcnMinutelyBarChart'
+import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
+import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
+import { getScoreColor, getScoreLabel, formatDate } from '../../utils/formatters'
+import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
 
 interface WeatherComparisonProps {
   coordinates: { lat: number; lon: number }

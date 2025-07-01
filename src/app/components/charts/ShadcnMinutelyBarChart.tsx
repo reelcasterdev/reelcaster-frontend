@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ReferenceLine } from 'recharts'
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getScoreColor } from '../utils/formatters'
+import { getScoreColor } from '../../utils/formatters'
 
 interface MinutelyScore {
   time: string

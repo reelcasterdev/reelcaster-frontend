@@ -1,4 +1,4 @@
-import LocationSelector from './components/LocationSelector'
+import LocationSelector from './components/location/LocationSelector'
 
 export default function Home() {
   return (

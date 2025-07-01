@@ -1,6 +1,6 @@
 'use client'
 
-import { getScoreColor } from '../utils/formatters'
+import { getScoreColor } from '../../utils/formatters'
 
 interface HourlyScore {
   hour: number

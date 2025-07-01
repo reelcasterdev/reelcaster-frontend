@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import FishingForecast from './FishingForecast'
+import FishingForecast from '../demo/FishingForecast'
 
 interface FishingLocation {
   id: string

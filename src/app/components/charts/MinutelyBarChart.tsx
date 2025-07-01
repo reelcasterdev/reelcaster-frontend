@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { getScoreColor } from '../utils/formatters'
+import { getScoreColor } from '../../utils/formatters'
 
 interface MinutelyScore {
   time: string
