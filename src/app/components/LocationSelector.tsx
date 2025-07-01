@@ -553,7 +553,7 @@ export default function LocationSelector() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span className="text-lg">
-                Get 2-Day Forecast for {selectedHotspot}
+                Get Enhanced 3-Day Forecast for {selectedHotspot}
                 {selectedSpecies && ` (${currentSpecies?.name})`}
               </span>
             </div>
@@ -585,22 +585,24 @@ export default function LocationSelector() {
 
           {/* Forecast Options Info */}
           <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
-              <h5 className="text-white font-semibold mb-2">🌊 Standard Forecast</h5>
-              <ul className="text-gray-300 space-y-1">
-                <li>• OpenWeatherMap API</li>
-                <li>• 2 days forecast</li>
-                <li>• Hourly resolution</li>
-                <li>• Interactive bar charts</li>
+            <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
+              <h5 className="text-white font-semibold mb-2">🌊 Enhanced 3-Day Forecast</h5>
+              <ul className="text-green-300 space-y-1">
+                <li>• Open-Meteo API (Free)</li>
+                <li>• 3 days enhanced forecast</li>
+                <li>• 15-minute resolution</li>
+                <li>• 11-factor algorithm</li>
+                <li>• 2-hour prediction blocks</li>
               </ul>
             </div>
             <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
-              <h5 className="text-white font-semibold mb-2">🌍 Extended Forecast</h5>
+              <h5 className="text-white font-semibold mb-2">🌍 Extended 14-Day Forecast</h5>
               <ul className="text-green-300 space-y-1">
                 <li>• Open-Meteo API (Free)</li>
                 <li>• Up to 14 days forecast</li>
                 <li>• 15-minute resolution</li>
-                <li>• Detailed daily breakdown</li>
+                <li>• Enhanced scoring system</li>
+                <li>• Daily breakdown view</li>
               </ul>
             </div>
           </div>

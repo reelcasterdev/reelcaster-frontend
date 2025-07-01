@@ -2,17 +2,9 @@
 
 import { useState } from 'react'
 import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../utils/openMeteoApi'
-import {
-  generateOpenMeteoDailyForecasts,
-  OpenMeteoDailyForecast,
-  generateDailyForecasts,
-  DailyForecastData,
-} from '../utils/fishingCalculations'
-import { fetchWeatherData } from '../utils/weatherApi'
-import { getScoreColor, getScoreLabel, formatDate, formatTime } from '../utils/formatters'
+import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from '../utils/fishingCalculations'
+import { getScoreColor, getScoreLabel, formatDate } from '../utils/formatters'
 import ShadcnMinutelyBarChart from './ShadcnMinutelyBarChart'
-
-type ApiProvider = 'openmeteo' | 'openweather'
 
 interface WeatherComparisonProps {
   coordinates: { lat: number; lon: number }
@@ -20,10 +12,8 @@ interface WeatherComparisonProps {
 }
 
 export default function WeatherComparison({ coordinates, location }: WeatherComparisonProps) {
-  const [selectedApi, setSelectedApi] = useState<ApiProvider>('openmeteo')
   const [openMeteoData, setOpenMeteoData] = useState<ProcessedOpenMeteoData | null>(null)
   const [openMeteoForecasts, setOpenMeteoForecasts] = useState<OpenMeteoDailyForecast[]>([])
-  const [openWeatherForecasts, setOpenWeatherForecasts] = useState<DailyForecastData[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
@@ -35,39 +25,20 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
     setSelectedDay(0)
 
     try {
-      if (selectedApi === 'openmeteo') {
-        const result = await fetchOpenMeteoWeather(coordinates, forecastDays)
+      const result = await fetchOpenMeteoWeather(coordinates, forecastDays)
 
-        if (!result.success) {
-          setError(result.error || 'Failed to fetch Open-Meteo data')
-          return
-        }
-
-        console.log('Open-Meteo data received:', result.data)
-        setOpenMeteoData(result.data!)
-
-        // Generate daily forecasts with 15-minute data
-        const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!)
-        console.log('Generated Open-Meteo daily forecasts:', dailyForecasts)
-        setOpenMeteoForecasts(dailyForecasts)
-        setOpenWeatherForecasts([]) // Clear other API data
-      } else {
-        const result = await fetchWeatherData(coordinates)
-
-        if (!result.success) {
-          setError(result.error || 'Failed to fetch OpenWeatherMap data')
-          return
-        }
-
-        console.log('OpenWeatherMap data received:', result.data)
-
-        // Generate daily forecasts with hourly data
-        const dailyForecasts = generateDailyForecasts(result.data!)
-        console.log('Generated OpenWeatherMap daily forecasts:', dailyForecasts)
-        setOpenWeatherForecasts(dailyForecasts)
-        setOpenMeteoForecasts([]) // Clear other API data
-        setOpenMeteoData(null)
+      if (!result.success) {
+        setError(result.error || 'Failed to fetch Open-Meteo data')
+        return
       }
+
+      console.log('Open-Meteo data received:', result.data)
+      setOpenMeteoData(result.data!)
+
+      // Generate daily forecasts with enhanced 15-minute data
+      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!)
+      console.log('Generated Open-Meteo daily forecasts:', dailyForecasts)
+      setOpenMeteoForecasts(dailyForecasts)
     } catch (err) {
       console.error('Error fetching weather data:', err)
       setError('Failed to fetch weather data')
@@ -84,70 +55,36 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
     })
   }
 
-  const currentForecasts = selectedApi === 'openmeteo' ? openMeteoForecasts : openWeatherForecasts
-  const maxDays = selectedApi === 'openmeteo' ? 14 : 2
-  const dataResolution = selectedApi === 'openmeteo' ? '15-minute' : 'hourly'
-
   return (
     <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 mb-6">
-      {/* Header with API Selection */}
+      {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Weather API Comparison</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Enhanced 15-Minute Weather Data</h2>
             <p className="text-gray-300">
-              Compare {dataResolution} weather data for {location} • Up to {maxDays} days
+              High-resolution 15-minute weather data for {location} • Up to 14 days with 11-factor algorithm
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* API Selection */}
-            <div className="flex bg-gray-800/50 rounded-lg p-1">
-              <button
-                onClick={() => setSelectedApi('openmeteo')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  selectedApi === 'openmeteo'
-                    ? 'bg-green-600 text-white shadow-lg'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                }`}
-              >
-                Open-Meteo (14 days)
-              </button>
-              <button
-                onClick={() => setSelectedApi('openweather')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  selectedApi === 'openweather'
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                }`}
-              >
-                OpenWeather (2 days)
-              </button>
-            </div>
-
-            {/* Forecast Days Selection for Open-Meteo */}
-            {selectedApi === 'openmeteo' && (
-              <select
-                value={forecastDays}
-                onChange={e => setForecastDays(Number(e.target.value))}
-                className="bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value={3}>3 days</option>
-                <option value={7}>7 days</option>
-                <option value={14}>14 days</option>
-              </select>
-            )}
+            {/* Forecast Days Selection */}
+            <select
+              value={forecastDays}
+              onChange={e => setForecastDays(Number(e.target.value))}
+              className="bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm"
+            >
+              <option value={3}>3 days</option>
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+            </select>
 
             {/* Fetch Button */}
             <button
               onClick={fetchWeatherForecast}
               disabled={loading}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                loading
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : selectedApi === 'openmeteo'
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                loading ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
               }`}
             >
               {loading ? (
@@ -156,38 +93,27 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
                   Loading...
                 </div>
               ) : (
-                `Fetch ${selectedApi === 'openmeteo' ? '15-Min' : 'Hourly'} Data`
+                'Fetch Enhanced Data'
               )}
             </button>
           </div>
         </div>
 
-        {/* API Info Cards */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <div
-            className={`p-4 rounded-lg border-2 transition-all ${
-              selectedApi === 'openmeteo' ? 'bg-green-900/30 border-green-500' : 'bg-gray-800/30 border-gray-600'
-            }`}
-          >
-            <h3 className="font-semibold text-white mb-2">🌍 Open-Meteo API</h3>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li>• Free weather API</li>
-              <li>• 15-minute resolution</li>
+        {/* Enhanced API Info */}
+        <div className="bg-green-900/30 border border-green-500 rounded-lg p-4">
+          <h3 className="font-semibold text-white mb-2">🌍 Enhanced Open-Meteo Integration</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <ul className="text-sm text-green-300 space-y-1">
+              <li>• Free weather API service</li>
+              <li>• 15-minute resolution data</li>
               <li>• Up to 14 days forecast</li>
               <li>• No API key required</li>
             </ul>
-          </div>
-          <div
-            className={`p-4 rounded-lg border-2 transition-all ${
-              selectedApi === 'openweather' ? 'bg-blue-900/30 border-blue-500' : 'bg-gray-800/30 border-gray-600'
-            }`}
-          >
-            <h3 className="font-semibold text-white mb-2">☁️ OpenWeatherMap API</h3>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li>• Premium weather service</li>
-              <li>• Hourly resolution</li>
-              <li>• 2 days forecast</li>
-              <li>• Requires API key</li>
+            <ul className="text-sm text-green-300 space-y-1">
+              <li>• 11-factor scoring algorithm</li>
+              <li>• Enhanced safety monitoring</li>
+              <li>• 2-hour prediction blocks</li>
+              <li>• Real-time visibility & lightning</li>
             </ul>
           </div>
         </div>
@@ -200,73 +126,40 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
       )}
 
       {/* Data Summary */}
-      {((selectedApi === 'openmeteo' && openMeteoData) ||
-        (selectedApi === 'openweather' && openWeatherForecasts.length > 0)) && (
+      {openMeteoData && (
         <div className="bg-gray-800/50 rounded-xl p-4 mb-6">
           <h3 className="text-lg font-semibold text-white mb-2">Data Summary</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            {selectedApi === 'openmeteo' && openMeteoData && (
-              <>
-                <div>
-                  <p className="text-gray-400">15-Min Points</p>
-                  <p className="text-white font-bold">{openMeteoData.minutely15.length}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Time Range</p>
-                  <p className="text-white font-bold">
-                    {Math.round((openMeteoData.minutely15.length * 15) / 60)} hours
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Elevation</p>
-                  <p className="text-white font-bold">{openMeteoData.location.elevation}m</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Timezone</p>
-                  <p className="text-white font-bold">{openMeteoData.location.timezone}</p>
-                </div>
-              </>
-            )}
-            {selectedApi === 'openweather' && openWeatherForecasts.length > 0 && (
-              <>
-                <div>
-                  <p className="text-gray-400">Forecast Days</p>
-                  <p className="text-white font-bold">{openWeatherForecasts.length}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Resolution</p>
-                  <p className="text-white font-bold">Hourly</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">2-Hour Blocks</p>
-                  <p className="text-white font-bold">
-                    {openWeatherForecasts.reduce((sum, day) => sum + day.twoHourForecasts.length, 0)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400">API Provider</p>
-                  <p className="text-white font-bold">OpenWeather</p>
-                </div>
-              </>
-            )}
+            <div>
+              <p className="text-gray-400">15-Min Points</p>
+              <p className="text-white font-bold">{openMeteoData.minutely15.length}</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Time Range</p>
+              <p className="text-white font-bold">{Math.round((openMeteoData.minutely15.length * 15) / 60)} hours</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Elevation</p>
+              <p className="text-white font-bold">{openMeteoData.location.elevation}m</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Timezone</p>
+              <p className="text-white font-bold">{openMeteoData.location.timezone}</p>
+            </div>
           </div>
         </div>
       )}
 
       {/* Day Tabs */}
-      {currentForecasts.length > 0 && (
+      {openMeteoForecasts.length > 0 && (
         <div className="space-y-4">
           <div className="flex gap-2 overflow-x-auto pb-2">
-            {currentForecasts.map((forecast, index) => (
+            {openMeteoForecasts.map((forecast, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedDay(index)}
                 className={`px-4 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
-                  selectedDay === index
-                    ? selectedApi === 'openmeteo'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  selectedDay === index ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 {forecast.dayName}
@@ -275,97 +168,53 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
             ))}
           </div>
 
-          {currentForecasts[selectedDay] && (
+          {openMeteoForecasts[selectedDay] && (
             <div className="space-y-6">
-              {/* Open-Meteo 2-Hour Forecasts */}
-              {selectedApi === 'openmeteo' && 'twoHourForecasts' in currentForecasts[selectedDay] && (
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-4">
-                    2-Hour Fishing Forecasts (
-                    {(currentForecasts[selectedDay] as OpenMeteoDailyForecast).twoHourForecasts.length} periods)
-                  </h4>
-                  <div className="grid gap-3">
-                    {(currentForecasts[selectedDay] as OpenMeteoDailyForecast).twoHourForecasts
-                      .slice(0, 12)
-                      .map((forecast, index) => (
-                        <div key={index} className="bg-gray-800/50 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="text-white font-semibold">
-                                {formatMinuteTime(forecast.startTime)} - {formatMinuteTime(forecast.endTime)}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`px-3 py-1 rounded-full text-sm font-bold ${getScoreColor(
-                                    forecast.score.total,
-                                  )}`}
-                                >
-                                  {forecast.score.total}/10
-                                </div>
-                                <span className="text-gray-300 text-sm">{getScoreLabel(forecast.score.total)}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-gray-300">
-                              <span>{Math.round(forecast.avgTemp)}°C</span>
-                              <span>{Math.round(forecast.windSpeed)} km/h</span>
-                              <span>{forecast.precipitation.toFixed(1)}mm</span>
-                              <span>{Math.round(forecast.pressure)}hPa</span>
-                            </div>
+              {/* Enhanced 2-Hour Forecasts */}
+              <div>
+                <h4 className="text-lg font-semibold text-white mb-4">
+                  Enhanced 2-Hour Fishing Forecasts ({openMeteoForecasts[selectedDay].twoHourForecasts.length} periods)
+                </h4>
+                <div className="grid gap-3">
+                  {openMeteoForecasts[selectedDay].twoHourForecasts.slice(0, 12).map((forecast, index) => (
+                    <div key={index} className="bg-gray-800/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="text-white font-semibold">
+                            {formatMinuteTime(forecast.startTime)} - {formatMinuteTime(forecast.endTime)}
                           </div>
-                          <div className="mt-2 text-sm text-gray-400 capitalize">{forecast.conditions}</div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-
-              {/* OpenWeather 2-Hour Forecasts */}
-              {selectedApi === 'openweather' && 'twoHourForecasts' in currentForecasts[selectedDay] && (
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-4">
-                    2-Hour Fishing Forecasts (
-                    {(currentForecasts[selectedDay] as DailyForecastData).twoHourForecasts.length} periods)
-                  </h4>
-                  <div className="grid gap-3">
-                    {(currentForecasts[selectedDay] as DailyForecastData).twoHourForecasts.map((forecast, index) => (
-                      <div key={index} className="bg-gray-800/50 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="text-white font-semibold">
-                              {formatTime(forecast.startTime)} - {formatTime(forecast.endTime)}
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`px-3 py-1 rounded-full text-sm font-bold ${getScoreColor(
+                                forecast.score.total,
+                              )}`}
+                            >
+                              {forecast.score.total}/10
                             </div>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`px-3 py-1 rounded-full text-sm font-bold ${getScoreColor(
-                                  forecast.score.total,
-                                )}`}
-                              >
-                                {forecast.score.total}/10
-                              </div>
-                              <span className="text-gray-300 text-sm">{getScoreLabel(forecast.score.total)}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-300">
-                            <span>{Math.round(forecast.avgTemp)}°C</span>
-                            <span>{Math.round(forecast.windSpeed * 3.6)} km/h</span>
-                            <span>{Math.round(forecast.pop * 100)}% rain</span>
+                            <span className="text-gray-300 text-sm">{getScoreLabel(forecast.score.total)}</span>
                           </div>
                         </div>
-                        <div className="mt-2 text-sm text-gray-400 capitalize">{forecast.conditions}</div>
+                        <div className="flex items-center gap-4 text-sm text-gray-300">
+                          <span>{Math.round(forecast.avgTemp)}°C</span>
+                          <span>{Math.round(forecast.windSpeed)} km/h</span>
+                          <span>{forecast.precipitation.toFixed(1)}mm</span>
+                          <span>{Math.round(forecast.pressure)}hPa</span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="mt-2 text-sm text-gray-400 capitalize">{forecast.conditions}</div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              {/* 15-Minute Bar Chart for Open-Meteo */}
-              {selectedApi === 'openmeteo' && 'minutelyScores' in currentForecasts[selectedDay] && (
+              {/* 15-Minute Bar Chart */}
+              {'minutelyScores' in openMeteoForecasts[selectedDay] && (
                 <ShadcnMinutelyBarChart
-                  minutelyScores={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).minutelyScores}
-                  twoHourForecasts={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).twoHourForecasts}
-                  sunrise={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).sunrise}
-                  sunset={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).sunset}
-                  dayName={(currentForecasts[selectedDay] as OpenMeteoDailyForecast).dayName}
+                  minutelyScores={(openMeteoForecasts[selectedDay] as OpenMeteoDailyForecast).minutelyScores}
+                  twoHourForecasts={(openMeteoForecasts[selectedDay] as OpenMeteoDailyForecast).twoHourForecasts}
+                  sunrise={(openMeteoForecasts[selectedDay] as OpenMeteoDailyForecast).sunrise}
+                  sunset={(openMeteoForecasts[selectedDay] as OpenMeteoDailyForecast).sunset}
+                  dayName={(openMeteoForecasts[selectedDay] as OpenMeteoDailyForecast).dayName}
                 />
               )}
             </div>
@@ -374,16 +223,10 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
       )}
 
       {/* Empty State */}
-      {currentForecasts.length === 0 && !loading && (
+      {openMeteoForecasts.length === 0 && !loading && (
         <div className="text-center py-12 text-gray-400">
-          <p>
-            Click &ldquo;Fetch {selectedApi === 'openmeteo' ? '15-Min' : 'Hourly'} Data&rdquo; to see weather forecasts
-          </p>
-          <p className="text-sm mt-2">
-            {selectedApi === 'openmeteo'
-              ? 'Free API with 15-minute resolution data up to 14 days'
-              : 'Premium API with hourly resolution data for 2 days'}
-          </p>
+          <p>Click &ldquo;Fetch Enhanced Data&rdquo; to see weather forecasts</p>
+          <p className="text-sm mt-2">Free API with 15-minute resolution data up to 14 days</p>
         </div>
       )}
     </div>

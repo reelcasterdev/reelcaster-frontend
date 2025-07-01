@@ -8,12 +8,10 @@ import { getScoreColor, getScoreLabel, formatDate } from '../utils/formatters'
 import ShadcnMinutelyBarChart from '../components/ShadcnMinutelyBarChart'
 import EnhancedFishingDemo from '../components/EnhancedFishingDemo'
 
-// Component to handle search params (needs to be wrapped in Suspense)
 function ForecastContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  // Get parameters from URL
   const location = searchParams.get('location') || 'Unknown Location'
   const hotspot = searchParams.get('hotspot') || 'Unknown Hotspot'
   const species = searchParams.get('species') || null
@@ -27,7 +25,6 @@ function ForecastContent() {
   const [selectedDay, setSelectedDay] = useState(0)
   const [forecastDays, setForecastDays] = useState(14)
 
-  // Validate coordinates
   const hasValidCoordinates = lat !== 0 && lon !== 0
 
   useEffect(() => {
@@ -54,7 +51,6 @@ function ForecastContent() {
       console.log('Open-Meteo data received:', result.data)
       setOpenMeteoData(result.data!)
 
-      // Generate daily forecasts
       const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!)
       console.log('Generated forecasts:', dailyForecasts)
       setForecasts(dailyForecasts)
@@ -279,7 +275,7 @@ function ForecastContent() {
                 </div>
 
                 {/* 2-Hour Forecasts */}
-                <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
+                {/* <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
                   <h4 className="text-xl font-semibold text-white mb-4">🎣 2-Hour Fishing Forecasts</h4>
                   <div className="grid gap-3">
                     {forecasts[selectedDay].twoHourForecasts.map((forecast, index) => (
@@ -311,7 +307,7 @@ function ForecastContent() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </div> */}
 
                 {/* 15-Minute Bar Chart */}
                 <ShadcnMinutelyBarChart
