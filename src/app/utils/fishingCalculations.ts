@@ -10,6 +10,11 @@ export interface FishingScore {
     precipitation: number
     cloudCover: number
     timeOfDay: number
+    visibility: number
+    sunshine: number
+    lightning: number
+    atmospheric: number
+    comfort: number
   }
 }
 
@@ -90,6 +95,11 @@ export const calculateFishingScore = (tomorrowWeather: WeatherData['daily'][0]):
     precipitation: Math.round(precipitationScore * 100) / 100,
     cloudCover: Math.round(cloudScore * 100) / 100,
     timeOfDay: Math.round(timeScore * 100) / 100,
+    visibility: 0, // Not available in legacy API
+    sunshine: 0, // Not available in legacy API
+    lightning: 0, // Not available in legacy API
+    atmospheric: 0, // Not available in legacy API
+    comfort: 0, // Not available in legacy API
   }
 
   const totalScore =
@@ -248,6 +258,11 @@ export const calculateHourlyFishingScore = (
     precipitation: Math.round(precipitationScore * 100) / 100,
     cloudCover: Math.round(cloudScore * 100) / 100,
     timeOfDay: Math.round(timeScore * 100) / 100,
+    visibility: 0, // Not available in legacy API
+    sunshine: 0, // Not available in legacy API
+    lightning: 0, // Not available in legacy API
+    atmospheric: 0, // Not available in legacy API
+    comfort: 0, // Not available in legacy API
   }
 
   const totalScore =
@@ -432,24 +447,33 @@ export const calculateOpenMeteoFishingScore = (
   sunrise: number,
   sunset: number,
 ): FishingScore => {
-  // Barometric Pressure Score (Weight: 25%) - Open-Meteo gives hPa
-  const pressureScore = calculatePressureScore(minuteData.pressure)
+  // Enhanced algorithm with 11 factors - adjusted weights for more comprehensive scoring
 
-  // Wind Score (Weight: 20%) - Convert km/h to m/s for consistency
-  const windSpeedMs = minuteData.windSpeed / 3.6
-  const windScore = calculateWindScore(windSpeedMs, minuteData.windDirection)
+  // Core Weather Factors (65% total)
+  const pressureScore = calculatePressureScore(minuteData.pressure) // 20%
+  const windSpeedMs = minuteData.windSpeed / 3.6 // Convert km/h to m/s
+  const windGustsMs = minuteData.windGusts / 3.6 // Convert km/h to m/s
+  const windScore = calculateEnhancedWindScore(windSpeedMs, windGustsMs, minuteData.windDirection) // 15%
+  const temperatureScore = calculateHourlyTemperatureScore(minuteData.temp) // 15%
+  const precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation) // 15%
 
-  // Temperature Score (Weight: 20%)
-  const temperatureScore = calculateHourlyTemperatureScore(minuteData.temp)
+  // Environmental Factors (25% total)
+  const cloudScore = calculateCloudScore(minuteData.cloudCover) // 8%
+  const visibilityScore = calculateVisibilityScore(minuteData.visibility) // 7%
+  const sunshineScore = calculateSunshineScore(minuteData.sunshineDuration) // 5%
+  const atmosphericScore = calculateAtmosphericStabilityScore(minuteData.cape) // 5%
 
-  // Precipitation Score (Weight: 15%) - Open-Meteo gives mm/h, convert to probability
-  const precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation)
+  // Safety & Comfort Factors (10% total)
+  const lightningScore = calculateLightningScore(minuteData.lightningPotential) // 5%
+  const comfortScore = calculateComfortScore(
+    minuteData.temp,
+    minuteData.apparentTemp,
+    minuteData.humidity,
+    minuteData.dewPoint,
+  ) // 5%
 
-  // Cloud Cover Score (Weight: 10%)
-  const cloudScore = calculateCloudScore(minuteData.cloudCover)
-
-  // Time of Day Score (Weight: 10%)
-  const timeScore = calculateHourlyTimeScore(minuteData.timestamp, sunrise, sunset)
+  // Timing Factor (10% total)
+  const timeScore = calculateHourlyTimeScore(minuteData.timestamp, sunrise, sunset) // 10%
 
   const breakdown = {
     pressure: Math.round(pressureScore * 100) / 100,
@@ -458,15 +482,25 @@ export const calculateOpenMeteoFishingScore = (
     precipitation: Math.round(precipitationScore * 100) / 100,
     cloudCover: Math.round(cloudScore * 100) / 100,
     timeOfDay: Math.round(timeScore * 100) / 100,
+    visibility: Math.round(visibilityScore * 100) / 100,
+    sunshine: Math.round(sunshineScore * 100) / 100,
+    lightning: Math.round(lightningScore * 100) / 100,
+    atmospheric: Math.round(atmosphericScore * 100) / 100,
+    comfort: Math.round(comfortScore * 100) / 100,
   }
 
   const totalScore =
-    pressureScore * 0.25 +
-    windScore * 0.2 +
-    temperatureScore * 0.2 +
-    precipitationScore * 0.15 +
-    cloudScore * 0.1 +
-    timeScore * 0.1
+    pressureScore * 0.2 + // Barometric pressure
+    windScore * 0.15 + // Enhanced wind (speed + gusts + direction)
+    temperatureScore * 0.15 + // Temperature
+    precipitationScore * 0.15 + // Precipitation
+    cloudScore * 0.08 + // Cloud cover
+    visibilityScore * 0.07 + // Visibility
+    sunshineScore * 0.05 + // Sunshine duration
+    atmosphericScore * 0.05 + // Atmospheric stability (CAPE)
+    lightningScore * 0.05 + // Lightning safety
+    comfortScore * 0.05 + // Angler comfort
+    timeScore * 0.1 // Time of day
 
   return {
     total: Math.round(totalScore * 100) / 100,
@@ -587,6 +621,8 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
           timestamp: firstSegment.timestamp,
           temp: avgTemp,
           humidity: avgHumidity,
+          dewPoint: segments.reduce((sum, seg) => sum + seg.dewPoint, 0) / segments.length,
+          apparentTemp: segments.reduce((sum, seg) => sum + seg.apparentTemp, 0) / segments.length,
           precipitation: maxPrecipitation,
           weatherCode: weatherCode,
           pressure: avgPressure,
@@ -594,6 +630,10 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
           windSpeed: avgWindSpeed,
           windDirection: windDirection,
           windGusts: maxWindGusts,
+          visibility: segments.reduce((sum, seg) => sum + seg.visibility, 0) / segments.length,
+          sunshineDuration: segments.reduce((sum, seg) => sum + seg.sunshineDuration, 0),
+          lightningPotential: Math.max(...segments.map(seg => seg.lightningPotential)),
+          cape: segments.reduce((sum, seg) => sum + seg.cape, 0) / segments.length,
         }
 
         const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp)
@@ -671,4 +711,100 @@ export const generate2HourForecasts = (weatherData: WeatherData): HourlyForecast
   }
 
   return forecasts
+}
+
+// New enhanced scoring functions for Open-Meteo parameters
+export const calculateVisibilityScore = (visibility: number): number => {
+  // Visibility in meters - crucial for fishing success and safety
+  if (visibility >= 10000) return 10 // Excellent visibility (10km+)
+  if (visibility >= 5000) return 9 // Very good visibility
+  if (visibility >= 2000) return 7 // Good visibility
+  if (visibility >= 1000) return 5 // Moderate visibility
+  if (visibility >= 500) return 3 // Poor visibility
+  return 1 // Very poor visibility
+}
+
+export const calculateSunshineScore = (sunshineDuration: number): number => {
+  // Sunshine duration in seconds for 15-minute period (900 seconds max)
+  const sunshinePercent = (sunshineDuration / 900) * 100
+
+  if (sunshinePercent >= 75) return 10 // Mostly sunny
+  if (sunshinePercent >= 50) return 9 // Partly sunny
+  if (sunshinePercent >= 25) return 7 // Some sun
+  if (sunshinePercent >= 10) return 6 // Little sun
+  return 5 // Overcast/cloudy
+}
+
+export const calculateLightningScore = (lightningPotential: number): number => {
+  // Lightning potential in J/kg - safety critical factor
+  if (lightningPotential <= 100) return 10 // Very low risk
+  if (lightningPotential <= 500) return 8 // Low risk
+  if (lightningPotential <= 1000) return 6 // Moderate risk
+  if (lightningPotential <= 2000) return 3 // High risk - caution
+  return 1 // Very high risk - dangerous
+}
+
+export const calculateAtmosphericStabilityScore = (cape: number): number => {
+  // CAPE (Convective Available Potential Energy) in J/kg
+  // Lower CAPE = more stable conditions = better fishing
+  if (cape <= 500) return 10 // Very stable
+  if (cape <= 1000) return 8 // Stable
+  if (cape <= 2000) return 6 // Moderately stable
+  if (cape <= 3000) return 4 // Unstable
+  return 2 // Very unstable
+}
+
+export const calculateComfortScore = (
+  temp: number,
+  apparentTemp: number,
+  humidity: number,
+  dewPoint: number,
+): number => {
+  // Comfort index based on multiple factors
+  let score = 10
+
+  // Temperature comfort (apparent temperature is more accurate)
+  const tempDiff = Math.abs(apparentTemp - 12) // 12°C is comfortable for BC fishing
+  if (tempDiff <= 4) score = 10
+  else if (tempDiff <= 8) score = 8
+  else if (tempDiff <= 12) score = 6
+  else if (tempDiff <= 16) score = 4
+  else score = 2
+
+  // Humidity comfort (60-70% is ideal)
+  if (humidity >= 40 && humidity <= 80) score *= 1.0
+  else if (humidity >= 30 && humidity <= 90) score *= 0.9
+  else score *= 0.7
+
+  // Dew point comfort (below 15°C is comfortable)
+  if (dewPoint <= 10) score *= 1.0
+  else if (dewPoint <= 15) score *= 0.9
+  else if (dewPoint <= 20) score *= 0.8
+  else score *= 0.6
+
+  return Math.min(Math.round(score), 10)
+}
+
+export const calculateEnhancedWindScore = (windSpeed: number, windGusts: number, windDirection: number): number => {
+  let score = 10
+
+  // Base wind speed scoring (m/s) - enhanced to consider gusts
+  const effectiveWind = Math.max(windSpeed, windGusts * 0.7) // Weight gusts at 70%
+
+  if (effectiveWind <= 2) score = 10 // Light winds ideal
+  else if (effectiveWind <= 5) score = 9
+  else if (effectiveWind <= 8) score = 7
+  else if (effectiveWind <= 12) score = 5
+  else if (effectiveWind <= 15) score = 3
+  else score = 1 // Too windy
+
+  // Gust penalty - sudden wind changes are bad for fishing
+  const gustFactor = windGusts / Math.max(windSpeed, 0.1)
+  if (gustFactor > 2) score *= 0.8 // High gust ratio penalty
+  else if (gustFactor > 1.5) score *= 0.9
+
+  // Offshore wind preference for west coast BC
+  if (windDirection >= 45 && windDirection <= 135) score *= 1.1 // Easterly winds
+
+  return Math.min(score, 10)
 }

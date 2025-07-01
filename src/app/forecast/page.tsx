@@ -6,6 +6,7 @@ import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../utils/openMete
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from '../utils/fishingCalculations'
 import { getScoreColor, getScoreLabel, formatDate } from '../utils/formatters'
 import ShadcnMinutelyBarChart from '../components/ShadcnMinutelyBarChart'
+import EnhancedFishingDemo from '../components/EnhancedFishingDemo'
 
 // Component to handle search params (needs to be wrapped in Suspense)
 function ForecastContent() {
@@ -342,6 +343,49 @@ function ForecastContent() {
               <h3 className="text-xl font-semibold text-white mb-2">No Forecast Data</h3>
               <p className="text-gray-400">Click &ldquo;Refresh Forecast&rdquo; to load weather data</p>
             </div>
+          </div>
+        )}
+
+        {/* Enhanced Algorithm Demo Section */}
+        {!loading && (
+          <div className="mt-16">
+            <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 backdrop-blur-sm rounded-2xl border border-blue-700/50 p-6 mb-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
+                  🧠 Enhanced Algorithm Comparison
+                </h2>
+                <p className="text-gray-300 text-lg max-w-4xl mx-auto">
+                  Compare the <strong>legacy 6-factor algorithm</strong> used above with our new{' '}
+                  <strong>enhanced 11-factor algorithm</strong> below. The enhanced version includes visibility,
+                  atmospheric stability, lightning safety, angler comfort, and precise wind gust analysis.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 text-sm">
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h3 className="font-semibold text-blue-300 mb-2">Current Algorithm (Above)</h3>
+                    <ul className="text-gray-400 space-y-1 text-left">
+                      <li>• 6 factors total</li>
+                      <li>• 15-minute Open-Meteo data</li>
+                      <li>• Basic wind analysis</li>
+                      <li>• No safety considerations</li>
+                      <li>• Hourly precision</li>
+                    </ul>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h3 className="font-semibold text-purple-300 mb-2">Enhanced Algorithm (Below)</h3>
+                    <ul className="text-gray-400 space-y-1 text-left">
+                      <li>• 11 comprehensive factors</li>
+                      <li>• Advanced wind + gust analysis</li>
+                      <li>• Lightning safety assessment</li>
+                      <li>• Angler comfort index</li>
+                      <li>• Atmospheric stability (CAPE)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Demo Component */}
+            <EnhancedFishingDemo />
           </div>
         )}
 

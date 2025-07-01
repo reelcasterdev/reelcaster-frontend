@@ -13,6 +13,8 @@ export interface OpenMeteoResponse {
     time: string
     temperature_2m: string
     relative_humidity_2m: string
+    dew_point_2m: string
+    apparent_temperature: string
     precipitation: string
     weather_code: string
     surface_pressure: string
@@ -20,11 +22,17 @@ export interface OpenMeteoResponse {
     wind_speed_10m: string
     wind_direction_10m: string
     wind_gusts_10m: string
+    visibility: string
+    sunshine_duration: string
+    lightning_potential: string
+    cape: string
   }
   minutely_15: {
     time: string[]
     temperature_2m: number[]
     relative_humidity_2m: number[]
+    dew_point_2m: number[]
+    apparent_temperature: number[]
     precipitation: number[]
     weather_code: number[]
     surface_pressure: number[]
@@ -32,6 +40,10 @@ export interface OpenMeteoResponse {
     wind_speed_10m: number[]
     wind_direction_10m: number[]
     wind_gusts_10m: number[]
+    visibility: number[]
+    sunshine_duration: number[]
+    lightning_potential: number[]
+    cape: number[]
   }
   daily_units: {
     time: string
@@ -54,6 +66,8 @@ export interface OpenMeteo15MinData {
   timestamp: number
   temp: number
   humidity: number
+  dewPoint: number
+  apparentTemp: number
   precipitation: number
   weatherCode: number
   pressure: number
@@ -61,6 +75,10 @@ export interface OpenMeteo15MinData {
   windSpeed: number
   windDirection: number
   windGusts: number
+  visibility: number
+  sunshineDuration: number
+  lightningPotential: number
+  cape: number
 }
 
 export interface OpenMeteoDailyData {
@@ -132,6 +150,8 @@ export const fetchOpenMeteoWeather = async (
       minutely_15: [
         'temperature_2m',
         'relative_humidity_2m',
+        'dew_point_2m',
+        'apparent_temperature',
         'precipitation',
         'weather_code',
         'surface_pressure',
@@ -139,6 +159,10 @@ export const fetchOpenMeteoWeather = async (
         'wind_speed_10m',
         'wind_direction_10m',
         'wind_gusts_10m',
+        'visibility',
+        'sunshine_duration',
+        'lightning_potential',
+        'cape',
       ].join(','),
       daily: ['sunrise', 'sunset', 'temperature_2m_max', 'temperature_2m_min'].join(','),
       forecast_days: forecast_days.toString(),
@@ -164,6 +188,8 @@ export const fetchOpenMeteoWeather = async (
         timestamp: new Date(time).getTime() / 1000, // Convert to Unix timestamp
         temp: rawData.minutely_15.temperature_2m[index],
         humidity: rawData.minutely_15.relative_humidity_2m[index],
+        dewPoint: rawData.minutely_15.dew_point_2m[index],
+        apparentTemp: rawData.minutely_15.apparent_temperature[index],
         precipitation: rawData.minutely_15.precipitation[index],
         weatherCode: rawData.minutely_15.weather_code[index],
         pressure: rawData.minutely_15.surface_pressure[index],
@@ -171,6 +197,10 @@ export const fetchOpenMeteoWeather = async (
         windSpeed: rawData.minutely_15.wind_speed_10m[index],
         windDirection: rawData.minutely_15.wind_direction_10m[index],
         windGusts: rawData.minutely_15.wind_gusts_10m[index],
+        visibility: rawData.minutely_15.visibility[index],
+        sunshineDuration: rawData.minutely_15.sunshine_duration[index],
+        lightningPotential: rawData.minutely_15.lightning_potential[index],
+        cape: rawData.minutely_15.cape[index],
       })),
       daily: rawData.daily.time.map((date, index) => ({
         date,
