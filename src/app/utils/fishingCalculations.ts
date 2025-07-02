@@ -95,86 +95,109 @@ export const calculateOpenMeteoFishingScore = (
     comfort: Math.round(comfortScore * 100) / 100,
   }
 
+  // Weights now sum to exactly 1.0 (100%) to prevent scores > 10
   const totalScore =
-    pressureScore * 0.2 + // Barometric pressure
-    windScore * 0.15 + // Enhanced wind (speed + gusts + direction)
-    temperatureScore * 0.15 + // Temperature
-    precipitationScore * 0.15 + // Precipitation
+    pressureScore * 0.18 + // Barometric pressure
+    windScore * 0.16 + // Enhanced wind (speed + gusts + direction)
+    temperatureScore * 0.14 + // Temperature
+    precipitationScore * 0.14 + // Precipitation
     cloudScore * 0.08 + // Cloud cover
     visibilityScore * 0.07 + // Visibility
     sunshineScore * 0.05 + // Sunshine duration
     atmosphericScore * 0.05 + // Atmospheric stability (CAPE)
     lightningScore * 0.05 + // Lightning safety
-    comfortScore * 0.05 + // Angler comfort
-    timeScore * 0.1 // Time of day
+    comfortScore * 0.04 + // Angler comfort
+    timeScore * 0.04 // Time of day
+  // Total = 1.00 (100%)
 
   return {
-    total: Math.round(totalScore * 100) / 100,
+    total: Math.min(Math.max(Math.round(totalScore * 100) / 100, 0), 10), // Clamp between 0-10
     breakdown,
   }
 }
 
 // Core scoring functions
 export const calculatePressureScore = (pressure: number): number => {
-  // Convert hPa to score (optimal: 1013-1023 hPa)
-  if (pressure >= 1013 && pressure <= 1023) return 10
-  if (pressure >= 1008 && pressure <= 1028) return 8
-  if (pressure >= 1003 && pressure <= 1033) return 6
-  if (pressure >= 998 && pressure <= 1038) return 4
-  return 2
+  // Optimal pressure: 1015-1020 hPa, with smooth falloff
+  const optimal = 1017.5
+  const deviation = Math.abs(pressure - optimal)
+
+  if (deviation <= 2.5) return 10 // Within 2.5 hPa of optimal
+  if (deviation <= 5) return 10 - (deviation - 2.5) * 1.6 // 8.0-10.0
+  if (deviation <= 10) return 8 - (deviation - 5) * 1.2 // 2.0-8.0
+  if (deviation <= 20) return 2 - (deviation - 10) * 0.1 // 1.0-2.0
+  return 1
 }
 
 export const calculateTemperatureScore = (temp: number): number => {
-  // Optimal temperature range for BC fishing (5-20°C)
-  if (temp >= 8 && temp <= 16) return 10
-  if (temp >= 5 && temp <= 20) return 8
-  if (temp >= 2 && temp <= 25) return 6
-  if (temp >= 0 && temp <= 30) return 4
-  return 2
+  // Optimal temperature: 10-14°C, with smooth falloff
+  if (temp >= 10 && temp <= 14) return 10
+  if (temp >= 6 && temp < 10) return 6 + (temp - 6) // 6.0-10.0
+  if (temp > 14 && temp <= 18) return 10 - (temp - 14) // 6.0-10.0
+  if (temp >= 2 && temp < 6) return 2 + (temp - 2) // 2.0-6.0
+  if (temp > 18 && temp <= 22) return 6 - (temp - 18) * 1.25 // 1.0-6.0
+  if (temp >= -2 && temp < 2) return 1 + (temp + 2) * 0.25 // 1.0-2.0
+  if (temp > 22 && temp <= 30) return Math.max(1, 1 - (temp - 22) * 0.1) // 0.2-1.0
+  return 0.2 // Extreme temperatures
 }
 
 export const calculateCloudScore = (cloudCover: number): number => {
-  // Cloud cover percentage
-  if (cloudCover <= 25) return 8 // Clear to partly cloudy is good
-  if (cloudCover <= 50) return 10 // Partly cloudy is ideal
-  if (cloudCover <= 75) return 7 // Mostly cloudy
-  return 5 // Overcast
+  // Optimal cloud cover: 30-60% (some clouds for shade)
+  if (cloudCover >= 30 && cloudCover <= 60) return 10
+  if (cloudCover >= 15 && cloudCover < 30) return 6 + (cloudCover - 15) * 0.27 // 6.0-10.0
+  if (cloudCover > 60 && cloudCover <= 75) return 10 - (cloudCover - 60) * 0.2 // 7.0-10.0
+  if (cloudCover >= 5 && cloudCover < 15) return 3 + (cloudCover - 5) * 0.3 // 3.0-6.0
+  if (cloudCover > 75 && cloudCover <= 90) return 7 - (cloudCover - 75) * 0.27 // 3.0-7.0
+  if (cloudCover < 5) return 2 + cloudCover * 0.2 // 2.0-3.0
+  return 3 - (cloudCover - 90) * 0.2 // 1.0-3.0 for >90%
 }
 
 export const calculateTimeScore = (timestamp: number, sunrise: number, sunset: number): number => {
-  const hour = new Date(timestamp * 1000).getHours()
-  const sunriseHour = new Date(sunrise * 1000).getHours()
-  const sunsetHour = new Date(sunset * 1000).getHours()
+  const date = new Date(timestamp * 1000)
+  const hour = date.getHours() + date.getMinutes() / 60 // More precise timing
+  const sunriseHour = new Date(sunrise * 1000).getHours() + new Date(sunrise * 1000).getMinutes() / 60
+  const sunsetHour = new Date(sunset * 1000).getHours() + new Date(sunset * 1000).getMinutes() / 60
 
-  // Dawn period (1.5 hours around sunrise)
-  if (Math.abs(hour - sunriseHour) <= 1.5) return 10
+  // Calculate time difference from sunrise and sunset
+  const sunriseDiff = Math.abs(hour - sunriseHour)
+  const sunsetDiff = Math.abs(hour - sunsetHour)
 
-  // Dusk period (1.5 hours around sunset)
-  if (Math.abs(hour - sunsetHour) <= 1.5) return 10
+  // Dawn period (peak: 30 min before to 1 hour after sunrise)
+  if (sunriseDiff <= 1.5) {
+    if (sunriseDiff <= 0.5) return 10 // Peak dawn
+    return 10 - (sunriseDiff - 0.5) * 2 // 8.0-10.0
+  }
 
-  // Early morning (5-8 AM)
-  if (hour >= 5 && hour <= 8) return 8
+  // Dusk period (peak: 1 hour before to 30 min after sunset)
+  if (sunsetDiff <= 1.5) {
+    if (sunsetDiff <= 0.5) return 10 // Peak dusk
+    return 10 - (sunsetDiff - 0.5) * 2 // 8.0-10.0
+  }
 
-  // Evening (6-9 PM)
-  if (hour >= 18 && hour <= 21) return 8
+  // Early morning secondary peak
+  if (hour >= 6 && hour <= 9) return 5 + (9 - Math.abs(hour - 7.5)) * 0.8 // 5.8-6.6
 
-  // Mid-day (decent but not optimal)
-  if (hour >= 10 && hour <= 16) return 6
+  // Evening secondary peak
+  if (hour >= 17 && hour <= 20) return 5 + (3 - Math.abs(hour - 18.5)) * 0.8 // 5.6-6.6
 
-  // Night (poor fishing times)
-  if (hour >= 22 || hour <= 4) return 3
+  // Mid-day (moderate)
+  if (hour >= 10 && hour <= 16) return 3 + Math.cos(((hour - 13) * Math.PI) / 6) // 3.0-4.0
 
-  return 5 // Default for other times
+  // Night and very early morning (poor)
+  if (hour >= 22 || hour <= 5) return 1 + Math.sin((hour * Math.PI) / 12) * 0.5 // 0.5-1.5
+
+  return 2.5 // Transition times
 }
 
 export const calculatePrecipitationScoreFromMM = (precipitationMM: number): number => {
-  // Convert mm/h precipitation to score
-  if (precipitationMM <= 0.1) return 10 // No rain
-  if (precipitationMM <= 0.5) return 8 // Light rain
-  if (precipitationMM <= 2.0) return 6 // Light to moderate rain
-  if (precipitationMM <= 5.0) return 4 // Moderate rain
-  if (precipitationMM <= 10.0) return 2 // Heavy rain
-  return 1 // Very heavy rain
+  // More continuous precipitation scoring
+  if (precipitationMM <= 0.1) return 10 // Essentially no rain
+  if (precipitationMM <= 0.5) return 10 - (precipitationMM - 0.1) * 5 // 8.0-10.0
+  if (precipitationMM <= 1.0) return 8 - (precipitationMM - 0.5) * 2 // 7.0-8.0
+  if (precipitationMM <= 2.5) return 7 - (precipitationMM - 1.0) * 1.33 // 5.0-7.0
+  if (precipitationMM <= 5.0) return 5 - (precipitationMM - 2.5) * 1.2 // 2.0-5.0
+  if (precipitationMM <= 10.0) return 2 - (precipitationMM - 5.0) * 0.2 // 1.0-2.0
+  return Math.max(0.2, 1 - (precipitationMM - 10) * 0.05) // 0.2-1.0
 }
 
 // Enhanced scoring functions for Open-Meteo parameters
@@ -250,27 +273,30 @@ export const calculateComfortScore = (
 }
 
 export const calculateEnhancedWindScore = (windSpeed: number, windGusts: number, windDirection: number): number => {
-  let score = 10
-
-  // Base wind speed scoring (m/s) - enhanced to consider gusts
+  // Base wind speed scoring (m/s) - more continuous scoring
   const effectiveWind = Math.max(windSpeed, windGusts * 0.7) // Weight gusts at 70%
 
-  if (effectiveWind <= 2) score = 10 // Light winds ideal
-  else if (effectiveWind <= 5) score = 9
-  else if (effectiveWind <= 8) score = 7
-  else if (effectiveWind <= 12) score = 5
-  else if (effectiveWind <= 15) score = 3
-  else score = 1 // Too windy
+  let score: number
+  if (effectiveWind <= 1) score = 10 // Very light winds
+  else if (effectiveWind <= 3) score = 10 - (effectiveWind - 1) * 0.5 // 9.0-10.0
+  else if (effectiveWind <= 6) score = 9 - (effectiveWind - 3) * 0.67 // 7.0-9.0
+  else if (effectiveWind <= 10) score = 7 - (effectiveWind - 6) * 0.5 // 5.0-7.0
+  else if (effectiveWind <= 15) score = 5 - (effectiveWind - 10) * 0.4 // 3.0-5.0
+  else if (effectiveWind <= 20) score = 3 - (effectiveWind - 15) * 0.3 // 1.5-3.0
+  else score = Math.max(0.5, 1.5 - (effectiveWind - 20) * 0.1) // 0.5-1.5
 
-  // Gust penalty - sudden wind changes are bad for fishing
+  // Gust penalty - more nuanced
   const gustFactor = windGusts / Math.max(windSpeed, 0.1)
-  if (gustFactor > 2) score *= 0.8 // High gust ratio penalty
-  else if (gustFactor > 1.5) score *= 0.9
+  if (gustFactor > 3) score *= 0.7 // Very gusty
+  else if (gustFactor > 2) score *= 0.8 // High gust ratio
+  else if (gustFactor > 1.5) score *= 0.9 // Moderate gusts
 
-  // Offshore wind preference for west coast BC
-  if (windDirection >= 45 && windDirection <= 135) score *= 1.1 // Easterly winds
+  // Wind direction bonus (but keep within bounds)
+  let directionBonus = 1.0
+  if (windDirection >= 45 && windDirection <= 135) directionBonus = 1.05 // Small easterly bonus
+  else if (windDirection >= 270 || windDirection <= 45) directionBonus = 0.95 // Slight westerly penalty
 
-  return Math.min(score, 10)
+  return Math.min(score * directionBonus, 10)
 }
 
 export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMeteoData): OpenMeteoDailyForecast[] => {
