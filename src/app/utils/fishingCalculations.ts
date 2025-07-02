@@ -18,400 +18,6 @@ export interface FishingScore {
   }
 }
 
-export interface WeatherData {
-  current: {
-    temp: number
-    pressure: number
-    humidity: number
-    wind_speed: number
-    wind_deg: number
-    clouds: number
-    weather: Array<{
-      main: string
-      description: string
-      icon: string
-    }>
-  }
-  hourly: Array<{
-    dt: number
-    temp: number
-    pressure: number
-    humidity: number
-    wind_speed: number
-    wind_deg: number
-    clouds: number
-    pop: number
-    weather: Array<{
-      main: string
-      description: string
-      icon: string
-    }>
-  }>
-  daily: Array<{
-    dt: number
-    temp: {
-      min: number
-      max: number
-    }
-    pressure: number
-    humidity: number
-    wind_speed: number
-    wind_deg: number
-    clouds: number
-    pop: number
-    weather: Array<{
-      main: string
-      description: string
-      icon: string
-    }>
-    sunrise: number
-    sunset: number
-  }>
-}
-
-export const calculateFishingScore = (tomorrowWeather: WeatherData['daily'][0]): FishingScore => {
-  // Barometric Pressure Score (Weight: 25%)
-  const pressureScore = calculatePressureScore(tomorrowWeather.pressure)
-
-  // Wind Score (Weight: 20%)
-  const windScore = calculateWindScore(tomorrowWeather.wind_speed, tomorrowWeather.wind_deg)
-
-  // Temperature Score (Weight: 20%)
-  const temperatureScore = calculateTemperatureScore(tomorrowWeather.temp.max, tomorrowWeather.temp.min)
-
-  // Precipitation Score (Weight: 15%)
-  const precipitationScore = calculatePrecipitationScore(tomorrowWeather.pop)
-
-  // Cloud Cover Score (Weight: 10%)
-  const cloudScore = calculateCloudScore(tomorrowWeather.clouds)
-
-  // Time of Day Score (Weight: 10%) - Using sunrise/sunset for optimal times
-  const timeScore = calculateTimeScore(tomorrowWeather.sunrise, tomorrowWeather.sunset)
-
-  const breakdown = {
-    pressure: Math.round(pressureScore * 100) / 100,
-    wind: Math.round(windScore * 100) / 100,
-    temperature: Math.round(temperatureScore * 100) / 100,
-    precipitation: Math.round(precipitationScore * 100) / 100,
-    cloudCover: Math.round(cloudScore * 100) / 100,
-    timeOfDay: Math.round(timeScore * 100) / 100,
-    visibility: 0, // Not available in legacy API
-    sunshine: 0, // Not available in legacy API
-    lightning: 0, // Not available in legacy API
-    atmospheric: 0, // Not available in legacy API
-    comfort: 0, // Not available in legacy API
-  }
-
-  const totalScore =
-    pressureScore * 0.25 +
-    windScore * 0.2 +
-    temperatureScore * 0.2 +
-    precipitationScore * 0.15 +
-    cloudScore * 0.1 +
-    timeScore * 0.1
-
-  return {
-    total: Math.round(totalScore * 100) / 100,
-    breakdown,
-  }
-}
-
-export const calculatePressureScore = (pressure: number): number => {
-  // Convert hPa to score (optimal: 1013-1023 hPa)
-  if (pressure >= 1013 && pressure <= 1023) return 10
-  if (pressure >= 1008 && pressure <= 1028) return 8
-  if (pressure >= 1003 && pressure <= 1033) return 6
-  if (pressure >= 998 && pressure <= 1038) return 4
-  return 2
-}
-
-export const calculateWindScore = (windSpeed: number, windDirection: number): number => {
-  let score = 10
-
-  // Wind speed scoring (m/s)
-  if (windSpeed <= 2) score = 10 // Light winds ideal
-  else if (windSpeed <= 5) score = 9
-  else if (windSpeed <= 8) score = 7
-  else if (windSpeed <= 12) score = 5
-  else if (windSpeed <= 15) score = 3
-  else score = 1 // Too windy
-
-  // Slight preference for offshore winds (simplified)
-  if (windDirection >= 45 && windDirection <= 135) score *= 1.1 // Easterly winds (offshore for west coast)
-
-  return Math.min(score, 10)
-}
-
-export const calculateTemperatureScore = (maxTemp: number, minTemp: number): number => {
-  const avgTemp = (maxTemp + minTemp) / 2
-
-  // Optimal temperature range for BC fishing (5-20°C)
-  if (avgTemp >= 8 && avgTemp <= 16) return 10
-  if (avgTemp >= 5 && avgTemp <= 20) return 8
-  if (avgTemp >= 2 && avgTemp <= 25) return 6
-  if (avgTemp >= 0 && avgTemp <= 30) return 4
-  return 2
-}
-
-export const calculatePrecipitationScore = (pop: number): number => {
-  // Probability of precipitation (0-1)
-  const popPercent = pop * 100
-
-  if (popPercent <= 10) return 10 // Clear
-  if (popPercent <= 25) return 8 // Light chance
-  if (popPercent <= 50) return 6 // Moderate chance
-  if (popPercent <= 75) return 4 // High chance
-  return 2 // Very high chance
-}
-
-export const calculateCloudScore = (cloudCover: number): number => {
-  // Cloud cover percentage
-  if (cloudCover <= 25) return 8 // Clear to partly cloudy is good
-  if (cloudCover <= 50) return 10 // Partly cloudy is ideal
-  if (cloudCover <= 75) return 7 // Mostly cloudy
-  return 5 // Overcast
-}
-
-export const calculateTimeScore = (sunrise: number, sunset: number): number => {
-  // This is a base score for having good dawn/dusk times
-  // In a real implementation, you'd calculate based on current time
-  const daylightHours = (sunset - sunrise) / 3600
-
-  if (daylightHours >= 8 && daylightHours <= 16) return 10
-  if (daylightHours >= 6 && daylightHours <= 18) return 8
-  return 6
-}
-
-export interface HourlyForecast {
-  startTime: number
-  endTime: number
-  score: FishingScore
-  avgTemp: number
-  conditions: string
-  icon: string
-  windSpeed: number
-  pop: number
-}
-
-export const calculateHourlyTemperatureScore = (temp: number): number => {
-  // Optimal temperature range for BC fishing (5-20°C)
-  if (temp >= 8 && temp <= 16) return 10
-  if (temp >= 5 && temp <= 20) return 8
-  if (temp >= 2 && temp <= 25) return 6
-  if (temp >= 0 && temp <= 30) return 4
-  return 2
-}
-
-export const calculateHourlyTimeScore = (timestamp: number, sunrise: number, sunset: number): number => {
-  const hour = new Date(timestamp * 1000).getHours()
-  const sunriseHour = new Date(sunrise * 1000).getHours()
-  const sunsetHour = new Date(sunset * 1000).getHours()
-
-  // Dawn period (1.5 hours around sunrise)
-  if (Math.abs(hour - sunriseHour) <= 1.5) return 10
-
-  // Dusk period (1.5 hours around sunset)
-  if (Math.abs(hour - sunsetHour) <= 1.5) return 10
-
-  // Early morning (5-8 AM)
-  if (hour >= 5 && hour <= 8) return 8
-
-  // Evening (6-9 PM)
-  if (hour >= 18 && hour <= 21) return 8
-
-  // Mid-day (decent but not optimal)
-  if (hour >= 10 && hour <= 16) return 6
-
-  // Night (poor fishing times)
-  if (hour >= 22 || hour <= 4) return 3
-
-  return 5 // Default for other times
-}
-
-export const calculateHourlyFishingScore = (
-  hourlyWeather: WeatherData['hourly'][0],
-  sunrise: number,
-  sunset: number,
-): FishingScore => {
-  // Barometric Pressure Score (Weight: 25%)
-  const pressureScore = calculatePressureScore(hourlyWeather.pressure)
-
-  // Wind Score (Weight: 20%)
-  const windScore = calculateWindScore(hourlyWeather.wind_speed, hourlyWeather.wind_deg)
-
-  // Temperature Score (Weight: 20%)
-  const temperatureScore = calculateHourlyTemperatureScore(hourlyWeather.temp)
-
-  // Precipitation Score (Weight: 15%)
-  const precipitationScore = calculatePrecipitationScore(hourlyWeather.pop)
-
-  // Cloud Cover Score (Weight: 10%)
-  const cloudScore = calculateCloudScore(hourlyWeather.clouds)
-
-  // Time of Day Score (Weight: 10%) - Using actual hour vs sunrise/sunset
-  const timeScore = calculateHourlyTimeScore(hourlyWeather.dt, sunrise, sunset)
-
-  const breakdown = {
-    pressure: Math.round(pressureScore * 100) / 100,
-    wind: Math.round(windScore * 100) / 100,
-    temperature: Math.round(temperatureScore * 100) / 100,
-    precipitation: Math.round(precipitationScore * 100) / 100,
-    cloudCover: Math.round(cloudScore * 100) / 100,
-    timeOfDay: Math.round(timeScore * 100) / 100,
-    visibility: 0, // Not available in legacy API
-    sunshine: 0, // Not available in legacy API
-    lightning: 0, // Not available in legacy API
-    atmospheric: 0, // Not available in legacy API
-    comfort: 0, // Not available in legacy API
-  }
-
-  const totalScore =
-    pressureScore * 0.25 +
-    windScore * 0.2 +
-    temperatureScore * 0.2 +
-    precipitationScore * 0.15 +
-    cloudScore * 0.1 +
-    timeScore * 0.1
-
-  return {
-    total: Math.round(totalScore * 100) / 100,
-    breakdown,
-  }
-}
-
-export interface DailyForecastData {
-  date: number
-  dayName: string
-  sunrise: number
-  sunset: number
-  hourlyScores: Array<{
-    hour: number
-    timestamp: number
-    score: number
-    temp: number
-    conditions: string
-    icon: string
-    windSpeed: number
-    pop: number
-  }>
-  twoHourForecasts: HourlyForecast[]
-}
-
-export const generateDailyForecasts = (weatherData: WeatherData): DailyForecastData[] => {
-  const dailyForecasts: DailyForecastData[] = []
-
-  console.log('generateDailyForecasts - Input data:', {
-    dailyLength: weatherData.daily?.length,
-    hourlyLength: weatherData.hourly?.length,
-    firstHourly: weatherData.hourly?.[0] ? new Date(weatherData.hourly[0].dt * 1000).toISOString() : 'none',
-    lastHourly: weatherData.hourly?.[weatherData.hourly.length - 1]
-      ? new Date(weatherData.hourly[weatherData.hourly.length - 1].dt * 1000).toISOString()
-      : 'none',
-  })
-
-  // Group hourly data by day (using the 48-hour sliding window)
-  const hourlyByDay: { [key: string]: typeof weatherData.hourly } = {}
-
-  weatherData.hourly.forEach(hour => {
-    const hourDate = new Date(hour.dt * 1000)
-    const dayKey = `${hourDate.getFullYear()}-${hourDate.getMonth()}-${hourDate.getDate()}`
-
-    if (!hourlyByDay[dayKey]) {
-      hourlyByDay[dayKey] = []
-    }
-    hourlyByDay[dayKey].push(hour)
-  })
-
-  const dayKeys = Object.keys(hourlyByDay).sort()
-  console.log(
-    'Hourly data grouped by days:',
-    dayKeys.map(key => ({
-      day: key,
-      count: hourlyByDay[key].length,
-      firstHour: new Date(hourlyByDay[key][0].dt * 1000).toISOString(),
-      lastHour: new Date(hourlyByDay[key][hourlyByDay[key].length - 1].dt * 1000).toISOString(),
-    })),
-  )
-
-  // Process each day that has hourly data (skip today, start from tomorrow)
-  dayKeys.slice(1, 3).forEach((dayKey, index) => {
-    const dayIndex = index + 1
-    const dayHourly = hourlyByDay[dayKey]
-    const dayData = weatherData.daily[dayIndex]
-
-    if (!dayData || !dayHourly || dayHourly.length === 0) {
-      console.log(`Skipping day ${dayIndex} - missing data`)
-      return
-    }
-
-    console.log(`Processing day ${dayIndex}:`, {
-      dayKey,
-      date: new Date(dayData.dt * 1000).toLocaleDateString(),
-      hourlyCount: dayHourly.length,
-      firstHour: new Date(dayHourly[0].dt * 1000).toISOString(),
-      lastHour: new Date(dayHourly[dayHourly.length - 1].dt * 1000).toISOString(),
-    })
-
-    // Generate hourly scores for bar chart
-    const hourlyScores = dayHourly.map(hour => ({
-      hour: new Date(hour.dt * 1000).getHours(),
-      timestamp: hour.dt,
-      score: calculateHourlyFishingScore(hour, dayData.sunrise, dayData.sunset).total,
-      temp: hour.temp,
-      conditions: hour.weather[0].description,
-      icon: hour.weather[0].icon,
-      windSpeed: hour.wind_speed,
-      pop: hour.pop,
-    }))
-
-    // Generate 2-hour forecasts
-    const twoHourForecasts: HourlyForecast[] = []
-    for (let i = 0; i < dayHourly.length; i += 2) {
-      if (i + 1 < dayHourly.length) {
-        const hour1 = dayHourly[i]
-        const hour2 = dayHourly[i + 1]
-
-        // Average the conditions for the 2-hour block
-        const avgWeather = {
-          dt: hour1.dt,
-          temp: (hour1.temp + hour2.temp) / 2,
-          pressure: (hour1.pressure + hour2.pressure) / 2,
-          humidity: (hour1.humidity + hour2.humidity) / 2,
-          wind_speed: (hour1.wind_speed + hour2.wind_speed) / 2,
-          wind_deg: hour1.wind_deg,
-          clouds: (hour1.clouds + hour2.clouds) / 2,
-          pop: Math.max(hour1.pop, hour2.pop),
-          weather: hour1.weather,
-        }
-
-        const score = calculateHourlyFishingScore(avgWeather, dayData.sunrise, dayData.sunset)
-
-        twoHourForecasts.push({
-          startTime: hour1.dt,
-          endTime: hour2.dt + 3600,
-          score,
-          avgTemp: avgWeather.temp,
-          conditions: avgWeather.weather[0].description,
-          icon: avgWeather.weather[0].icon,
-          windSpeed: avgWeather.wind_speed,
-          pop: avgWeather.pop,
-        })
-      }
-    }
-
-    dailyForecasts.push({
-      date: dayData.dt,
-      dayName: new Date(dayData.dt * 1000).toLocaleDateString('en-US', { weekday: 'long' }),
-      sunrise: dayData.sunrise,
-      sunset: dayData.sunset,
-      hourlyScores,
-      twoHourForecasts,
-    })
-  })
-
-  return dailyForecasts
-}
-
 export interface MinutelyForecast {
   startTime: number
   endTime: number
@@ -454,7 +60,7 @@ export const calculateOpenMeteoFishingScore = (
   const windSpeedMs = minuteData.windSpeed / 3.6 // Convert km/h to m/s
   const windGustsMs = minuteData.windGusts / 3.6 // Convert km/h to m/s
   const windScore = calculateEnhancedWindScore(windSpeedMs, windGustsMs, minuteData.windDirection) // 15%
-  const temperatureScore = calculateHourlyTemperatureScore(minuteData.temp) // 15%
+  const temperatureScore = calculateTemperatureScore(minuteData.temp) // 15%
   const precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation) // 15%
 
   // Environmental Factors (25% total)
@@ -473,7 +79,7 @@ export const calculateOpenMeteoFishingScore = (
   ) // 5%
 
   // Timing Factor (10% total)
-  const timeScore = calculateHourlyTimeScore(minuteData.timestamp, sunrise, sunset) // 10%
+  const timeScore = calculateTimeScore(minuteData.timestamp, sunrise, sunset) // 10%
 
   const breakdown = {
     pressure: Math.round(pressureScore * 100) / 100,
@@ -489,33 +95,208 @@ export const calculateOpenMeteoFishingScore = (
     comfort: Math.round(comfortScore * 100) / 100,
   }
 
+  // Weights now sum to exactly 1.0 (100%) to prevent scores > 10
   const totalScore =
-    pressureScore * 0.2 + // Barometric pressure
-    windScore * 0.15 + // Enhanced wind (speed + gusts + direction)
-    temperatureScore * 0.15 + // Temperature
-    precipitationScore * 0.15 + // Precipitation
+    pressureScore * 0.18 + // Barometric pressure
+    windScore * 0.16 + // Enhanced wind (speed + gusts + direction)
+    temperatureScore * 0.14 + // Temperature
+    precipitationScore * 0.14 + // Precipitation
     cloudScore * 0.08 + // Cloud cover
     visibilityScore * 0.07 + // Visibility
     sunshineScore * 0.05 + // Sunshine duration
     atmosphericScore * 0.05 + // Atmospheric stability (CAPE)
     lightningScore * 0.05 + // Lightning safety
-    comfortScore * 0.05 + // Angler comfort
-    timeScore * 0.1 // Time of day
+    comfortScore * 0.04 + // Angler comfort
+    timeScore * 0.04 // Time of day
+  // Total = 1.00 (100%)
 
   return {
-    total: Math.round(totalScore * 100) / 100,
+    total: Math.min(Math.max(Math.round(totalScore * 100) / 100, 0), 10), // Clamp between 0-10
     breakdown,
   }
 }
 
+// Core scoring functions
+export const calculatePressureScore = (pressure: number): number => {
+  // Optimal pressure: 1015-1020 hPa, with smooth falloff
+  const optimal = 1017.5
+  const deviation = Math.abs(pressure - optimal)
+
+  if (deviation <= 2.5) return 10 // Within 2.5 hPa of optimal
+  if (deviation <= 5) return 10 - (deviation - 2.5) * 1.6 // 8.0-10.0
+  if (deviation <= 10) return 8 - (deviation - 5) * 1.2 // 2.0-8.0
+  if (deviation <= 20) return 2 - (deviation - 10) * 0.1 // 1.0-2.0
+  return 1
+}
+
+export const calculateTemperatureScore = (temp: number): number => {
+  // Optimal temperature: 10-14°C, with smooth falloff
+  if (temp >= 10 && temp <= 14) return 10
+  if (temp >= 6 && temp < 10) return 6 + (temp - 6) // 6.0-10.0
+  if (temp > 14 && temp <= 18) return 10 - (temp - 14) // 6.0-10.0
+  if (temp >= 2 && temp < 6) return 2 + (temp - 2) // 2.0-6.0
+  if (temp > 18 && temp <= 22) return 6 - (temp - 18) * 1.25 // 1.0-6.0
+  if (temp >= -2 && temp < 2) return 1 + (temp + 2) * 0.25 // 1.0-2.0
+  if (temp > 22 && temp <= 30) return Math.max(1, 1 - (temp - 22) * 0.1) // 0.2-1.0
+  return 0.2 // Extreme temperatures
+}
+
+export const calculateCloudScore = (cloudCover: number): number => {
+  // Optimal cloud cover: 30-60% (some clouds for shade)
+  if (cloudCover >= 30 && cloudCover <= 60) return 10
+  if (cloudCover >= 15 && cloudCover < 30) return 6 + (cloudCover - 15) * 0.27 // 6.0-10.0
+  if (cloudCover > 60 && cloudCover <= 75) return 10 - (cloudCover - 60) * 0.2 // 7.0-10.0
+  if (cloudCover >= 5 && cloudCover < 15) return 3 + (cloudCover - 5) * 0.3 // 3.0-6.0
+  if (cloudCover > 75 && cloudCover <= 90) return 7 - (cloudCover - 75) * 0.27 // 3.0-7.0
+  if (cloudCover < 5) return 2 + cloudCover * 0.2 // 2.0-3.0
+  return 3 - (cloudCover - 90) * 0.2 // 1.0-3.0 for >90%
+}
+
+export const calculateTimeScore = (timestamp: number, sunrise: number, sunset: number): number => {
+  const date = new Date(timestamp * 1000)
+  const hour = date.getHours() + date.getMinutes() / 60 // More precise timing
+  const sunriseHour = new Date(sunrise * 1000).getHours() + new Date(sunrise * 1000).getMinutes() / 60
+  const sunsetHour = new Date(sunset * 1000).getHours() + new Date(sunset * 1000).getMinutes() / 60
+
+  // Calculate time difference from sunrise and sunset
+  const sunriseDiff = Math.abs(hour - sunriseHour)
+  const sunsetDiff = Math.abs(hour - sunsetHour)
+
+  // Dawn period (peak: 30 min before to 1 hour after sunrise)
+  if (sunriseDiff <= 1.5) {
+    if (sunriseDiff <= 0.5) return 10 // Peak dawn
+    return 10 - (sunriseDiff - 0.5) * 2 // 8.0-10.0
+  }
+
+  // Dusk period (peak: 1 hour before to 30 min after sunset)
+  if (sunsetDiff <= 1.5) {
+    if (sunsetDiff <= 0.5) return 10 // Peak dusk
+    return 10 - (sunsetDiff - 0.5) * 2 // 8.0-10.0
+  }
+
+  // Early morning secondary peak
+  if (hour >= 6 && hour <= 9) return 5 + (9 - Math.abs(hour - 7.5)) * 0.8 // 5.8-6.6
+
+  // Evening secondary peak
+  if (hour >= 17 && hour <= 20) return 5 + (3 - Math.abs(hour - 18.5)) * 0.8 // 5.6-6.6
+
+  // Mid-day (moderate)
+  if (hour >= 10 && hour <= 16) return 3 + Math.cos(((hour - 13) * Math.PI) / 6) // 3.0-4.0
+
+  // Night and very early morning (poor)
+  if (hour >= 22 || hour <= 5) return 1 + Math.sin((hour * Math.PI) / 12) * 0.5 // 0.5-1.5
+
+  return 2.5 // Transition times
+}
+
 export const calculatePrecipitationScoreFromMM = (precipitationMM: number): number => {
-  // Convert mm/h precipitation to score
-  if (precipitationMM <= 0.1) return 10 // No rain
-  if (precipitationMM <= 0.5) return 8 // Light rain
-  if (precipitationMM <= 2.0) return 6 // Light to moderate rain
-  if (precipitationMM <= 5.0) return 4 // Moderate rain
-  if (precipitationMM <= 10.0) return 2 // Heavy rain
-  return 1 // Very heavy rain
+  // More continuous precipitation scoring
+  if (precipitationMM <= 0.1) return 10 // Essentially no rain
+  if (precipitationMM <= 0.5) return 10 - (precipitationMM - 0.1) * 5 // 8.0-10.0
+  if (precipitationMM <= 1.0) return 8 - (precipitationMM - 0.5) * 2 // 7.0-8.0
+  if (precipitationMM <= 2.5) return 7 - (precipitationMM - 1.0) * 1.33 // 5.0-7.0
+  if (precipitationMM <= 5.0) return 5 - (precipitationMM - 2.5) * 1.2 // 2.0-5.0
+  if (precipitationMM <= 10.0) return 2 - (precipitationMM - 5.0) * 0.2 // 1.0-2.0
+  return Math.max(0.2, 1 - (precipitationMM - 10) * 0.05) // 0.2-1.0
+}
+
+// Enhanced scoring functions for Open-Meteo parameters
+export const calculateVisibilityScore = (visibility: number): number => {
+  // Visibility in meters - crucial for fishing success and safety
+  if (visibility >= 10000) return 10 // Excellent visibility (10km+)
+  if (visibility >= 5000) return 9 // Very good visibility
+  if (visibility >= 2000) return 7 // Good visibility
+  if (visibility >= 1000) return 5 // Moderate visibility
+  if (visibility >= 500) return 3 // Poor visibility
+  return 1 // Very poor visibility
+}
+
+export const calculateSunshineScore = (sunshineDuration: number): number => {
+  // Sunshine duration in seconds for 15-minute period (900 seconds max)
+  const sunshinePercent = (sunshineDuration / 900) * 100
+
+  if (sunshinePercent >= 75) return 10 // Mostly sunny
+  if (sunshinePercent >= 50) return 9 // Partly sunny
+  if (sunshinePercent >= 25) return 7 // Some sun
+  if (sunshinePercent >= 10) return 6 // Little sun
+  return 5 // Overcast/cloudy
+}
+
+export const calculateLightningScore = (lightningPotential: number): number => {
+  // Lightning potential in J/kg - safety critical factor
+  if (lightningPotential <= 100) return 10 // Very low risk
+  if (lightningPotential <= 500) return 8 // Low risk
+  if (lightningPotential <= 1000) return 6 // Moderate risk
+  if (lightningPotential <= 2000) return 3 // High risk - caution
+  return 1 // Very high risk - dangerous
+}
+
+export const calculateAtmosphericStabilityScore = (cape: number): number => {
+  // CAPE (Convective Available Potential Energy) in J/kg
+  // Lower CAPE = more stable conditions = better fishing
+  if (cape <= 500) return 10 // Very stable
+  if (cape <= 1000) return 8 // Stable
+  if (cape <= 2000) return 6 // Moderately stable
+  if (cape <= 3000) return 4 // Unstable
+  return 2 // Very unstable
+}
+
+export const calculateComfortScore = (
+  temp: number,
+  apparentTemp: number,
+  humidity: number,
+  dewPoint: number,
+): number => {
+  // Comfort index based on multiple factors
+  let score = 10
+
+  // Temperature comfort (apparent temperature is more accurate)
+  const tempDiff = Math.abs(apparentTemp - 12) // 12°C is comfortable for BC fishing
+  if (tempDiff <= 4) score = 10
+  else if (tempDiff <= 8) score = 8
+  else if (tempDiff <= 12) score = 6
+  else if (tempDiff <= 16) score = 4
+  else score = 2
+
+  // Humidity comfort (60-70% is ideal)
+  if (humidity >= 40 && humidity <= 80) score *= 1.0
+  else if (humidity >= 30 && humidity <= 90) score *= 0.9
+  else score *= 0.7
+
+  // Dew point comfort (below 15°C is comfortable)
+  if (dewPoint <= 10) score *= 1.0
+  else if (dewPoint <= 15) score *= 0.9
+  else if (dewPoint <= 20) score *= 0.8
+  else score *= 0.6
+
+  return Math.min(Math.round(score), 10)
+}
+
+export const calculateEnhancedWindScore = (windSpeed: number, windGusts: number, windDirection: number): number => {
+  // Base wind speed scoring (m/s) - more continuous scoring
+  const effectiveWind = Math.max(windSpeed, windGusts * 0.7) // Weight gusts at 70%
+
+  let score: number
+  if (effectiveWind <= 1) score = 10 // Very light winds
+  else if (effectiveWind <= 3) score = 10 - (effectiveWind - 1) * 0.5 // 9.0-10.0
+  else if (effectiveWind <= 6) score = 9 - (effectiveWind - 3) * 0.67 // 7.0-9.0
+  else if (effectiveWind <= 10) score = 7 - (effectiveWind - 6) * 0.5 // 5.0-7.0
+  else if (effectiveWind <= 15) score = 5 - (effectiveWind - 10) * 0.4 // 3.0-5.0
+  else if (effectiveWind <= 20) score = 3 - (effectiveWind - 15) * 0.3 // 1.5-3.0
+  else score = Math.max(0.5, 1.5 - (effectiveWind - 20) * 0.1) // 0.5-1.5
+
+  // Gust penalty - more nuanced
+  const gustFactor = windGusts / Math.max(windSpeed, 0.1)
+  if (gustFactor > 3) score *= 0.7 // Very gusty
+  else if (gustFactor > 2) score *= 0.8 // High gust ratio
+  else if (gustFactor > 1.5) score *= 0.9 // Moderate gusts
+
+  // Wind direction bonus (but keep within bounds)
+  let directionBonus = 1.0
+  if (windDirection >= 45 && windDirection <= 135) directionBonus = 1.05 // Small easterly bonus
+  else if (windDirection >= 270 || windDirection <= 45) directionBonus = 0.95 // Slight westerly penalty
+
+  return Math.min(score * directionBonus, 10)
 }
 
 export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMeteoData): OpenMeteoDailyForecast[] => {
@@ -528,7 +309,6 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
     lastMinutely: openMeteoData.minutely15[openMeteoData.minutely15.length - 1]?.time,
   })
 
-  // Group 15-minute data by day
   const minutelyByDay: { [key: string]: OpenMeteo15MinData[] } = {}
 
   openMeteoData.minutely15.forEach(minuteData => {
@@ -542,19 +322,8 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
   })
 
   const dayKeys = Object.keys(minutelyByDay).sort()
-  console.log(
-    '15-minute data grouped by days:',
-    dayKeys.map(key => ({
-      day: key,
-      count: minutelyByDay[key].length,
-      firstTime: minutelyByDay[key][0]?.time,
-      lastTime: minutelyByDay[key][minutelyByDay[key].length - 1]?.time,
-    })),
-  )
 
-  // Process each day (skip today, start from tomorrow)
-  // For Open-Meteo, we can process up to 14 days
-  const maxDays = Math.min(dayKeys.length - 1, 14) // Skip today, process up to 14 days
+  const maxDays = Math.min(dayKeys.length - 1, 14)
   dayKeys.slice(1, maxDays + 1).forEach((dayKey, index) => {
     const dayIndex = index + 1
     const dayMinutely = minutelyByDay[dayKey]
@@ -664,147 +433,4 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
   })
 
   return dailyForecasts
-}
-
-export const generate2HourForecasts = (weatherData: WeatherData): HourlyForecast[] => {
-  const forecasts: HourlyForecast[] = []
-  const tomorrow = weatherData.daily[1]
-
-  // Filter hourly data for tomorrow (next 24 hours starting from tomorrow)
-  const tomorrowStart = tomorrow.dt
-  const tomorrowEnd = tomorrowStart + 24 * 3600
-
-  const tomorrowHourly = weatherData.hourly.filter(hour => hour.dt >= tomorrowStart && hour.dt < tomorrowEnd)
-
-  // Group into 2-hour blocks
-  for (let i = 0; i < tomorrowHourly.length; i += 2) {
-    if (i + 1 < tomorrowHourly.length) {
-      const hour1 = tomorrowHourly[i]
-      const hour2 = tomorrowHourly[i + 1]
-
-      // Average the conditions for the 2-hour block
-      const avgWeather = {
-        dt: hour1.dt,
-        temp: (hour1.temp + hour2.temp) / 2,
-        pressure: (hour1.pressure + hour2.pressure) / 2,
-        humidity: (hour1.humidity + hour2.humidity) / 2,
-        wind_speed: (hour1.wind_speed + hour2.wind_speed) / 2,
-        wind_deg: hour1.wind_deg, // Use first hour's direction
-        clouds: (hour1.clouds + hour2.clouds) / 2,
-        pop: Math.max(hour1.pop, hour2.pop), // Use higher precipitation chance
-        weather: hour1.weather, // Use first hour's weather description
-      }
-
-      const score = calculateHourlyFishingScore(avgWeather, tomorrow.sunrise, tomorrow.sunset)
-
-      forecasts.push({
-        startTime: hour1.dt,
-        endTime: hour2.dt + 3600, // Add 1 hour to get end time
-        score,
-        avgTemp: avgWeather.temp,
-        conditions: avgWeather.weather[0].description,
-        icon: avgWeather.weather[0].icon,
-        windSpeed: avgWeather.wind_speed,
-        pop: avgWeather.pop,
-      })
-    }
-  }
-
-  return forecasts
-}
-
-// New enhanced scoring functions for Open-Meteo parameters
-export const calculateVisibilityScore = (visibility: number): number => {
-  // Visibility in meters - crucial for fishing success and safety
-  if (visibility >= 10000) return 10 // Excellent visibility (10km+)
-  if (visibility >= 5000) return 9 // Very good visibility
-  if (visibility >= 2000) return 7 // Good visibility
-  if (visibility >= 1000) return 5 // Moderate visibility
-  if (visibility >= 500) return 3 // Poor visibility
-  return 1 // Very poor visibility
-}
-
-export const calculateSunshineScore = (sunshineDuration: number): number => {
-  // Sunshine duration in seconds for 15-minute period (900 seconds max)
-  const sunshinePercent = (sunshineDuration / 900) * 100
-
-  if (sunshinePercent >= 75) return 10 // Mostly sunny
-  if (sunshinePercent >= 50) return 9 // Partly sunny
-  if (sunshinePercent >= 25) return 7 // Some sun
-  if (sunshinePercent >= 10) return 6 // Little sun
-  return 5 // Overcast/cloudy
-}
-
-export const calculateLightningScore = (lightningPotential: number): number => {
-  // Lightning potential in J/kg - safety critical factor
-  if (lightningPotential <= 100) return 10 // Very low risk
-  if (lightningPotential <= 500) return 8 // Low risk
-  if (lightningPotential <= 1000) return 6 // Moderate risk
-  if (lightningPotential <= 2000) return 3 // High risk - caution
-  return 1 // Very high risk - dangerous
-}
-
-export const calculateAtmosphericStabilityScore = (cape: number): number => {
-  // CAPE (Convective Available Potential Energy) in J/kg
-  // Lower CAPE = more stable conditions = better fishing
-  if (cape <= 500) return 10 // Very stable
-  if (cape <= 1000) return 8 // Stable
-  if (cape <= 2000) return 6 // Moderately stable
-  if (cape <= 3000) return 4 // Unstable
-  return 2 // Very unstable
-}
-
-export const calculateComfortScore = (
-  temp: number,
-  apparentTemp: number,
-  humidity: number,
-  dewPoint: number,
-): number => {
-  // Comfort index based on multiple factors
-  let score = 10
-
-  // Temperature comfort (apparent temperature is more accurate)
-  const tempDiff = Math.abs(apparentTemp - 12) // 12°C is comfortable for BC fishing
-  if (tempDiff <= 4) score = 10
-  else if (tempDiff <= 8) score = 8
-  else if (tempDiff <= 12) score = 6
-  else if (tempDiff <= 16) score = 4
-  else score = 2
-
-  // Humidity comfort (60-70% is ideal)
-  if (humidity >= 40 && humidity <= 80) score *= 1.0
-  else if (humidity >= 30 && humidity <= 90) score *= 0.9
-  else score *= 0.7
-
-  // Dew point comfort (below 15°C is comfortable)
-  if (dewPoint <= 10) score *= 1.0
-  else if (dewPoint <= 15) score *= 0.9
-  else if (dewPoint <= 20) score *= 0.8
-  else score *= 0.6
-
-  return Math.min(Math.round(score), 10)
-}
-
-export const calculateEnhancedWindScore = (windSpeed: number, windGusts: number, windDirection: number): number => {
-  let score = 10
-
-  // Base wind speed scoring (m/s) - enhanced to consider gusts
-  const effectiveWind = Math.max(windSpeed, windGusts * 0.7) // Weight gusts at 70%
-
-  if (effectiveWind <= 2) score = 10 // Light winds ideal
-  else if (effectiveWind <= 5) score = 9
-  else if (effectiveWind <= 8) score = 7
-  else if (effectiveWind <= 12) score = 5
-  else if (effectiveWind <= 15) score = 3
-  else score = 1 // Too windy
-
-  // Gust penalty - sudden wind changes are bad for fishing
-  const gustFactor = windGusts / Math.max(windSpeed, 0.1)
-  if (gustFactor > 2) score *= 0.8 // High gust ratio penalty
-  else if (gustFactor > 1.5) score *= 0.9
-
-  // Offshore wind preference for west coast BC
-  if (windDirection >= 45 && windDirection <= 135) score *= 1.1 // Easterly winds
-
-  return Math.min(score, 10)
 }

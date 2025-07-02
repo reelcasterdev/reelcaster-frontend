@@ -1,17 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import {
-  WeatherData,
-  FishingScore,
-  DailyForecastData,
-  calculateFishingScore,
-  generateDailyForecasts,
-} from '../utils/fishingCalculations'
-import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../utils/formatters'
-import { fetchWeatherData } from '../utils/weatherApi'
-import { LoadingStep, createLoadingSteps } from '../utils/loadingSteps'
-import HourlyBarChart from './HourlyBarChart'
+import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
+import { FishingScore, OpenMeteoDailyForecast, generateOpenMeteoDailyForecasts } from '../../utils/fishingCalculations'
+import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../../utils/formatters'
+import { LoadingStep, createLoadingSteps } from '../../utils/loadingSteps'
+import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
 import WeatherComparison from './OpenMeteoDemo'
 
 interface ForecastProps {
@@ -23,11 +17,11 @@ interface ForecastProps {
 }
 
 export default function FishingForecast({ location, hotspot, species, coordinates, onBack }: ForecastProps) {
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+  const [openMeteoData, setOpenMeteoData] = useState<ProcessedOpenMeteoData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fishingScore, setFishingScore] = useState<FishingScore | null>(null)
-  const [dailyForecasts, setDailyForecasts] = useState<DailyForecastData[]>([])
+  const [dailyForecasts, setDailyForecasts] = useState<OpenMeteoDailyForecast[]>([])
   const [activeTab, setActiveTab] = useState(0)
   const [currentStep, setCurrentStep] = useState(0)
   const [showResults, setShowResults] = useState(false)
@@ -46,7 +40,8 @@ export default function FishingForecast({ location, hotspot, species, coordinate
     await executeStep(0)
 
     await executeStep(1)
-    const weatherResult = await fetchWeatherData(coordinates)
+    // Use Open-Meteo API for enhanced 15-minute resolution data
+    const weatherResult = await fetchOpenMeteoWeather(coordinates, 3) // 3 days for standard forecast
 
     console.log({ weatherResult })
 
@@ -57,27 +52,35 @@ export default function FishingForecast({ location, hotspot, species, coordinate
       return
     }
 
-    setWeatherData(weatherResult.data!)
+    setOpenMeteoData(weatherResult.data!)
 
     await executeStep(2)
 
     await executeStep(3)
-    if (weatherResult.data?.daily && weatherResult.data.daily.length > 1) {
-      const tomorrowData = weatherResult.data.daily[1]
-      const score = calculateFishingScore(tomorrowData)
-      setFishingScore(score)
-
-      // Generate daily forecasts for tabs
-      const daily = generateDailyForecasts(weatherResult.data)
+    if (weatherResult.data) {
+      // Generate daily forecasts with enhanced algorithm
+      const daily = generateOpenMeteoDailyForecasts(weatherResult.data)
       console.log(
-        'Generated daily forecasts:',
+        'Generated enhanced daily forecasts:',
         daily.map(d => ({
           dayName: d.dayName,
-          hourlyCount: d.hourlyScores.length,
+          minutelyCount: d.minutelyScores.length,
           twoHourCount: d.twoHourForecasts.length,
         })),
       )
       setDailyForecasts(daily)
+
+      // Get tomorrow's best score for the main display
+      if (daily.length > 0) {
+        const tomorrowForecasts = daily[0].twoHourForecasts
+        if (tomorrowForecasts.length > 0) {
+          // Find the best 2-hour block for tomorrow
+          const bestBlock = tomorrowForecasts.reduce((best, current) =>
+            current.score.total > best.score.total ? current : best,
+          )
+          setFishingScore(bestBlock.score)
+        }
+      }
     }
 
     await executeStep(4)
@@ -228,8 +231,6 @@ export default function FishingForecast({ location, hotspot, species, coordinate
     )
   }
 
-  const tomorrowWeather = weatherData?.daily[1]
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black p-4">
       <div className="max-w-6xl mx-auto">
@@ -293,11 +294,13 @@ export default function FishingForecast({ location, hotspot, species, coordinate
               {/* Active Day Content */}
               {dailyForecasts[activeTab] && (
                 <div className="space-y-6">
-                  {/* Hourly Bar Chart */}
-                  <HourlyBarChart
-                    hourlyScores={dailyForecasts[activeTab].hourlyScores}
+                  {/* 15-Minute Bar Chart */}
+                  <ShadcnMinutelyBarChart
+                    minutelyScores={dailyForecasts[activeTab].minutelyScores}
+                    twoHourForecasts={dailyForecasts[activeTab].twoHourForecasts}
                     sunrise={dailyForecasts[activeTab].sunrise}
                     sunset={dailyForecasts[activeTab].sunset}
+                    dayName={dailyForecasts[activeTab].dayName}
                   />
 
                   {/* 2-Hour Detailed Forecasts */}
@@ -315,7 +318,7 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                               {formatTime(forecast.startTime)} - {formatTime(forecast.endTime)}
                             </div>
                             <div className="text-gray-400 text-sm">
-                              {Math.round(forecast.avgTemp)}°C • {Math.round(forecast.pop * 100)}% rain
+                              {Math.round(forecast.avgTemp)}°C • {forecast.precipitation.toFixed(1)}mm rain
                             </div>
                           </div>
 
@@ -351,7 +354,7 @@ export default function FishingForecast({ location, hotspot, species, coordinate
         {/* {showResults && <OpenMeteoDemo coordinates={coordinates} location={`${hotspot}, ${location}`} />} */}
         <WeatherComparison coordinates={coordinates} location={`${hotspot}, ${location}`} />
 
-        {tomorrowWeather && showResults && (
+        {dailyForecasts.length > 0 && showResults && (
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-1">
               <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
@@ -377,90 +380,100 @@ export default function FishingForecast({ location, hotspot, species, coordinate
             <div className="lg:col-span-2">
               <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
                 <h2 className="text-2xl font-bold text-white mb-6">
-                  Weather Forecast - {formatDate(tomorrowWeather.dt)}
+                  Enhanced Weather Forecast - {formatDate(dailyForecasts[0].date)}
                 </h2>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Conditions</h3>
+                {dailyForecasts[0].twoHourForecasts.length > 0 &&
+                  (() => {
+                    const firstForecast = dailyForecasts[0].twoHourForecasts[0]
 
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={`https://openweathermap.org/img/wn/${tomorrowWeather.weather[0].icon}@2x.png`}
-                        alt={tomorrowWeather.weather[0].description}
-                        className="w-16 h-16"
-                      />
-                      <div>
-                        <div className="text-white text-lg capitalize">{tomorrowWeather.weather[0].description}</div>
-                        <div className="text-gray-400">
-                          High: {Math.round(tomorrowWeather.temp.max)}°C • Low: {Math.round(tomorrowWeather.temp.min)}°C
+                    return (
+                      <div className="grid gap-6 md:grid-cols-2">
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-white">Conditions</h3>
+
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={`https://openweathermap.org/img/wn/${firstForecast.icon}@2x.png`}
+                              alt={firstForecast.conditions}
+                              className="w-16 h-16"
+                            />
+                            <div>
+                              <div className="text-white text-lg capitalize">{firstForecast.conditions}</div>
+                              <div className="text-gray-400">Avg: {Math.round(firstForecast.avgTemp)}°C</div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="bg-gray-800/50 p-3 rounded-lg">
+                              <div className="text-gray-400">Pressure</div>
+                              <div className="text-white font-semibold">{Math.round(firstForecast.pressure)} hPa</div>
+                            </div>
+                            <div className="bg-gray-800/50 p-3 rounded-lg">
+                              <div className="text-gray-400">Wind</div>
+                              <div className="text-white font-semibold">{Math.round(firstForecast.windSpeed)} km/h</div>
+                            </div>
+                            <div className="bg-gray-800/50 p-3 rounded-lg">
+                              <div className="text-gray-400">Precipitation</div>
+                              <div className="text-white font-semibold">
+                                {firstForecast.precipitation.toFixed(1)} mm
+                              </div>
+                            </div>
+                            <div className="bg-gray-800/50 p-3 rounded-lg">
+                              <div className="text-gray-400">Score</div>
+                              <div className={`font-semibold ${getScoreColor(firstForecast.score.total)}`}>
+                                {firstForecast.score.total}/10
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-white">Best Fishing Times</h3>
+
+                          <div className="space-y-3">
+                            <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 p-3 rounded-lg">
+                              <div className="text-orange-300 font-semibold">Dawn (Best)</div>
+                              <div className="text-white">
+                                {formatTime(dailyForecasts[0].sunrise - 1800)} -{' '}
+                                {formatTime(dailyForecasts[0].sunrise + 3600)}
+                              </div>
+                              <div className="text-gray-400 text-sm">1.5 hours around sunrise</div>
+                            </div>
+
+                            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-3 rounded-lg">
+                              <div className="text-purple-300 font-semibold">Dusk (Best)</div>
+                              <div className="text-white">
+                                {formatTime(dailyForecasts[0].sunset - 3600)} -{' '}
+                                {formatTime(dailyForecasts[0].sunset + 1800)}
+                              </div>
+                              <div className="text-gray-400 text-sm">1.5 hours around sunset</div>
+                            </div>
+
+                            <div className="bg-gray-800/50 p-3 rounded-lg">
+                              <div className="text-gray-400">Best 2-Hour Block</div>
+                              <div className="text-white font-semibold">
+                                {formatTime(
+                                  dailyForecasts[0].twoHourForecasts.reduce((best, current) =>
+                                    current.score.total > best.score.total ? current : best,
+                                  ).startTime,
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="bg-gray-800/50 p-3 rounded-lg">
-                        <div className="text-gray-400">Pressure</div>
-                        <div className="text-white font-semibold">{tomorrowWeather.pressure} hPa</div>
-                      </div>
-                      <div className="bg-gray-800/50 p-3 rounded-lg">
-                        <div className="text-gray-400">Humidity</div>
-                        <div className="text-white font-semibold">{tomorrowWeather.humidity}%</div>
-                      </div>
-                      <div className="bg-gray-800/50 p-3 rounded-lg">
-                        <div className="text-gray-400">Wind</div>
-                        <div className="text-white font-semibold">
-                          {Math.round(tomorrowWeather.wind_speed * 3.6)} km/h
-                        </div>
-                      </div>
-                      <div className="bg-gray-800/50 p-3 rounded-lg">
-                        <div className="text-gray-400">Clouds</div>
-                        <div className="text-white font-semibold">{tomorrowWeather.clouds}%</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Best Fishing Times</h3>
-
-                    <div className="space-y-3">
-                      <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 p-3 rounded-lg">
-                        <div className="text-orange-300 font-semibold">Dawn (Best)</div>
-                        <div className="text-white">
-                          {formatTime(tomorrowWeather.sunrise - 1800)} - {formatTime(tomorrowWeather.sunrise + 3600)}
-                        </div>
-                        <div className="text-gray-400 text-sm">1.5 hours around sunrise</div>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-3 rounded-lg">
-                        <div className="text-purple-300 font-semibold">Dusk (Best)</div>
-                        <div className="text-white">
-                          {formatTime(tomorrowWeather.sunset - 3600)} - {formatTime(tomorrowWeather.sunset + 1800)}
-                        </div>
-                        <div className="text-gray-400 text-sm">1.5 hours around sunset</div>
-                      </div>
-
-                      <div className="bg-gray-800/50 p-3 rounded-lg">
-                        <div className="text-gray-400">Rain Chance</div>
-                        <div className="text-white font-semibold">{Math.round(tomorrowWeather.pop * 100)}%</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                    )
+                  })()}
 
                 <div className="mt-6 p-4 bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-lg border border-gray-600">
-                  <h3 className="text-lg font-semibold text-white mb-2">Fishing Recommendations</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">Enhanced Fishing Recommendations</h3>
                   <div className="text-gray-300 space-y-1">
                     {fishingScore && fishingScore.total >= 7 && (
-                      <p>• Excellent conditions expected! Plan for an early morning or evening trip.</p>
+                      <p>• Excellent conditions with enhanced 15-minute resolution data!</p>
                     )}
-                    {tomorrowWeather.wind_speed <= 5 && (
-                      <p>• Light winds make this perfect for smaller boats and calm water fishing.</p>
-                    )}
-                    {tomorrowWeather.pop <= 0.3 && <p>• Low chance of rain - great day to be on the water.</p>}
-                    {tomorrowWeather.pressure >= 1013 && (
-                      <p>• High pressure system indicates stable weather and active fish.</p>
-                    )}
+                    <p>• 15-minute precision allows for optimal timing of your fishing trip.</p>
+                    <p>• Enhanced algorithm considers 11 factors including visibility and lightning safety.</p>
                     {species && <p>• Check local regulations for {species} before heading out.</p>}
                   </div>
                 </div>
