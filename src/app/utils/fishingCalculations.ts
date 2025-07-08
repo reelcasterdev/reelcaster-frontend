@@ -1,5 +1,6 @@
 // Open-Meteo integration imports
 import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
+import { TideData } from './tideApi'
 
 export interface FishingScore {
   total: number
@@ -15,6 +16,7 @@ export interface FishingScore {
     lightning: number
     atmospheric: number
     comfort: number
+    tide: number
   }
 }
 
@@ -52,34 +54,36 @@ export const calculateOpenMeteoFishingScore = (
   minuteData: OpenMeteo15MinData,
   sunrise: number,
   sunset: number,
+  tideData?: TideData | null,
 ): FishingScore => {
-  // Enhanced algorithm with 11 factors - adjusted weights for more comprehensive scoring
+  // Enhanced algorithm with 12 factors - adjusted weights for more comprehensive scoring
 
-  // Core Weather Factors (65% total)
-  const pressureScore = calculatePressureScore(minuteData.pressure) // 20%
+  // Core Weather Factors (53% total) - reduced to accommodate tide
+  const pressureScore = calculatePressureScore(minuteData.pressure) // 15%
   const windSpeedMs = minuteData.windSpeed / 3.6 // Convert km/h to m/s
   const windGustsMs = minuteData.windGusts / 3.6 // Convert km/h to m/s
-  const windScore = calculateEnhancedWindScore(windSpeedMs, windGustsMs, minuteData.windDirection) // 15%
-  const temperatureScore = calculateTemperatureScore(minuteData.temp) // 15%
-  const precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation) // 15%
+  const windScore = calculateEnhancedWindScore(windSpeedMs, windGustsMs, minuteData.windDirection) // 14%
+  const temperatureScore = calculateTemperatureScore(minuteData.temp) // 12%
+  const precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation) // 12%
 
-  // Environmental Factors (25% total)
-  const cloudScore = calculateCloudScore(minuteData.cloudCover) // 8%
-  const visibilityScore = calculateVisibilityScore(minuteData.visibility) // 7%
+  // Environmental Factors (22% total) - slightly reduced
+  const cloudScore = calculateCloudScore(minuteData.cloudCover) // 7%
+  const visibilityScore = calculateVisibilityScore(minuteData.visibility) // 6%
   const sunshineScore = calculateSunshineScore(minuteData.sunshineDuration) // 5%
-  const atmosphericScore = calculateAtmosphericStabilityScore(minuteData.cape) // 5%
+  const atmosphericScore = calculateAtmosphericStabilityScore(minuteData.cape) // 4%
 
-  // Safety & Comfort Factors (10% total)
+  // Safety & Comfort Factors (9% total) - slightly reduced
   const lightningScore = calculateLightningScore(minuteData.lightningPotential) // 5%
   const comfortScore = calculateComfortScore(
     minuteData.temp,
     minuteData.apparentTemp,
     minuteData.humidity,
     minuteData.dewPoint,
-  ) // 5%
+  ) // 4%
 
-  // Timing Factor (10% total)
-  const timeScore = calculateTimeScore(minuteData.timestamp, sunrise, sunset) // 10%
+  // Timing & Tide Factors (16% total)
+  const timeScore = calculateTimeScore(minuteData.timestamp, sunrise, sunset) // 4%
+  const tideScore = calculateTideScore(tideData || null) // 12% - NEW: Critical tide factor
 
   const breakdown = {
     pressure: Math.round(pressureScore * 100) / 100,
@@ -93,19 +97,21 @@ export const calculateOpenMeteoFishingScore = (
     lightning: Math.round(lightningScore * 100) / 100,
     atmospheric: Math.round(atmosphericScore * 100) / 100,
     comfort: Math.round(comfortScore * 100) / 100,
+    tide: Math.round(tideScore * 100) / 100,
   }
 
   // Weights now sum to exactly 1.0 (100%) to prevent scores > 10
   const totalScore =
-    pressureScore * 0.18 + // Barometric pressure
-    windScore * 0.16 + // Enhanced wind (speed + gusts + direction)
-    temperatureScore * 0.14 + // Temperature
-    precipitationScore * 0.14 + // Precipitation
-    cloudScore * 0.08 + // Cloud cover
-    visibilityScore * 0.07 + // Visibility
+    pressureScore * 0.15 + // Barometric pressure
+    windScore * 0.14 + // Enhanced wind (speed + gusts + direction)
+    temperatureScore * 0.12 + // Temperature
+    precipitationScore * 0.12 + // Precipitation
+    tideScore * 0.12 + // NEW: Tide conditions (critical for saltwater fishing)
+    cloudScore * 0.07 + // Cloud cover
+    visibilityScore * 0.06 + // Visibility
     sunshineScore * 0.05 + // Sunshine duration
-    atmosphericScore * 0.05 + // Atmospheric stability (CAPE)
     lightningScore * 0.05 + // Lightning safety
+    atmosphericScore * 0.04 + // Atmospheric stability (CAPE)
     comfortScore * 0.04 + // Angler comfort
     timeScore * 0.04 // Time of day
   // Total = 1.00 (100%)
@@ -299,7 +305,46 @@ export const calculateEnhancedWindScore = (windSpeed: number, windGusts: number,
   return Math.min(score * directionBonus, 10)
 }
 
-export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMeteoData): OpenMeteoDailyForecast[] => {
+export const calculateTideScore = (tideData: TideData | null): number => {
+  // Return neutral score if no tide data available
+  if (!tideData) return 5.0
+
+  // Peak scoring periods - moving water is key for fishing success
+  const timeToChangeHours = tideData.timeToChange / 60
+
+  // Best: 1-2 hours before/after tide change (moving water)
+  if (timeToChangeHours <= 2) {
+    const movementScore = 10 - timeToChangeHours * 2.5 // 10 at change, 5 at 2hrs
+
+    // Bonus for rising tide (many species feed more actively on incoming tide)
+    const tideTypeBonus = tideData.isRising ? 1.2 : 1.0
+
+    // Bonus for larger tide ranges (more water movement)
+    const rangeBonus = tideData.tideRange > 3.0 ? 1.1 : 1.0
+
+    // Bonus for faster change rates (more active water)
+    const rateBonus = tideData.changeRate > 0.5 ? 1.1 : 1.0
+
+    const finalScore = movementScore * tideTypeBonus * rangeBonus * rateBonus
+    return Math.min(finalScore, 10)
+  }
+
+  // Moderate: 2-4 hours from tide change (some movement)
+  if (timeToChangeHours <= 4) {
+    const baseScore = 5 - (timeToChangeHours - 2) * 1.5 // 5 to 2
+    const rangeBonus = tideData.tideRange > 3.0 ? 1.2 : 1.0
+    return Math.min(baseScore * rangeBonus, 10)
+  }
+
+  // Poor: Slack tide periods (4+ hours from change - minimal movement)
+  const slackScore = 2 - Math.min((timeToChangeHours - 4) * 0.5, 1.5) // 2 to 0.5
+  return Math.max(slackScore, 0.5)
+}
+
+export const generateOpenMeteoDailyForecasts = (
+  openMeteoData: ProcessedOpenMeteoData,
+  tideData?: TideData | null,
+): OpenMeteoDailyForecast[] => {
   const dailyForecasts: OpenMeteoDailyForecast[] = []
 
   console.log('generateOpenMeteoDailyForecasts - Input data:', {
@@ -351,7 +396,7 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
       return {
         time: minuteData.time,
         timestamp: minuteData.timestamp,
-        score: calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp).total,
+        score: calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData).total,
         temp: minuteData.temp,
         conditions: weather.description,
         icon: weather.icon,
@@ -405,7 +450,7 @@ export const generateOpenMeteoDailyForecasts = (openMeteoData: ProcessedOpenMete
           cape: segments.reduce((sum, seg) => sum + seg.cape, 0) / segments.length,
         }
 
-        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp)
+        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp, tideData)
         const weather = getWeatherDescription(avgData.weatherCode)
 
         twoHourForecasts.push({

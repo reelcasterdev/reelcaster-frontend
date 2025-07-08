@@ -16,15 +16,15 @@ export const createLoadingSteps = (hotspot: string, location: string): LoadingSt
   },
   {
     id: 'weather',
-    title: 'Fetching Weather Data',
-    description: 'Connecting to OpenWeatherMap API...',
+    title: 'Fetching Weather & Tide Data',
+    description: 'Connecting to Open-Meteo API and XTide network...',
     status: 'waiting',
     duration: 1500,
   },
   {
     id: 'marine',
     title: 'Processing Marine Conditions',
-    description: 'Analyzing wind, pressure, and tide data',
+    description: 'Analyzing wind, pressure, and real-time tide movements',
     status: 'waiting',
     duration: 1200,
   },
