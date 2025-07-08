@@ -7,6 +7,7 @@ import { TideData, findNearestTideStation, getCachedTideData } from '../../utils
 import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../../utils/formatters'
 import { LoadingStep, createLoadingSteps } from '../../utils/loadingSteps'
 import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
+import WeatherDataChart from '../charts/WeatherDataChart'
 import WeatherComparison from './OpenMeteoDemo'
 
 interface ForecastProps {
@@ -418,6 +419,15 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                 <div className="space-y-6">
                   {/* 15-Minute Bar Chart */}
                   <ShadcnMinutelyBarChart
+                    minutelyScores={dailyForecasts[activeTab].minutelyScores}
+                    twoHourForecasts={dailyForecasts[activeTab].twoHourForecasts}
+                    sunrise={dailyForecasts[activeTab].sunrise}
+                    sunset={dailyForecasts[activeTab].sunset}
+                    dayName={dailyForecasts[activeTab].dayName}
+                  />
+
+                  {/* Weather Data Analysis */}
+                  <WeatherDataChart
                     minutelyScores={dailyForecasts[activeTab].minutelyScores}
                     twoHourForecasts={dailyForecasts[activeTab].twoHourForecasts}
                     sunrise={dailyForecasts[activeTab].sunrise}
