@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
+import { fetchOpenMeteoWeather } from '../../utils/openMeteoApi'
 import { FishingScore, OpenMeteoDailyForecast, generateOpenMeteoDailyForecasts } from '../../utils/fishingCalculations'
+import { TideData, findNearestTideStation, getCachedTideData } from '../../utils/tideApi'
 import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../../utils/formatters'
 import { LoadingStep, createLoadingSteps } from '../../utils/loadingSteps'
 import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
@@ -17,7 +18,7 @@ interface ForecastProps {
 }
 
 export default function FishingForecast({ location, hotspot, species, coordinates, onBack }: ForecastProps) {
-  const [openMeteoData, setOpenMeteoData] = useState<ProcessedOpenMeteoData | null>(null)
+  const [tideData, setTideData] = useState<TideData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fishingScore, setFishingScore] = useState<FishingScore | null>(null)
@@ -40,6 +41,13 @@ export default function FishingForecast({ location, hotspot, species, coordinate
     await executeStep(0)
 
     await executeStep(1)
+
+    // Fetch tide data for the location
+    const tideStation = findNearestTideStation(coordinates)
+    const tideResult = await getCachedTideData(tideStation)
+    setTideData(tideResult)
+    console.log('Tide data fetched:', { station: tideStation.name, tideResult })
+
     // Use Open-Meteo API for enhanced 15-minute resolution data
     const weatherResult = await fetchOpenMeteoWeather(coordinates, 3) // 3 days for standard forecast
 
@@ -52,16 +60,14 @@ export default function FishingForecast({ location, hotspot, species, coordinate
       return
     }
 
-    setOpenMeteoData(weatherResult.data!)
-
     await executeStep(2)
 
     await executeStep(3)
     if (weatherResult.data) {
-      // Generate daily forecasts with enhanced algorithm
-      const daily = generateOpenMeteoDailyForecasts(weatherResult.data)
+      // Generate daily forecasts with enhanced algorithm including tide data
+      const daily = generateOpenMeteoDailyForecasts(weatherResult.data, tideResult)
       console.log(
-        'Generated enhanced daily forecasts:',
+        'Generated enhanced daily forecasts with tide data:',
         daily.map(d => ({
           dayName: d.dayName,
           minutelyCount: d.minutelyScores.length,
@@ -265,6 +271,122 @@ export default function FishingForecast({ location, hotspot, species, coordinate
               <div className={`text-2xl font-semibold ${getScoreColor(fishingScore.total)}`}>
                 {getScoreLabel(fishingScore.total)}
               </div>
+
+              {/* Tide Score Enhancement Notice */}
+              {tideData && (
+                <div className="mt-4 px-4 py-2 bg-blue-900/30 rounded-lg border border-blue-600/50">
+                  <div className="text-blue-300 text-sm font-medium">🌊 Enhanced with Tide Data</div>
+                  <div className="text-blue-200 text-xs">Score includes tide conditions from {tideData.station}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tide Information Display */}
+        {tideData && showResults && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 backdrop-blur-sm rounded-2xl border border-blue-600/50 p-6">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span className="text-3xl">🌊</span>
+                Tide Conditions - {tideData.station}
+              </h2>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Current Tide */}
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+                  <h3 className="text-lg font-semibold text-blue-300 mb-3">Current Tide</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Height:</span>
+                      <span className="text-white font-semibold">{tideData.currentHeight.toFixed(1)}m</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Status:</span>
+                      <span className={`font-semibold ${tideData.isRising ? 'text-green-400' : 'text-orange-400'}`}>
+                        {tideData.isRising ? '⬆️ Rising' : '⬇️ Falling'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Rate:</span>
+                      <span className="text-gray-200">{tideData.changeRate.toFixed(1)} m/hr</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Next Change */}
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+                  <h3 className="text-lg font-semibold text-blue-300 mb-3">Next Change</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Type:</span>
+                      <span
+                        className={`font-semibold ${
+                          tideData.nextChangeType === 'high' ? 'text-blue-400' : 'text-purple-400'
+                        }`}
+                      >
+                        {tideData.nextChangeType === 'high' ? '🔵 High Tide' : '🟣 Low Tide'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Time:</span>
+                      <span className="text-white font-semibold">{formatTime(tideData.nextChangeTime)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">In:</span>
+                      <span className="text-gray-200">
+                        {Math.floor(tideData.timeToChange / 60)}h {Math.round(tideData.timeToChange % 60)}m
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daily Range */}
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+                  <h3 className="text-lg font-semibold text-blue-300 mb-3">Daily Range</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Range:</span>
+                      <span className="text-white font-semibold">{tideData.tideRange.toFixed(1)}m</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Quality:</span>
+                      <span
+                        className={`font-semibold ${
+                          tideData.tideRange > 3.5
+                            ? 'text-green-400'
+                            : tideData.tideRange > 2.5
+                            ? 'text-yellow-400'
+                            : 'text-orange-400'
+                        }`}
+                      >
+                        {tideData.tideRange > 3.5 ? 'Excellent' : tideData.tideRange > 2.5 ? 'Good' : 'Moderate'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">Larger ranges create more water movement</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Optimal Fishing Windows */}
+              <div className="mt-6 p-4 bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg border border-green-600/30">
+                <h3 className="text-lg font-semibold text-green-300 mb-3">🎣 Optimal Tide Windows</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-green-200 font-medium">Best Times (Moving Water):</div>
+                    <div className="text-sm text-gray-300">• 2 hours before {tideData.nextChangeType} tide</div>
+                    <div className="text-sm text-gray-300">• 1 hour after {tideData.nextChangeType} tide</div>
+                    {tideData.isRising && (
+                      <div className="text-sm text-green-400">✨ Rising tide bonus - fish feed actively!</div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-yellow-200 font-medium">Tide Score Contribution:</div>
+                    <div className="text-sm text-gray-300">Score: {fishingScore?.breakdown?.tide || 'N/A'}/10</div>
+                    <div className="text-xs text-gray-400">Based on timing, movement, and range</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -368,7 +490,10 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                         className="flex justify-between items-center animate-slideInLeft"
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
-                        <span className="text-gray-300 capitalize">{factor.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                        <span className="text-gray-300 capitalize">
+                          {factor === 'tide' && '🌊 '}
+                          {factor.replace(/([A-Z])/g, ' $1').trim()}:
+                        </span>
                         <span className={`font-semibold ${getScoreColor(score)}`}>{score}/10</span>
                       </div>
                     ))}

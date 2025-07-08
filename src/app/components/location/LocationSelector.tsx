@@ -4,11 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import FishingForecast from '../demo/FishingForecast'
 
+interface FishingHotspot {
+  name: string
+  coordinates: { lat: number; lon: number }
+}
+
 interface FishingLocation {
   id: string
   name: string
-  hotspots: string[]
-  coordinates: { lat: number; lon: number }
+  coordinates: { lat: number; lon: number } // fallback coordinates
+  hotspots: FishingHotspot[]
 }
 
 interface FishSpecies {
@@ -27,139 +32,26 @@ const fishingLocations: FishingLocation[] = [
   {
     id: 'victoria-sidney',
     name: 'Victoria, Sidney',
-    coordinates: { lat: 48.4284, lon: -123.3656 }, // Victoria coordinates
+    coordinates: { lat: 48.4113, lon: -123.398 }, // Breakwater area coordinates
     hotspots: [
-      'Beacon Hill Park',
-      'Clover Point',
-      'Esquimalt Lagoon',
-      'Inner Harbour',
-      'James Bay',
-      'Esquimalt Harbour',
-      'Cadboro Bay',
-      'Ten Mile Point',
-      'Esquimalt Anglers',
-      'Sidney Pier',
-      'Sidney Channel',
-      'Coal Island',
-      'James Island',
-      'Sidney Spit',
-      'Haro Strait',
-      'Saanich Inlet',
-      'Brentwood Bay',
-      'Tod Inlet',
-      'Goldstream River',
-      'Finlayson Arm',
-    ],
-  },
-  {
-    id: 'tofino-meares-vargas-flores',
-    name: 'Tofino and Meares, Vargas, Flores Islands',
-    coordinates: { lat: 49.1533, lon: -125.9066 }, // Tofino coordinates
-    hotspots: [
-      'Tofino Harbour',
-      'Clayoquot Sound',
-      'Meares Island',
-      'Vargas Island',
-      'Flores Island',
-      'Hot Springs Cove',
-      'Bedwell Sound',
-      'Tranquil Creek',
-      'Shelter Inlet',
-      'Lemmens Inlet',
-      'Grice Bay',
-      'Browning Passage',
-      'Fortune Channel',
-      'Millar Channel',
-      'Duffin Passage',
-      'Chesterman Beach',
-      'Long Beach',
-      'Cox Bay',
-      'Wickaninnish Beach',
-      'Kennedy Lake',
-      'Toquart Bay',
-      'Ucluelet Inlet',
-      'Barkley Sound',
-      'Imperial Eagle Channel',
-      'Pipestem Inlet',
-    ],
-  },
-  {
-    id: 'vancouver-bowen-indian-arm-squamish',
-    name: 'Vancouver, Bowen Island, Indian Arm, Squamish',
-    coordinates: { lat: 49.2827, lon: -123.1207 }, // Vancouver coordinates
-    hotspots: [
-      'English Bay',
-      'Spanish Banks',
-      'Jericho Beach',
-      'Kitsilano Beach',
-      'Second Beach',
-      'Third Beach',
-      'Coal Harbour',
-      'Canada Place',
-      'Burnaby Barnet Marine Park',
-      'Rocky Point Park',
-      'Ambleside Beach',
-      'Dundarave Pier',
-      'Capilano River',
-      'Seymour River',
-      'Burrard Inlet',
-      'Deep Cove',
-      'Indian Arm',
-      'Belcarra Regional Park',
-      'Sasamat Lake',
-      'Bowen Island',
-      'Snug Cove',
-      'Queen Charlotte Channel',
-      'Horseshoe Bay',
-      'Sea Island',
-      'Iona Beach Regional Park',
-      'Garry Point Park',
-      'Steveston',
-      'Fraser River',
-      'Pitt River',
-      'Squamish River',
-      'Mamquam River',
-      'Cheakamus River',
-      'Howe Sound',
-      'Porteau Cove',
-      'Lions Bay',
+      { name: 'Breakwater (Shore Fishing)', coordinates: { lat: 48.4113, lon: -123.398 } },
+      { name: 'Waterfront', coordinates: { lat: 48.4284, lon: -123.3656 } },
+      { name: 'Ten Mile Point (Shore Fishing)', coordinates: { lat: 48.4167, lon: -123.3 } },
+      { name: 'Oak Bay', coordinates: { lat: 48.4264, lon: -123.3145 } },
+      { name: 'Waterfront Bay', coordinates: { lat: 48.4632, lon: -123.3127 } },
+      { name: 'Constance Bank', coordinates: { lat: 48.3833, lon: -123.4167 } },
+      { name: 'Sidney', coordinates: { lat: 48.65, lon: -123.4 } },
     ],
   },
   {
     id: 'sooke-port-renfrew',
     name: 'Sooke, Port Renfrew',
-    coordinates: { lat: 48.3723, lon: -123.7365 }, // Sooke coordinates
+    coordinates: { lat: 48.3415, lon: -123.5507 }, // Pedder Bay area coordinates
     hotspots: [
-      'Sooke Harbour',
-      'Sooke Basin',
-      'Sooke River',
-      'Sooke Potholes',
-      'Secretary Island',
-      'Becher Bay',
-      'Pedder Bay',
-      'Race Rocks',
-      'Church Point',
-      'Otter Point',
-      'Sheringham Point',
-      'French Beach',
-      'Point No Point',
-      'Jordan River',
-      'China Beach',
-      'Mystic Beach',
-      'Juan de Fuca Strait',
-      'Port Renfrew Harbour',
-      'San Juan River',
-      'Gordon River',
-      'Harris Creek',
-      'Fairy Lake',
-      'Lizard Lake',
-      'Shawnigan Lake',
-      'Cowichan Lake',
-      'Nitinat Lake',
-      'Bamfield Inlet',
-      'Trevor Channel',
-      'Imperial Eagle Channel',
-      'Pachena Bay',
+      { name: 'East Sooke', coordinates: { lat: 48.35, lon: -123.6167 } },
+      { name: 'Becher Bay', coordinates: { lat: 48.3167, lon: -123.6333 } },
+      { name: 'Pedder Bay', coordinates: { lat: 48.3415, lon: -123.5507 } },
+      { name: 'Church Rock', coordinates: { lat: 48.3, lon: -123.6 } },
     ],
   },
 ]
@@ -177,17 +69,6 @@ const fishSpecies: FishSpecies[] = [
     description: 'King salmon, largest Pacific salmon species',
   },
   {
-    id: 'coho-salmon',
-    name: 'Coho Salmon',
-    scientificName: 'Oncorhynchus kisutch',
-    minSize: '30cm',
-    dailyLimit: '2 (hatchery marked only)',
-    status: 'Open',
-    gear: 'Barbless hook and line',
-    season: 'June - October',
-    description: 'Silver salmon, excellent fighting fish',
-  },
-  {
     id: 'chum-salmon',
     name: 'Chum Salmon',
     scientificName: 'Oncorhynchus keta',
@@ -197,6 +78,17 @@ const fishSpecies: FishSpecies[] = [
     gear: 'Barbless hook and line',
     season: 'September - December',
     description: 'Dog salmon, spawning runs in fall',
+  },
+  {
+    id: 'coho-salmon',
+    name: 'Coho Salmon (hatchery and wild combined)',
+    scientificName: 'Oncorhynchus kisutch',
+    minSize: '30cm',
+    dailyLimit: '2',
+    status: 'Open',
+    gear: 'Barbless hook and line',
+    season: 'June - October',
+    description: 'Silver salmon, excellent fighting fish',
   },
   {
     id: 'pink-salmon',
@@ -222,7 +114,7 @@ const fishSpecies: FishSpecies[] = [
   },
   {
     id: 'halibut',
-    name: 'Pacific Halibut',
+    name: 'Halibut',
     scientificName: 'Hippoglossus stenolepis',
     minSize: '83cm',
     dailyLimit: '1',
@@ -244,7 +136,7 @@ const fishSpecies: FishSpecies[] = [
   },
   {
     id: 'rockfish',
-    name: 'Rockfish (Various)',
+    name: 'Rockfish',
     scientificName: 'Sebastes spp.',
     minSize: 'Varies by species',
     dailyLimit: '5 combined',
@@ -254,26 +146,15 @@ const fishSpecies: FishSpecies[] = [
     description: 'Bottom dwelling fish, many species',
   },
   {
-    id: 'dungeness-crab',
-    name: 'Dungeness Crab',
-    scientificName: 'Metacarcinus magister',
-    minSize: '165mm carapace',
-    dailyLimit: '4 (males only)',
+    id: 'greenling',
+    name: 'Greenling',
+    scientificName: 'Hexagrammos spp.',
+    minSize: '23cm',
+    dailyLimit: '15',
     status: 'Open',
-    gear: 'Crab trap or ring net',
-    season: 'Year-round (check closures)',
-    description: 'Popular crab species, males only',
-  },
-  {
-    id: 'steelhead',
-    name: 'Steelhead Trout',
-    scientificName: 'Oncorhynchus mykiss',
-    minSize: '50cm',
-    dailyLimit: '0',
-    status: 'Non Retention',
-    gear: 'Barbless hook and line',
-    season: 'Varies by system',
-    description: 'Sea-run rainbow trout, catch and release',
+    gear: 'Hook and line',
+    season: 'Year-round',
+    description: 'Common nearshore fish, good eating',
   },
 ]
 
@@ -283,6 +164,7 @@ export default function LocationSelector() {
   const [selectedHotspot, setSelectedHotspot] = useState<string>('')
   const [selectedSpecies, setSelectedSpecies] = useState<string>('')
   const [showForecast, setShowForecast] = useState(false)
+  const [mode, setMode] = useState<'forecast' | 'historical'>('forecast')
 
   const currentLocation = fishingLocations.find(loc => loc.id === selectedLocation)
   const currentSpecies = fishSpecies.find(species => species.id === selectedSpecies)
@@ -306,11 +188,14 @@ export default function LocationSelector() {
 
   const handleOpenMeteoForecast = () => {
     if (selectedLocation && selectedHotspot && currentLocation) {
+      const selectedHotspotData = currentLocation.hotspots.find(h => h.name === selectedHotspot)
+      const coordinates = selectedHotspotData?.coordinates || currentLocation.coordinates
+
       const params = new URLSearchParams({
         location: currentLocation.name,
         hotspot: selectedHotspot,
-        lat: currentLocation.coordinates.lat.toString(),
-        lon: currentLocation.coordinates.lon.toString(),
+        lat: coordinates.lat.toString(),
+        lon: coordinates.lon.toString(),
       })
 
       if (currentSpecies) {
@@ -321,18 +206,41 @@ export default function LocationSelector() {
     }
   }
 
+  const handleHistoricalForecast = () => {
+    if (selectedLocation && selectedHotspot && currentLocation) {
+      const selectedHotspotData = currentLocation.hotspots.find(h => h.name === selectedHotspot)
+      const coordinates = selectedHotspotData?.coordinates || currentLocation.coordinates
+
+      const params = new URLSearchParams({
+        location: currentLocation.name,
+        hotspot: selectedHotspot,
+        lat: coordinates.lat.toString(),
+        lon: coordinates.lon.toString(),
+      })
+
+      if (currentSpecies) {
+        params.set('species', currentSpecies.name)
+      }
+
+      router.push(`/historical?${params.toString()}`)
+    }
+  }
+
   const handleBackToSelection = () => {
     setShowForecast(false)
   }
 
   // Show forecast component if requested
   if (showForecast && currentLocation && selectedHotspot) {
+    const selectedHotspotData = currentLocation.hotspots.find(h => h.name === selectedHotspot)
+    const coordinates = selectedHotspotData?.coordinates || currentLocation.coordinates
+
     return (
       <FishingForecast
         location={currentLocation.name}
         hotspot={selectedHotspot}
         species={currentSpecies?.name}
-        coordinates={currentLocation.coordinates}
+        coordinates={coordinates}
         onBack={handleBackToSelection}
       />
     )
@@ -366,6 +274,37 @@ export default function LocationSelector() {
 
   return (
     <div className="space-y-8">
+      {/* Mode Selection */}
+      <div className="text-center">
+        <div className="inline-flex bg-gray-800 rounded-lg p-1 border border-gray-600">
+          <button
+            onClick={() => setMode('forecast')}
+            className={`px-6 py-2 rounded-md font-medium transition-all ${
+              mode === 'forecast'
+                ? 'bg-green-600 text-white shadow-lg'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            Future Forecast
+          </button>
+          <button
+            onClick={() => setMode('historical')}
+            className={`px-6 py-2 rounded-md font-medium transition-all ${
+              mode === 'historical'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            Historical Analysis
+          </button>
+        </div>
+        <p className="text-gray-400 text-sm mt-2">
+          {mode === 'forecast'
+            ? 'Get upcoming fishing conditions and forecasts'
+            : 'Analyze past weather patterns and fishing conditions'}
+        </p>
+      </div>
+
       <div>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-8 bg-gradient-to-r from-gray-300 to-white rounded-full flex items-center justify-center">
@@ -438,10 +377,10 @@ export default function LocationSelector() {
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-gray-700 scrollbar-thumb-gray-500 pr-2">
             {currentLocation.hotspots.map(hotspot => (
               <button
-                key={hotspot}
-                onClick={() => handleHotspotChange(hotspot)}
+                key={hotspot.name}
+                onClick={() => handleHotspotChange(hotspot.name)}
                 className={`group p-4 text-left rounded-lg border transition-all duration-200 hover:scale-[1.02] ${
-                  selectedHotspot === hotspot
+                  selectedHotspot === hotspot.name
                     ? 'border-gray-300 bg-gradient-to-br from-gray-700/50 to-gray-600/30 shadow-lg shadow-white/5'
                     : 'border-gray-600 bg-gray-800/30 hover:border-gray-500 hover:bg-gray-800/50'
                 }`}
@@ -449,19 +388,19 @@ export default function LocationSelector() {
                 <div className="flex items-center justify-between">
                   <span
                     className={`font-medium ${
-                      selectedHotspot === hotspot ? 'text-gray-200' : 'text-gray-300 group-hover:text-white'
+                      selectedHotspot === hotspot.name ? 'text-gray-200' : 'text-gray-300 group-hover:text-white'
                     }`}
                   >
-                    {hotspot}
+                    {hotspot.name}
                   </span>
                   <div
                     className={`w-4 h-4 rounded-full border-2 transition-all ${
-                      selectedHotspot === hotspot
+                      selectedHotspot === hotspot.name
                         ? 'border-gray-300 bg-gray-300'
                         : 'border-gray-500 group-hover:border-gray-400'
                     }`}
                   >
-                    {selectedHotspot === hotspot && <div className="w-1 h-1 bg-black rounded-full m-[3px]"></div>}
+                    {selectedHotspot === hotspot.name && <div className="w-1 h-1 bg-black rounded-full m-[3px]"></div>}
                   </div>
                 </div>
               </button>
@@ -540,72 +479,115 @@ export default function LocationSelector() {
         </div>
       )}
 
-      {/* Get Forecast Buttons */}
+      {/* Get Forecast/Historical Buttons */}
       {selectedLocation && selectedHotspot && (
         <div className="border-t border-gray-600 pt-8 space-y-4">
-          {/* Standard Forecast (2 days) */}
-          <button
-            onClick={handleGetForecast}
-            className="w-full group relative overflow-hidden bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 hover:from-gray-700 hover:via-gray-600 hover:to-gray-500 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-black/50 hover:shadow-white/10 hover:scale-[1.02] border border-gray-500"
-          >
-            <div className="relative z-10 flex items-center justify-center gap-3">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span className="text-lg">
-                Get Enhanced 3-Day Forecast for {selectedHotspot}
-                {selectedSpecies && ` (${currentSpecies?.name})`}
-              </span>
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-          </button>
+          {mode === 'forecast' ? (
+            <>
+              {/* Standard Forecast (2 days) */}
+              <button
+                onClick={handleGetForecast}
+                className="w-full group relative overflow-hidden bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 hover:from-gray-700 hover:via-gray-600 hover:to-gray-500 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-black/50 hover:shadow-white/10 hover:scale-[1.02] border border-gray-500"
+              >
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span className="text-lg">
+                    Get Enhanced 3-Day Forecast for {selectedHotspot}
+                    {selectedSpecies && ` (${currentSpecies?.name})`}
+                  </span>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              </button>
 
-          {/* Open-Meteo Extended Forecast (14 days) */}
-          <button
-            onClick={handleOpenMeteoForecast}
-            className="w-full group relative overflow-hidden bg-gradient-to-r from-green-800 via-green-700 to-green-600 hover:from-green-700 hover:via-green-600 hover:to-green-500 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-black/50 hover:shadow-green-500/20 hover:scale-[1.02] border border-green-500"
-          >
-            <div className="relative z-10 flex items-center justify-center gap-3">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span className="text-lg">
-                Get 14-Day Extended Forecast
-                {selectedSpecies && ` (${currentSpecies?.name})`}
-              </span>
-              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">FREE</span>
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-          </button>
+              {/* Open-Meteo Extended Forecast (14 days) */}
+              <button
+                onClick={handleOpenMeteoForecast}
+                className="w-full group relative overflow-hidden bg-gradient-to-r from-green-800 via-green-700 to-green-600 hover:from-green-700 hover:via-green-600 hover:to-green-500 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-black/50 hover:shadow-green-500/20 hover:scale-[1.02] border border-green-500"
+              >
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span className="text-lg">
+                    Get 14-Day Extended Forecast
+                    {selectedSpecies && ` (${currentSpecies?.name})`}
+                  </span>
+                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">FREE</span>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Historical Analysis */}
+              <button
+                onClick={handleHistoricalForecast}
+                className="w-full group relative overflow-hidden bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 hover:from-blue-700 hover:via-blue-600 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-black/50 hover:shadow-blue-500/20 hover:scale-[1.02] border border-blue-500"
+              >
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                  <span className="text-lg">
+                    Analyze Historical Conditions for {selectedHotspot}
+                    {selectedSpecies && ` (${currentSpecies?.name})`}
+                  </span>
+                  <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">FREE</span>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              </button>
+            </>
+          )}
 
-          {/* Forecast Options Info */}
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
-              <h5 className="text-white font-semibold mb-2">🌊 Enhanced 3-Day Forecast</h5>
-              <ul className="text-green-300 space-y-1">
-                <li>• Open-Meteo API (Free)</li>
-                <li>• 3 days enhanced forecast</li>
-                <li>• 15-minute resolution</li>
-                <li>• 11-factor algorithm</li>
-                <li>• 2-hour prediction blocks</li>
+          {/* Options Info */}
+          {mode === 'forecast' ? (
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
+                <h5 className="text-white font-semibold mb-2">🌊 Enhanced 3-Day Forecast</h5>
+                <ul className="text-green-300 space-y-1">
+                  <li>• Open-Meteo API (Free)</li>
+                  <li>• 3 days enhanced forecast</li>
+                  <li>• 15-minute resolution</li>
+                  <li>• 11-factor algorithm</li>
+                  <li>• 2-hour prediction blocks</li>
+                </ul>
+              </div>
+              <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
+                <h5 className="text-white font-semibold mb-2">🌍 Extended 14-Day Forecast</h5>
+                <ul className="text-green-300 space-y-1">
+                  <li>• Open-Meteo API (Free)</li>
+                  <li>• Up to 14 days forecast</li>
+                  <li>• 15-minute resolution</li>
+                  <li>• Enhanced scoring system</li>
+                  <li>• Daily breakdown view</li>
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-blue-900/30 rounded-lg p-4 border border-blue-600">
+              <h5 className="text-white font-semibold mb-2">📊 Historical Analysis Features</h5>
+              <ul className="text-blue-300 space-y-1">
+                <li>• Weather pattern analysis from 2020 onwards</li>
+                <li>• Custom date range selection (up to 30 days)</li>
+                <li>• Historical fishing condition scoring</li>
+                <li>• Compare different time periods</li>
+                <li>• Identify seasonal patterns and trends</li>
+                <li>• Learn from past conditions for better planning</li>
               </ul>
             </div>
-            <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
-              <h5 className="text-white font-semibold mb-2">🌍 Extended 14-Day Forecast</h5>
-              <ul className="text-green-300 space-y-1">
-                <li>• Open-Meteo API (Free)</li>
-                <li>• Up to 14 days forecast</li>
-                <li>• 15-minute resolution</li>
-                <li>• Enhanced scoring system</li>
-                <li>• Daily breakdown view</li>
-              </ul>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
