@@ -71,7 +71,7 @@ export default function ShadcnMinutelyBarChart({
   }
 
   const getBarColor = (score: number, isInBestWindow: boolean) => {
-    if (isInBestWindow) return '#fbbf24' // yellow-400
+    if (isInBestWindow) return '#3b82f6' // blue-500 instead of yellow-400
 
     if (score >= 8) return '#10b981' // green-500
     if (score >= 6) return '#f59e0b' // amber-500
@@ -145,7 +145,7 @@ export default function ShadcnMinutelyBarChart({
             <div className="capitalize">☁️ {data.conditions}</div>
           </div>
           {data.isInBestWindow && (
-            <div className="mt-2 text-yellow-300 text-xs font-semibold">⭐ In best 2-hour window</div>
+            <div className="mt-2 text-blue-300 text-xs font-semibold">⭐ In best 2-hour window</div>
           )}
           {data.isPeak && <div className="mt-1 text-yellow-400 text-xs">🌅 Peak fishing time</div>}
         </div>
@@ -169,8 +169,8 @@ export default function ShadcnMinutelyBarChart({
 
           {bestTwoHourWindow && (
             <div className="text-right">
-              <div className="bg-yellow-900/30 border border-yellow-500/50 rounded-lg p-3">
-                <p className="text-yellow-300 text-sm font-semibold">🏆 Best 2-Hour Window</p>
+              <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3">
+                <p className="text-blue-300 text-sm font-semibold">🏆 Best 2-Hour Window</p>
                 <p className="text-white font-bold">
                   {formatTime(bestTwoHourWindow.startTime)} - {formatTime(bestTwoHourWindow.endTime)}
                 </p>
@@ -237,7 +237,7 @@ export default function ShadcnMinutelyBarChart({
                 <Cell
                   key={`cell-${index}`}
                   fill={entry.fill}
-                  stroke={entry.isInBestWindow ? '#fbbf24' : 'transparent'}
+                  stroke={entry.isInBestWindow ? '#3b82f6' : 'transparent'}
                   strokeWidth={entry.isInBestWindow ? 2 : 0}
                   opacity={activeIndex === undefined || activeIndex === index ? 1 : 0.7}
                 />
@@ -281,8 +281,8 @@ export default function ShadcnMinutelyBarChart({
         {/* Additional Legend for Special Indicators */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mt-4 pt-4 border-t border-gray-700">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-400 rounded border-2 border-yellow-400"></div>
-            <span className="text-yellow-300">Best 2-Hour Window</span>
+            <div className="w-4 h-4 bg-blue-500 rounded border-2 border-blue-500"></div>
+            <span className="text-blue-300">Best 2-Hour Window</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>

@@ -1,0 +1,83 @@
+{
+  "location": "Victoria",
+  "totalWeeks": 5,
+  "averageScore": 7.9,
+  "weeklyScores": [
+    {
+      "weekStart": "28/04/2025",
+      "weekEnd": "04/05/2025",
+      "averageScore": 8.0,
+      "activeSpecies": 4,
+      "species": {
+        "Chinook": 8,
+        "Lingcod": 8,
+        "Rockfish": 8,
+        "Halibut": 8
+      }
+    },
+    {
+      "weekStart": "05/05/2025",
+      "weekEnd": "11/05/2025",
+      "averageScore": 8.0,
+      "activeSpecies": 4,
+      "species": {
+        "Chinook": 8,
+        "Lingcod": 8,
+        "Rockfish": 8,
+        "Halibut": 8
+      }
+    },
+    {
+      "weekStart": "12/05/2025",
+      "weekEnd": "18/05/2025",
+      "averageScore": 8.0,
+      "activeSpecies": 4,
+      "species": {
+        "Chinook": 8,
+        "Lingcod": 8,
+        "Rockfish": 8,
+        "Halibut": 8
+      }
+    },
+    {
+      "weekStart": "19/05/2025",
+      "weekEnd": "25/05/2025",
+      "averageScore": 8.0,
+      "activeSpecies": 4,
+      "species": {
+        "Chinook": 8,
+        "Lingcod": 8,
+        "Rockfish": 8,
+        "Halibut": 8
+      }
+    },
+    {
+      "weekStart": "26/05/2025",
+      "weekEnd": "01/06/2025",
+      "averageScore": 7.3,
+      "activeSpecies": 4,
+      "species": {
+        "Chinook": 8,
+        "Lingcod": 7,
+        "Rockfish": 7,
+        "Halibut": 7
+      }
+    }
+  ],
+  "summary": {
+    "bestWeek": {
+      "week": "28/04/2025 - 04/05/2025",
+      "score": 8.0
+    },
+    "worstWeek": {
+      "week": "26/05/2025 - 01/06/2025",
+      "score": 7.3
+    },
+    "mostActiveWeek": {
+      "week": "All weeks",
+      "species": 4
+    },
+    "perfectWeeks": 4,
+    "trend": "stable"
+  }
+}

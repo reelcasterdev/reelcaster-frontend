@@ -234,3 +234,118 @@ export const fetchOpenMeteoWeather = async (
     }
   }
 }
+
+export const fetchOpenMeteoHistoricalWeather = async (
+  coordinates: { lat: number; lon: number },
+  startDate: string, // Format: YYYY-MM-DD
+  endDate: string, // Format: YYYY-MM-DD
+): Promise<{ success: boolean; data?: ProcessedOpenMeteoData; error?: string }> => {
+  try {
+    // Build Open-Meteo Historical API URL
+    const params = new URLSearchParams({
+      latitude: coordinates.lat.toString(),
+      longitude: coordinates.lon.toString(),
+      start_date: startDate,
+      end_date: endDate,
+      hourly: [
+        'temperature_2m',
+        'relative_humidity_2m',
+        'dew_point_2m',
+        'apparent_temperature',
+        'precipitation',
+        'weather_code',
+        'surface_pressure',
+        'cloud_cover',
+        'wind_speed_10m',
+        'wind_direction_10m',
+        'wind_gusts_10m',
+        'visibility',
+        'sunshine_duration',
+      ].join(','),
+      daily: ['sunrise', 'sunset', 'temperature_2m_max', 'temperature_2m_min'].join(','),
+      timezone: 'auto',
+    })
+
+    const url = `https://archive-api.open-meteo.com/v1/archive?${params}`
+    console.log('Open-Meteo Historical API URL:', url)
+
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error(`Open-Meteo Historical API error: ${response.status} - ${response.statusText}`)
+    }
+
+    const rawData: any = await response.json()
+    console.log('Open-Meteo historical raw response:', rawData)
+
+    // Convert hourly data to 15-minute intervals (simulate by replicating hourly data)
+    const minutely15Data: OpenMeteo15MinData[] = []
+
+    if (rawData.hourly && rawData.hourly.time) {
+      rawData.hourly.time.forEach((time: string, index: number) => {
+        const baseTimestamp = new Date(time).getTime() / 1000
+
+        // Create 4 x 15-minute entries for each hour (simulated)
+        for (let i = 0; i < 4; i++) {
+          const timestamp = baseTimestamp + i * 15 * 60 // Add 15 minute intervals
+          const timeStr = new Date(timestamp * 1000).toISOString()
+
+          minutely15Data.push({
+            time: timeStr,
+            timestamp: timestamp,
+            temp: rawData.hourly.temperature_2m[index] || 0,
+            humidity: rawData.hourly.relative_humidity_2m[index] || 0,
+            dewPoint: rawData.hourly.dew_point_2m[index] || 0,
+            apparentTemp: rawData.hourly.apparent_temperature[index] || 0,
+            precipitation: rawData.hourly.precipitation[index] || 0,
+            weatherCode: rawData.hourly.weather_code[index] || 0,
+            pressure: rawData.hourly.surface_pressure[index] || 1013,
+            cloudCover: rawData.hourly.cloud_cover[index] || 0,
+            windSpeed: rawData.hourly.wind_speed_10m[index] || 0,
+            windDirection: rawData.hourly.wind_direction_10m[index] || 0,
+            windGusts: rawData.hourly.wind_gusts_10m[index] || 0,
+            visibility: rawData.hourly.visibility[index] || 10000,
+            sunshineDuration: rawData.hourly.sunshine_duration[index] || 0,
+            lightningPotential: 0, // Not available in historical data
+            cape: 0, // Not available in historical data
+          })
+        }
+      })
+    }
+
+    // Process the data into the same format as forecast data
+    const processedData: ProcessedOpenMeteoData = {
+      minutely15: minutely15Data,
+      daily:
+        rawData.daily?.time?.map((date: string, index: number) => ({
+          date,
+          timestamp: new Date(date).getTime() / 1000,
+          sunrise: rawData.daily.sunrise[index],
+          sunset: rawData.daily.sunset[index],
+          maxTemp: rawData.daily.temperature_2m_max[index],
+          minTemp: rawData.daily.temperature_2m_min[index],
+        })) || [],
+      location: {
+        latitude: rawData.latitude || coordinates.lat,
+        longitude: rawData.longitude || coordinates.lon,
+        elevation: rawData.elevation || 0,
+        timezone: rawData.timezone || 'UTC',
+      },
+    }
+
+    console.log('Processed Open-Meteo historical data:', {
+      minutely15Count: processedData.minutely15.length,
+      dailyCount: processedData.daily.length,
+      firstMinutely: processedData.minutely15[0],
+      lastMinutely: processedData.minutely15[processedData.minutely15.length - 1],
+    })
+
+    return { success: true, data: processedData }
+  } catch (err) {
+    console.error('Open-Meteo Historical API error:', err)
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to fetch Open-Meteo historical weather data',
+    }
+  }
+}
