@@ -75,7 +75,7 @@ export default function VictoriaAnalysisPage() {
 
           if (weatherResult.success && weatherResult.data) {
             // Generate algorithm predictions
-            const forecasts = generateOpenMeteoDailyForecasts(weatherResult.data)
+            const forecasts = generateOpenMeteoDailyForecasts(weatherResult.data, null, null)
 
             // Calculate average algorithm score for the week
             let totalAlgorithmScore = 0

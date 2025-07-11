@@ -2,6 +2,218 @@
 import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
 import { TideData } from './tideApi'
 
+// Species-specific fishing profile system
+export interface SpeciesProfile {
+  id: string
+  name: string
+  // Temperature preferences (Celsius)
+  optimalTempRange: [number, number]
+  tolerableTempRange: [number, number]
+  // Pressure sensitivity (how much pressure changes affect this species)
+  pressureSensitivity: number // 0.5-2.0 multiplier
+  // Wind preferences
+  windTolerance: number // 0.5-2.0 - higher values = more wind tolerant
+  // Tide importance (how much tides matter for this species)
+  tideImportance: number // 0.5-2.0 multiplier for tide score
+  // Time of day preferences
+  dawnActivityBonus: number // 0.8-1.5 multiplier
+  duskActivityBonus: number // 0.8-1.5 multiplier
+  midDayActivity: number // 0.5-1.2 multiplier
+  nightActivity: number // 0.3-1.0 multiplier
+  // Weather pattern preferences
+  lowLightPreference: number // 0.7-1.3 - preference for overcast vs sunny
+  precipitationTolerance: number // 0.5-1.5 - tolerance for rain
+  // Seasonal activity modifier
+  seasonalPeaks: {
+    spring: number // 0.5-1.5
+    summer: number // 0.5-1.5
+    fall: number // 0.5-1.5
+    winter: number // 0.5-1.5
+  }
+}
+
+// Species profiles based on Pacific Northwest fishing knowledge
+export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
+  'chinook-salmon': {
+    id: 'chinook-salmon',
+    name: 'Chinook Salmon',
+    optimalTempRange: [8, 14],
+    tolerableTempRange: [4, 18],
+    pressureSensitivity: 1.4, // Very sensitive to pressure changes
+    windTolerance: 0.7, // Prefer calmer waters
+    tideImportance: 1.6, // Highly tide-dependent
+    dawnActivityBonus: 1.4,
+    duskActivityBonus: 1.3,
+    midDayActivity: 0.7,
+    nightActivity: 0.4,
+    lowLightPreference: 1.2, // Prefer overcast conditions
+    precipitationTolerance: 1.1,
+    seasonalPeaks: { spring: 1.3, summer: 1.4, fall: 1.2, winter: 0.6 },
+  },
+  'coho-salmon': {
+    id: 'coho-salmon',
+    name: 'Coho Salmon',
+    optimalTempRange: [10, 16],
+    tolerableTempRange: [6, 20],
+    pressureSensitivity: 1.2,
+    windTolerance: 0.9, // More wind tolerant than Chinook
+    tideImportance: 1.3,
+    dawnActivityBonus: 1.3,
+    duskActivityBonus: 1.4,
+    midDayActivity: 0.8,
+    nightActivity: 0.5,
+    lowLightPreference: 1.1,
+    precipitationTolerance: 1.2,
+    seasonalPeaks: { spring: 1.1, summer: 1.4, fall: 1.3, winter: 0.7 },
+  },
+  'chum-salmon': {
+    id: 'chum-salmon',
+    name: 'Chum Salmon',
+    optimalTempRange: [8, 14],
+    tolerableTempRange: [4, 18],
+    pressureSensitivity: 1.1,
+    windTolerance: 1.0,
+    tideImportance: 1.4,
+    dawnActivityBonus: 1.2,
+    duskActivityBonus: 1.2,
+    midDayActivity: 0.9,
+    nightActivity: 0.6,
+    lowLightPreference: 1.0,
+    precipitationTolerance: 1.3,
+    seasonalPeaks: { spring: 0.8, summer: 0.9, fall: 1.5, winter: 0.5 },
+  },
+  'pink-salmon': {
+    id: 'pink-salmon',
+    name: 'Pink Salmon',
+    optimalTempRange: [10, 16],
+    tolerableTempRange: [6, 20],
+    pressureSensitivity: 1.0,
+    windTolerance: 1.1,
+    tideImportance: 1.2,
+    dawnActivityBonus: 1.2,
+    duskActivityBonus: 1.3,
+    midDayActivity: 0.9,
+    nightActivity: 0.7,
+    lowLightPreference: 1.0,
+    precipitationTolerance: 1.2,
+    seasonalPeaks: { spring: 0.7, summer: 1.4, fall: 1.2, winter: 0.4 },
+  },
+  'sockeye-salmon': {
+    id: 'sockeye-salmon',
+    name: 'Sockeye Salmon',
+    optimalTempRange: [8, 15],
+    tolerableTempRange: [5, 18],
+    pressureSensitivity: 1.3,
+    windTolerance: 0.8,
+    tideImportance: 1.1, // Less tide-dependent than other salmon
+    dawnActivityBonus: 1.3,
+    duskActivityBonus: 1.4,
+    midDayActivity: 0.6,
+    nightActivity: 0.4,
+    lowLightPreference: 1.3,
+    precipitationTolerance: 1.0,
+    seasonalPeaks: { spring: 1.2, summer: 1.4, fall: 1.1, winter: 0.5 },
+  },
+  halibut: {
+    id: 'halibut',
+    name: 'Halibut',
+    optimalTempRange: [6, 12],
+    tolerableTempRange: [2, 16],
+    pressureSensitivity: 0.8, // Less pressure sensitive
+    windTolerance: 1.2, // Can handle rougher conditions
+    tideImportance: 1.8, // Very tide-dependent (bottom feeder)
+    dawnActivityBonus: 1.1,
+    duskActivityBonus: 1.2,
+    midDayActivity: 1.0, // Active throughout day
+    nightActivity: 0.8,
+    lowLightPreference: 0.9,
+    precipitationTolerance: 1.4,
+    seasonalPeaks: { spring: 1.2, summer: 1.4, fall: 1.1, winter: 0.8 },
+  },
+  lingcod: {
+    id: 'lingcod',
+    name: 'Lingcod',
+    optimalTempRange: [8, 14],
+    tolerableTempRange: [4, 18],
+    pressureSensitivity: 0.9,
+    windTolerance: 1.3,
+    tideImportance: 1.5, // Structure-oriented, tide-dependent
+    dawnActivityBonus: 1.2,
+    duskActivityBonus: 1.3,
+    midDayActivity: 0.9,
+    nightActivity: 0.7,
+    lowLightPreference: 1.1,
+    precipitationTolerance: 1.3,
+    seasonalPeaks: { spring: 1.3, summer: 1.2, fall: 1.1, winter: 1.0 },
+  },
+  rockfish: {
+    id: 'rockfish',
+    name: 'Rockfish',
+    optimalTempRange: [8, 16],
+    tolerableTempRange: [4, 20],
+    pressureSensitivity: 0.7, // Structure fish, less weather sensitive
+    windTolerance: 1.4,
+    tideImportance: 1.3,
+    dawnActivityBonus: 1.1,
+    duskActivityBonus: 1.2,
+    midDayActivity: 1.0,
+    nightActivity: 0.8,
+    lowLightPreference: 0.9,
+    precipitationTolerance: 1.4,
+    seasonalPeaks: { spring: 1.2, summer: 1.3, fall: 1.2, winter: 0.9 },
+  },
+  greenling: {
+    id: 'greenling',
+    name: 'Greenling',
+    optimalTempRange: [10, 18],
+    tolerableTempRange: [6, 22],
+    pressureSensitivity: 0.8,
+    windTolerance: 1.1,
+    tideImportance: 1.2,
+    dawnActivityBonus: 1.2,
+    duskActivityBonus: 1.2,
+    midDayActivity: 1.0,
+    nightActivity: 0.7,
+    lowLightPreference: 0.9,
+    precipitationTolerance: 1.3,
+    seasonalPeaks: { spring: 1.1, summer: 1.3, fall: 1.2, winter: 0.8 },
+  },
+}
+
+// Utility function to get species profile by name (fuzzy matching)
+export const getSpeciesProfile = (speciesName: string | null): SpeciesProfile | null => {
+  if (!speciesName) return null
+
+  const normalizedName = speciesName.toLowerCase().replace(/[^a-z]/g, '-')
+
+  // Direct match
+  if (SPECIES_PROFILES[normalizedName]) {
+    return SPECIES_PROFILES[normalizedName]
+  }
+
+  // Fuzzy matching
+  for (const [key, profile] of Object.entries(SPECIES_PROFILES)) {
+    if (
+      profile.name.toLowerCase().includes(speciesName.toLowerCase()) ||
+      speciesName.toLowerCase().includes(profile.name.toLowerCase()) ||
+      key.includes(normalizedName.substring(0, 6))
+    ) {
+      return profile
+    }
+  }
+
+  return null
+}
+
+// Get current season based on month
+export const getCurrentSeason = (timestamp: number): keyof SpeciesProfile['seasonalPeaks'] => {
+  const month = new Date(timestamp * 1000).getMonth() + 1 // 1-12
+  if (month >= 3 && month <= 5) return 'spring'
+  if (month >= 6 && month <= 8) return 'summer'
+  if (month >= 9 && month <= 11) return 'fall'
+  return 'winter'
+}
+
 export interface FishingScore {
   total: number
   breakdown: {
@@ -17,6 +229,7 @@ export interface FishingScore {
     atmospheric: number
     comfort: number
     tide: number
+    species: number // Species-specific adjustment
   }
 }
 
@@ -55,24 +268,31 @@ export const calculateOpenMeteoFishingScore = (
   sunrise: number,
   sunset: number,
   tideData?: TideData | null,
+  speciesName?: string | null,
 ): FishingScore => {
-  // Enhanced algorithm with 12 factors - adjusted weights for more comprehensive scoring
+  // Get species profile for adjustments
+  const speciesProfile = getSpeciesProfile(speciesName || null)
+  const season = getCurrentSeason(minuteData.timestamp)
 
-  // Core Weather Factors (53% total) - reduced to accommodate tide
-  const pressureScore = calculatePressureScore(minuteData.pressure) // 15%
-  const windSpeedMs = minuteData.windSpeed / 3.6 // Convert km/h to m/s
-  const windGustsMs = minuteData.windGusts / 3.6 // Convert km/h to m/s
-  const windScore = calculateEnhancedWindScore(windSpeedMs, windGustsMs, minuteData.windDirection) // 14%
-  const temperatureScore = calculateTemperatureScore(minuteData.temp) // 12%
-  const precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation) // 12%
+  // Enhanced algorithm with 13 factors including species-specific adjustments
 
-  // Environmental Factors (22% total) - slightly reduced
-  const cloudScore = calculateCloudScore(minuteData.cloudCover) // 7%
+  // Core Weather Factors - with species adjustments
+  let pressureScore = calculatePressureScore(minuteData.pressure) // 14%
+  let windScore = calculateEnhancedWindScore(
+    minuteData.windSpeed / 3.6,
+    minuteData.windGusts / 3.6,
+    minuteData.windDirection,
+  ) // 13%
+  let temperatureScore = calculateTemperatureScore(minuteData.temp) // 11%
+  let precipitationScore = calculatePrecipitationScoreFromMM(minuteData.precipitation) // 11%
+
+  // Environmental Factors
+  let cloudScore = calculateCloudScore(minuteData.cloudCover) // 6%
   const visibilityScore = calculateVisibilityScore(minuteData.visibility) // 6%
-  const sunshineScore = calculateSunshineScore(minuteData.sunshineDuration) // 5%
+  let sunshineScore = calculateSunshineScore(minuteData.sunshineDuration) // 5%
   const atmosphericScore = calculateAtmosphericStabilityScore(minuteData.cape) // 4%
 
-  // Safety & Comfort Factors (9% total) - slightly reduced
+  // Safety & Comfort Factors
   const lightningScore = calculateLightningScore(minuteData.lightningPotential) // 5%
   const comfortScore = calculateComfortScore(
     minuteData.temp,
@@ -81,9 +301,77 @@ export const calculateOpenMeteoFishingScore = (
     minuteData.dewPoint,
   ) // 4%
 
-  // Timing & Tide Factors (16% total)
-  const timeScore = calculateTimeScore(minuteData.timestamp, sunrise, sunset) // 4%
-  const tideScore = calculateTideScore(tideData || null) // 12% - NEW: Critical tide factor
+  // Timing & Tide Factors
+  let timeScore = calculateTimeScore(minuteData.timestamp, sunrise, sunset) // 4%
+  let tideScore = calculateTideScore(tideData || null) // 11%
+
+  // Species-specific adjustments
+  let speciesAdjustment = 5.0 // Neutral base score
+
+  if (speciesProfile) {
+    // Temperature preference adjustment
+    const temp = minuteData.temp
+    const [optimalMin, optimalMax] = speciesProfile.optimalTempRange
+    const [tolerableMin, tolerableMax] = speciesProfile.tolerableTempRange
+
+    if (temp >= optimalMin && temp <= optimalMax) {
+      temperatureScore *= 1.2 // Boost for optimal temp
+    } else if (temp >= tolerableMin && temp <= tolerableMax) {
+      temperatureScore *= 1.0 // No change for tolerable temp
+    } else {
+      temperatureScore *= 0.6 // Penalty for poor temp
+    }
+
+    // Apply species-specific multipliers
+    pressureScore *= speciesProfile.pressureSensitivity
+    windScore *= speciesProfile.windTolerance
+    tideScore *= speciesProfile.tideImportance
+    precipitationScore *= speciesProfile.precipitationTolerance
+
+    // Time-of-day adjustments
+    const hour = new Date(minuteData.timestamp * 1000).getHours()
+    const sunriseHour = new Date(sunrise * 1000).getHours()
+    const sunsetHour = new Date(sunset * 1000).getHours()
+
+    // Dawn activity bonus (1 hour before/after sunrise)
+    if (Math.abs(hour - sunriseHour) <= 1) {
+      timeScore *= speciesProfile.dawnActivityBonus
+    }
+    // Dusk activity bonus (1 hour before/after sunset)
+    else if (Math.abs(hour - sunsetHour) <= 1) {
+      timeScore *= speciesProfile.duskActivityBonus
+    }
+    // Mid-day activity
+    else if (hour >= 10 && hour <= 16) {
+      timeScore *= speciesProfile.midDayActivity
+    }
+    // Night activity
+    else if (hour <= 5 || hour >= 22) {
+      timeScore *= speciesProfile.nightActivity
+    }
+
+    // Light preference (cloud cover interaction)
+    const cloudPercent = minuteData.cloudCover
+    if (cloudPercent >= 50) {
+      // Overcast conditions
+      cloudScore *= speciesProfile.lowLightPreference
+      sunshineScore *= speciesProfile.lowLightPreference
+    }
+
+    // Seasonal adjustment
+    const seasonalMultiplier = speciesProfile.seasonalPeaks[season]
+    speciesAdjustment = 5.0 * seasonalMultiplier
+
+    // Clamp individual scores to prevent extreme values
+    pressureScore = Math.min(pressureScore, 12)
+    windScore = Math.min(windScore, 12)
+    temperatureScore = Math.min(temperatureScore, 12)
+    precipitationScore = Math.min(precipitationScore, 12)
+    cloudScore = Math.min(cloudScore, 12)
+    sunshineScore = Math.min(sunshineScore, 12)
+    timeScore = Math.min(timeScore, 12)
+    tideScore = Math.min(tideScore, 12)
+  }
 
   const breakdown = {
     pressure: Math.round(pressureScore * 100) / 100,
@@ -98,22 +386,24 @@ export const calculateOpenMeteoFishingScore = (
     atmospheric: Math.round(atmosphericScore * 100) / 100,
     comfort: Math.round(comfortScore * 100) / 100,
     tide: Math.round(tideScore * 100) / 100,
+    species: Math.round(speciesAdjustment * 100) / 100,
   }
 
-  // Weights now sum to exactly 1.0 (100%) to prevent scores > 10
+  // Adjusted weights to accommodate species factor (now sum to 1.0)
   const totalScore =
-    pressureScore * 0.15 + // Barometric pressure
-    windScore * 0.14 + // Enhanced wind (speed + gusts + direction)
-    temperatureScore * 0.12 + // Temperature
-    precipitationScore * 0.12 + // Precipitation
-    tideScore * 0.12 + // NEW: Tide conditions (critical for saltwater fishing)
-    cloudScore * 0.07 + // Cloud cover
+    pressureScore * 0.14 + // Barometric pressure
+    windScore * 0.13 + // Enhanced wind (speed + gusts + direction)
+    temperatureScore * 0.11 + // Temperature (species-adjusted)
+    precipitationScore * 0.11 + // Precipitation (species-adjusted)
+    tideScore * 0.11 + // Tide conditions (species-adjusted)
+    cloudScore * 0.06 + // Cloud cover (species-adjusted)
     visibilityScore * 0.06 + // Visibility
-    sunshineScore * 0.05 + // Sunshine duration
+    sunshineScore * 0.05 + // Sunshine duration (species-adjusted)
     lightningScore * 0.05 + // Lightning safety
     atmosphericScore * 0.04 + // Atmospheric stability (CAPE)
     comfortScore * 0.04 + // Angler comfort
-    timeScore * 0.04 // Time of day
+    timeScore * 0.04 + // Time of day (species-adjusted)
+    speciesAdjustment * 0.06 // Species seasonal/behavioral factor
   // Total = 1.00 (100%)
 
   return {
@@ -344,6 +634,7 @@ export const calculateTideScore = (tideData: TideData | null): number => {
 export const generateOpenMeteoDailyForecasts = (
   openMeteoData: ProcessedOpenMeteoData,
   tideData?: TideData | null,
+  speciesName?: string | null,
 ): OpenMeteoDailyForecast[] => {
   const dailyForecasts: OpenMeteoDailyForecast[] = []
 
@@ -396,7 +687,8 @@ export const generateOpenMeteoDailyForecasts = (
       return {
         time: minuteData.time,
         timestamp: minuteData.timestamp,
-        score: calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData).total,
+        score: calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName)
+          .total,
         temp: minuteData.temp,
         conditions: weather.description,
         icon: weather.icon,
@@ -450,7 +742,7 @@ export const generateOpenMeteoDailyForecasts = (
           cape: segments.reduce((sum, seg) => sum + seg.cape, 0) / segments.length,
         }
 
-        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp, tideData)
+        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName)
         const weather = getWeatherDescription(avgData.weatherCode)
 
         twoHourForecasts.push({

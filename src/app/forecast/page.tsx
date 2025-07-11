@@ -58,7 +58,7 @@ function ForecastContent() {
       console.log('Open-Meteo data received:', result.data)
       setOpenMeteoData(result.data!)
 
-      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!)
+      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, null, species)
       console.log('Generated forecasts:', dailyForecasts)
       setForecasts(dailyForecasts)
     } catch (err) {

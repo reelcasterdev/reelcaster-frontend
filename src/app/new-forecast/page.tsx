@@ -209,7 +209,7 @@ function NewForecastContent() {
       setOpenMeteoData(result.data!)
 
       // Generate daily forecasts with tide data
-      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, tideResult)
+      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, tideResult, species)
       console.log('Generated forecasts:', dailyForecasts)
       setForecasts(dailyForecasts)
     } catch (err) {

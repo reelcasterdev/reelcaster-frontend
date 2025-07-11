@@ -51,7 +51,7 @@ function HistoricalContent() {
       console.log('Historical Open-Meteo data received:', result.data)
       setOpenMeteoData(result.data!)
 
-      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!)
+      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, null, species)
       console.log('Generated historical forecasts:', dailyForecasts)
       setForecasts(dailyForecasts)
       setDateRangeSelected(true)
