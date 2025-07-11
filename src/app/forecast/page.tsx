@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../utils/openMeteoApi'
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from '../utils/fishingCalculations'
 import ShadcnMinutelyBarChart from '../components/charts/ShadcnMinutelyBarChart'
+import WeatherDataChart from '../components/charts/WeatherDataChart'
 import ForecastHeader from '../components/forecast/ForecastHeader'
 import LoadingState from '../components/common/LoadingState'
 import ErrorState from '../components/common/ErrorState'
@@ -57,7 +58,7 @@ function ForecastContent() {
       console.log('Open-Meteo data received:', result.data)
       setOpenMeteoData(result.data!)
 
-      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!)
+      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, null, species)
       console.log('Generated forecasts:', dailyForecasts)
       setForecasts(dailyForecasts)
     } catch (err) {
@@ -123,6 +124,14 @@ function ForecastContent() {
                 <DayOverview forecast={forecasts[selectedDay]} />
 
                 <ShadcnMinutelyBarChart
+                  minutelyScores={forecasts[selectedDay].minutelyScores}
+                  twoHourForecasts={forecasts[selectedDay].twoHourForecasts}
+                  sunrise={forecasts[selectedDay].sunrise}
+                  sunset={forecasts[selectedDay].sunset}
+                  dayName={forecasts[selectedDay].dayName}
+                />
+
+                <WeatherDataChart
                   minutelyScores={forecasts[selectedDay].minutelyScores}
                   twoHourForecasts={forecasts[selectedDay].twoHourForecasts}
                   sunrise={forecasts[selectedDay].sunrise}

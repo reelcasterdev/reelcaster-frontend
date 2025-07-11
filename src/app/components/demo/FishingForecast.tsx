@@ -7,6 +7,7 @@ import { TideData, findNearestTideStation, getCachedTideData } from '../../utils
 import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../../utils/formatters'
 import { LoadingStep, createLoadingSteps } from '../../utils/loadingSteps'
 import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
+import WeatherDataChart from '../charts/WeatherDataChart'
 import WeatherComparison from './OpenMeteoDemo'
 
 interface ForecastProps {
@@ -65,7 +66,7 @@ export default function FishingForecast({ location, hotspot, species, coordinate
     await executeStep(3)
     if (weatherResult.data) {
       // Generate daily forecasts with enhanced algorithm including tide data
-      const daily = generateOpenMeteoDailyForecasts(weatherResult.data, tideResult)
+      const daily = generateOpenMeteoDailyForecasts(weatherResult.data, tideResult, species)
       console.log(
         'Generated enhanced daily forecasts with tide data:',
         daily.map(d => ({
@@ -272,13 +273,23 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                 {getScoreLabel(fishingScore.total)}
               </div>
 
-              {/* Tide Score Enhancement Notice */}
-              {tideData && (
-                <div className="mt-4 px-4 py-2 bg-blue-900/30 rounded-lg border border-blue-600/50">
-                  <div className="text-blue-300 text-sm font-medium">🌊 Enhanced with Tide Data</div>
-                  <div className="text-blue-200 text-xs">Score includes tide conditions from {tideData.station}</div>
-                </div>
-              )}
+              {/* Enhancement Notices */}
+              <div className="mt-4 space-y-2">
+                {tideData && (
+                  <div className="px-4 py-2 bg-blue-900/30 rounded-lg border border-blue-600/50">
+                    <div className="text-blue-300 text-sm font-medium">🌊 Enhanced with Tide Data</div>
+                    <div className="text-blue-200 text-xs">Score includes tide conditions from {tideData.station}</div>
+                  </div>
+                )}
+                {species && (
+                  <div className="px-4 py-2 bg-green-900/30 rounded-lg border border-green-600/50">
+                    <div className="text-green-300 text-sm font-medium">🐟 Species-Optimized Forecast</div>
+                    <div className="text-green-200 text-xs">
+                      Algorithm adjusted for {species} behavioral patterns and preferences
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -425,6 +436,15 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                     dayName={dailyForecasts[activeTab].dayName}
                   />
 
+                  {/* Weather Data Analysis */}
+                  <WeatherDataChart
+                    minutelyScores={dailyForecasts[activeTab].minutelyScores}
+                    twoHourForecasts={dailyForecasts[activeTab].twoHourForecasts}
+                    sunrise={dailyForecasts[activeTab].sunrise}
+                    sunset={dailyForecasts[activeTab].sunset}
+                    dayName={dailyForecasts[activeTab].dayName}
+                  />
+
                   {/* 2-Hour Detailed Forecasts */}
                   <div>
                     <h3 className="text-xl font-bold text-white mb-4">2-Hour Detailed Forecasts</h3>
@@ -492,6 +512,7 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                       >
                         <span className="text-gray-300 capitalize">
                           {factor === 'tide' && '🌊 '}
+                          {factor === 'species' && '🐟 '}
                           {factor.replace(/([A-Z])/g, ' $1').trim()}:
                         </span>
                         <span className={`font-semibold ${getScoreColor(score)}`}>{score}/10</span>

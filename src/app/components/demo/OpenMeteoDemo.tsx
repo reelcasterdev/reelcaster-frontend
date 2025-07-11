@@ -36,7 +36,7 @@ export default function WeatherComparison({ coordinates, location }: WeatherComp
       setOpenMeteoData(result.data!)
 
       // Generate daily forecasts with enhanced 15-minute data
-      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!)
+      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, null, null)
       console.log('Generated Open-Meteo daily forecasts:', dailyForecasts)
       setOpenMeteoForecasts(dailyForecasts)
     } catch (err) {
