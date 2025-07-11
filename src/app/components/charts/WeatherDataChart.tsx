@@ -112,11 +112,9 @@ export default function WeatherDataChart({
   const OverviewTooltip = ({
     active,
     payload,
-    label,
   }: {
     active?: boolean
-    payload?: Array<{ value: number; dataKey: string; color: string }>
-    label?: string
+    payload?: Array<{ value: number; dataKey: string; color: string; payload: any }>
   }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
@@ -149,7 +147,7 @@ export default function WeatherDataChart({
     payload,
   }: {
     active?: boolean
-    payload?: Array<{ value: number; dataKey: string; color: string }>
+    payload?: Array<{ value: number; dataKey: string; color: string; payload: any }>
   }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
