@@ -11,9 +11,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, Cell } from 'recharts'
-import LoadingState from '../components/common/LoadingState'
-import ErrorState from '../components/common/ErrorState'
-import DataSummary from '../components/forecast/DataSummary'
+import LoadingState from '../components/common/loading-state'
+import ErrorState from '../components/common/error-state'
+import DataSummary from '../components/forecast/data-summary'
 
 // Real fishing location and species data
 interface FishingHotspot {

@@ -6,9 +6,9 @@ import { FishingScore, OpenMeteoDailyForecast, generateOpenMeteoDailyForecasts }
 import { TideData, findNearestTideStation, getCachedTideData } from '../../utils/tideApi'
 import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../../utils/formatters'
 import { LoadingStep, createLoadingSteps } from '../../utils/loadingSteps'
-import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
-import WeatherDataChart from '../charts/WeatherDataChart'
-import WeatherComparison from './OpenMeteoDemo'
+import ShadcnMinutelyBarChart from '../charts/shadcn-minutely-bar-chart'
+import WeatherDataChart from '../charts/weather-data-chart'
+import WeatherComparison from './open-meteo-demo'
 
 interface ForecastProps {
   location: string

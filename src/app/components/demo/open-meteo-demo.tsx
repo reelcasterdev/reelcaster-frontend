@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { getScoreColor, getScoreLabel, formatDate } from '../../utils/formatters'
-import ShadcnMinutelyBarChart from '../charts/ShadcnMinutelyBarChart'
+import ShadcnMinutelyBarChart from '../charts/shadcn-minutely-bar-chart'
 
 interface WeatherComparisonProps {
   coordinates: { lat: number; lon: number }
