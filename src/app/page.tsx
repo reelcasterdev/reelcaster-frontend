@@ -19,13 +19,23 @@ export default function Home() {
           <div className="mt-8 pt-8 border-t border-gray-700">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-white mb-4">Data Analysis</h2>
-              <p className="text-gray-400 mb-4">Explore historical fishing data and algorithm performance</p>
-              <a
-                href="/victoria-analysis"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
-              >
-                Victoria Analysis: Real vs Algorithm
-              </a>
+              <p className="text-gray-400 mb-6">Explore historical fishing data and algorithm performance</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                <a
+                  href="/victoria-analysis"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg transition-colors font-medium block"
+                >
+                  <div className="font-semibold mb-1">Victoria Analysis</div>
+                  <div className="text-sm text-blue-200">Real vs Algorithm Comparison</div>
+                </a>
+                <a
+                  href="/data-comparison"
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg transition-colors font-medium block"
+                >
+                  <div className="font-semibold mb-1">Live Data Comparison</div>
+                  <div className="text-sm text-green-200">Compare with iNaturalist Data</div>
+                </a>
+              </div>
             </div>
           </div>
         </main>
