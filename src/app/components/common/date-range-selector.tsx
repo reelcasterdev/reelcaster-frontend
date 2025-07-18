@@ -19,7 +19,7 @@ interface DateRangeSelectorProps {
 export default function DateRangeSelector({
   onDateRangeChange,
   loading = false,
-  maxDaysRange = 14,
+  maxDaysRange = 365,
 }: DateRangeSelectorProps) {
   const [startDate, setStartDate] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
@@ -98,6 +98,16 @@ export default function DateRangeSelector({
     onDateRangeChange(start.toISOString().split('T')[0], end.toISOString().split('T')[0])
   }
 
+  const setYearRange = (year: number) => {
+    const start = new Date(year, 0, 1) // January 1st
+    const end = new Date(year, 11, 31) // December 31st
+
+    setStartDate(start)
+    setEndDate(end)
+    setError(null)
+    onDateRangeChange(start.toISOString().split('T')[0], end.toISOString().split('T')[0])
+  }
+
   const formatDate = (date: Date | undefined) => {
     if (!date) return 'Select date'
     return date.toLocaleDateString()
@@ -141,6 +151,24 @@ export default function DateRangeSelector({
           className="bg-background/50 border-border/50 hover:bg-background/70"
         >
           Last 30 Days
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setYearRange(2023)}
+          disabled={loading}
+          className="bg-background/50 border-border/50 hover:bg-background/70"
+        >
+          Full Year 2023
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setYearRange(2022)}
+          disabled={loading}
+          className="bg-background/50 border-border/50 hover:bg-background/70"
+        >
+          Full Year 2022
         </Button>
       </div>
 
