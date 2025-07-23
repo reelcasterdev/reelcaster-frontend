@@ -20,6 +20,8 @@ import FishingReports from './components/forecast/fishing-reports'
 import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
+import { useAuth } from '@/contexts/auth-context'
+import { UserPreferencesService } from '@/lib/user-preferences'
 
 // Real fishing location and species data
 interface FishingHotspot {
@@ -219,12 +221,12 @@ function NewForecastContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex">
+    <div className="min-h-screen bg-slate-900 text-white">
       {/* Sidebar */}
       <Sidebar />
       
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="ml-64 min-h-screen overflow-auto">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
           {/* Location Selector */}
           <CompactLocationSelector />
@@ -293,19 +295,44 @@ function NewForecastContent() {
 function HomePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { user } = useAuth()
   
   useEffect(() => {
-    // If no parameters are provided, redirect to default location
-    if (!searchParams.get('location') && !searchParams.get('hotspot')) {
-      const params = new URLSearchParams({
-        location: 'Victoria, Sidney',
-        hotspot: 'Waterfront',
-        lat: '48.4284',
-        lon: '-123.3656'
-      })
-      router.replace(`/?${params.toString()}`)
+    const loadDefaultLocation = async () => {
+      // If no parameters are provided, redirect to default location
+      if (!searchParams.get('location') && !searchParams.get('hotspot')) {
+        try {
+          // Get user's favorite location if authenticated, otherwise use default
+          const defaultLocation = await UserPreferencesService.getDefaultLocation()
+          
+          const params = new URLSearchParams({
+            location: defaultLocation.location,
+            hotspot: defaultLocation.hotspot,
+            lat: defaultLocation.lat.toString(),
+            lon: defaultLocation.lon.toString()
+          })
+          
+          if (defaultLocation.species) {
+            params.set('species', defaultLocation.species)
+          }
+          
+          router.replace(`/?${params.toString()}`)
+        } catch (error) {
+          console.error('Error loading default location:', error)
+          // Fallback to hardcoded default
+          const params = new URLSearchParams({
+            location: 'Victoria, Sidney',
+            hotspot: 'Waterfront',
+            lat: '48.4284',
+            lon: '-123.3656'
+          })
+          router.replace(`/?${params.toString()}`)
+        }
+      }
     }
-  }, [searchParams, router])
+
+    loadDefaultLocation()
+  }, [searchParams, router, user])
   
   return <NewForecastContent />
 }
