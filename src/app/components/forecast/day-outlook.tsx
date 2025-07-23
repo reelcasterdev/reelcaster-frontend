@@ -1,9 +1,11 @@
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
+import { ForecastSectionOverlay } from '../auth/forecast-section-overlay'
 
 interface DayOutlookProps {
   forecasts: OpenMeteoDailyForecast[]
   selectedDay?: number
   onDaySelect?: (dayIndex: number) => void
+  shouldBlurAfterDay?: number | null
 }
 
 const getScoreColor = (score: number) => {
@@ -38,9 +40,10 @@ const getWeatherEmoji = (score: number) => {
   return '🌊'
 }
 
-export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect }: DayOutlookProps) {
+export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect, shouldBlurAfterDay }: DayOutlookProps) {
   // Show all 14 days
   const displayForecasts = forecasts.slice(0, 14)
+  const hasBlurredCards = shouldBlurAfterDay !== null
 
   return (
     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50 shadow-2xl">
@@ -83,7 +86,7 @@ export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect }: 
         <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none rounded-r-xl"></div>
         
         <div 
-          className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50 px-2"
+          className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50 px-2 relative"
           style={{
             scrollbarWidth: 'thin',
             scrollbarColor: '#475569 #1e293b'
@@ -103,19 +106,27 @@ export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect }: 
             
             const isSelected = selectedDay === index
             const isToday = getTodayIndicator(index)
+            const shouldBlur = shouldBlurAfterDay !== null && index > shouldBlurAfterDay
+            const isClickable = !shouldBlur
 
             return (
-              <button
+              <div 
                 key={index}
-                onClick={() => onDaySelect?.(index)}
-                className={`
-                  group flex flex-col items-center min-w-[90px] p-4 rounded-2xl transition-all duration-300 transform hover:scale-105 relative
-                  ${isSelected 
-                    ? 'bg-gradient-to-b from-blue-500/20 to-blue-600/20 border-2 border-blue-500/50 shadow-2xl shadow-blue-500/20' 
-                    : 'bg-gradient-to-b from-slate-700/50 to-slate-800/50 border border-slate-600/30 hover:border-slate-500/50 hover:shadow-xl'
-                  }
-                `}
+                className="relative min-w-[90px]"
               >
+                <button
+                  onClick={() => isClickable && onDaySelect?.(index)}
+                  disabled={!isClickable}
+                  className={`
+                    group flex flex-col items-center w-full p-4 rounded-2xl transition-all duration-300 transform relative
+                    ${shouldBlur ? 'blur-sm' : 'hover:scale-105'}
+                    ${isSelected 
+                      ? 'bg-gradient-to-b from-blue-500/20 to-blue-600/20 border-2 border-blue-500/50 shadow-2xl shadow-blue-500/20' 
+                      : 'bg-gradient-to-b from-slate-700/50 to-slate-800/50 border border-slate-600/30 hover:border-slate-500/50 hover:shadow-xl'
+                    }
+                    ${!isClickable ? 'cursor-default' : 'cursor-pointer'}
+                  `}
+                >
                 {/* Today Badge */}
                 {isToday && (
                   <div className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-cyan-400 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
@@ -170,9 +181,23 @@ export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect }: 
                 {isSelected && (
                   <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 )}
-              </button>
+                </button>
+              </div>
             )
           })}
+          
+          {/* Section overlay for all blurred cards */}
+          {hasBlurredCards && (
+            <div 
+              className="absolute top-0 bottom-4 bg-transparent pointer-events-auto"
+              style={{
+                left: `${((shouldBlurAfterDay || 0) + 1) * (90 + 12) + 8}px`, // Calculate position based on card width + gap + padding
+                right: '8px'
+              }}
+            >
+              <ForecastSectionOverlay />
+            </div>
+          )}
         </div>
       </div>
 

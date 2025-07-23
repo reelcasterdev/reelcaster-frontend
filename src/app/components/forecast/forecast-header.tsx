@@ -1,8 +1,12 @@
+import { AuthButton } from '../auth/auth-button'
+
 interface ForecastHeaderProps {
   location: string
   hotspot: string
   species: string | null
   forecastDays: number
+  availableDays: number
+  isAuthenticated: boolean
   loading: boolean
   onBack: () => void
   onForecastDaysChange: (days: number) => void
@@ -14,6 +18,8 @@ export default function ForecastHeader({
   hotspot,
   species,
   forecastDays,
+  availableDays,
+  isAuthenticated,
   loading,
   onBack,
   onForecastDaysChange,
@@ -34,13 +40,21 @@ export default function ForecastHeader({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-400 via-green-300 to-green-500 bg-clip-text text-transparent mb-2">
-            14-Day Fishing Forecast
+            {isAuthenticated ? '14-Day' : `${availableDays}-Day`} Fishing Forecast
+            {!isAuthenticated && (
+              <span className="text-base bg-amber-100 text-amber-800 px-2 py-1 rounded-md ml-3">
+                Limited
+              </span>
+            )}
           </h1>
           <p className="text-gray-300 text-xl">
             {hotspot}, {location}
             {species && <span className="text-gray-400"> • Target: {species}</span>}
           </p>
-          <p className="text-green-400 text-sm mt-1">Powered by Open-Meteo API • 15-minute resolution • Free service</p>
+          <p className="text-green-400 text-sm mt-1">
+            Powered by Open-Meteo API • 15-minute resolution • Free service
+            {!isAuthenticated && <span className="text-amber-400"> • Sign up for full forecast</span>}
+          </p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -51,9 +65,11 @@ export default function ForecastHeader({
             className="bg-gray-800 text-white border border-gray-600 rounded-lg px-4 py-2"
           >
             <option value={3}>3 days</option>
-            <option value={7}>7 days</option>
-            <option value={14}>14 days</option>
+            {isAuthenticated && <option value={7}>7 days</option>}
+            {isAuthenticated && <option value={14}>14 days</option>}
           </select>
+          
+          <AuthButton variant="outline" size="sm" />
 
           <button
             onClick={onRefresh}
