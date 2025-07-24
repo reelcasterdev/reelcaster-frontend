@@ -32,9 +32,7 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
     setLoading(true)
 
     try {
-      const { error } = mode === 'signin' 
-        ? await signIn(email, password)
-        : await signUp(email, password)
+      const { error } = mode === 'signin' ? await signIn(email, password) : await signUp(email, password)
 
       if (error) {
         setError(error.message)
@@ -82,13 +80,12 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
                 </DialogTitle>
               </div>
               <DialogDescription className="text-muted-foreground">
-                {mode === 'signin' 
+                {mode === 'signin'
                   ? 'Sign in to access the complete 14-day fishing forecast and historical data'
-                  : 'Create your free account to unlock premium fishing insights'
-                }
+                  : 'Create your free account to unlock premium fishing insights'}
               </DialogDescription>
             </DialogHeader>
-            
+
             {success ? (
               <Card className="mt-6 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
                 <CardContent className="pt-6">
@@ -96,7 +93,7 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
                     <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
                     <h3 className="font-semibold text-green-900 dark:text-green-100">Check Your Email!</h3>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      We've sent a confirmation link to <span className="font-medium">{email}</span>
+                      We&apos;ve sent a confirmation link to <span className="font-medium">{email}</span>
                     </p>
                     <p className="text-xs text-green-600 dark:text-green-400">
                       Click the link in the email to activate your account
@@ -111,7 +108,7 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">
                     Email address
@@ -122,7 +119,7 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       placeholder="angler@example.com"
                       required
                       disabled={loading}
@@ -130,7 +127,7 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium">
                     Password
@@ -139,34 +136,28 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
                     id="password"
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
                     disabled={loading}
                     minLength={6}
                   />
-                  {mode === 'signup' && (
-                    <p className="text-xs text-muted-foreground">
-                      Minimum 6 characters
-                    </p>
-                  )}
+                  {mode === 'signup' && <p className="text-xs text-muted-foreground">Minimum 6 characters</p>}
                 </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full h-11 font-medium" 
-                  disabled={loading}
-                >
+
+                <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
                       Processing...
                     </span>
+                  ) : mode === 'signin' ? (
+                    'Sign In'
                   ) : (
-                    mode === 'signin' ? 'Sign In' : 'Create Account'
+                    'Create Account'
                   )}
                 </Button>
-                
+
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t" />
@@ -177,11 +168,11 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
                     </span>
                   </div>
                 </div>
-                
-                <Button 
+
+                <Button
                   type="button"
-                  variant="outline" 
-                  onClick={switchMode} 
+                  variant="outline"
+                  onClick={switchMode}
                   disabled={loading}
                   className="w-full h-11 font-medium"
                 >
