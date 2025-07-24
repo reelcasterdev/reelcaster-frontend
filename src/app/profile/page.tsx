@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, ArrowLeft } from 'lucide-react'
+import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, ArrowLeft, Clock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Alert } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferences, UserPreferencesService } from '@/lib/user-preferences'
@@ -420,6 +421,80 @@ export default function ProfilePage() {
                   {preferences.emailForecasts ? 'Enabled' : 'Disabled'}
                 </Button>
               </div>
+
+              {preferences.emailForecasts && (
+                <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-600/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-amber-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-medium">Notification Timing</h4>
+                      <p className="text-xs text-slate-400">Customize when you receive daily forecasts</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="notification-time" className="text-white text-sm font-medium">
+                        Notification Time
+                      </Label>
+                      <Input
+                        id="notification-time"
+                        type="time"
+                        value={preferences.notificationTime || '06:00'}
+                        onChange={(e) => setPreferences(prev => ({ 
+                          ...prev, 
+                          notificationTime: e.target.value 
+                        }))}
+                        className="bg-slate-700 border-slate-600 text-white h-10 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-slate-500">Time to receive daily forecast (24-hour format)</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="timezone" className="text-white text-sm font-medium">
+                        Timezone
+                      </Label>
+                      <Select 
+                        value={preferences.timezone || 'America/Vancouver'} 
+                        onValueChange={(value) => setPreferences(prev => ({ 
+                          ...prev, 
+                          timezone: value 
+                        }))}
+                      >
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-10 focus:ring-2 focus:ring-blue-500">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="America/Vancouver">Pacific Time (Vancouver)</SelectItem>
+                          <SelectItem value="America/Edmonton">Mountain Time (Edmonton)</SelectItem>
+                          <SelectItem value="America/Winnipeg">Central Time (Winnipeg)</SelectItem>
+                          <SelectItem value="America/Toronto">Eastern Time (Toronto)</SelectItem>
+                          <SelectItem value="America/Halifax">Atlantic Time (Halifax)</SelectItem>
+                          <SelectItem value="America/St_Johns">Newfoundland Time</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-500">Your local timezone for notifications</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-400" />
+                      <p className="text-sm text-blue-400 font-medium">
+                        Daily notifications will be sent at{' '}
+                        {new Date(`2000-01-01T${preferences.notificationTime || '06:00'}`).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}{' '}
+                        {preferences.timezone?.split('/')[1]?.replace('_', ' ') || 'Vancouver'} time
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

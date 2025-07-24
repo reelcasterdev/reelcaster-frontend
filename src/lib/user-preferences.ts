@@ -8,6 +8,8 @@ export interface UserPreferences {
   favoriteLon?: number
   notificationsEnabled?: boolean
   emailForecasts?: boolean
+  notificationTime?: string // Format: "HH:MM" (24-hour format)
+  timezone?: string
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -17,6 +19,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   favoriteLon: -123.3656,
   notificationsEnabled: true,
   emailForecasts: false,
+  notificationTime: '06:00',
+  timezone: 'America/Vancouver',
 }
 
 export class UserPreferencesService {
