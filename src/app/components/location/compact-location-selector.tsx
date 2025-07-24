@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, MapPin, Fish } from 'lucide-react'
 
@@ -165,12 +165,12 @@ interface CompactLocationSelectorProps {
 export default function CompactLocationSelector({ onLocationChange }: CompactLocationSelectorProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   // Get initial values from URL
   const [selectedLocation, setSelectedLocation] = useState<string>('')
   const [selectedHotspot, setSelectedHotspot] = useState<string>('')
   const [selectedSpecies, setSelectedSpecies] = useState<string>('')
-  
+
   // Dropdown states
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [showHotspotDropdown, setShowHotspotDropdown] = useState(false)
@@ -181,7 +181,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
     const location = searchParams.get('location')
     const hotspot = searchParams.get('hotspot')
     const species = searchParams.get('species')
-    
+
     if (location) {
       const locationData = fishingLocations.find(loc => loc.name === location)
       if (locationData) {
@@ -242,9 +242,9 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
 
   // Only update URL when user makes a selection, not on initial load
   useEffect(() => {
-    const isInitialLoad = searchParams.get('location') === currentLocation?.name &&
-                         searchParams.get('hotspot') === selectedHotspot
-    
+    const isInitialLoad =
+      searchParams.get('location') === currentLocation?.name && searchParams.get('hotspot') === selectedHotspot
+
     if (currentLocation && selectedHotspot && !isInitialLoad) {
       updateUrl()
     }
@@ -291,12 +291,10 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
             className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
           >
             <MapPin className="w-4 h-4" />
-            <span className="font-medium">
-              {currentLocation?.name || 'Select Location'}
-            </span>
+            <span className="font-medium">{currentLocation?.name || 'Select Location'}</span>
             <ChevronDown className="w-4 h-4" />
           </button>
-          
+
           {showLocationDropdown && (
             <div className="absolute top-full left-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
               <div className="p-2">
@@ -331,12 +329,10 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
             >
               <MapPin className="w-4 h-4" />
-              <span className="font-medium">
-                {selectedHotspot || 'Select Hotspot'}
-              </span>
+              <span className="font-medium">{selectedHotspot || 'Select Hotspot'}</span>
               <ChevronDown className="w-4 h-4" />
             </button>
-            
+
             {showHotspotDropdown && (
               <div className="absolute top-full left-0 mt-2 w-72 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-64 overflow-y-auto">
                 <div className="p-2">
@@ -371,12 +367,10 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
             >
               <Fish className="w-4 h-4" />
-              <span className="font-medium">
-                {currentSpecies?.name || 'All Species'}
-              </span>
+              <span className="font-medium">{currentSpecies?.name || 'All Species'}</span>
               <ChevronDown className="w-4 h-4" />
             </button>
-            
+
             {showSpeciesDropdown && (
               <div className="absolute top-full left-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-96 overflow-y-auto">
                 <div className="p-2">
@@ -384,14 +378,12 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
                   <button
                     onClick={() => handleSpeciesChange('')}
                     className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                      !selectedSpecies
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      !selectedSpecies ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                     }`}
                   >
                     All Species
                   </button>
-                  
+
                   {/* Individual species */}
                   {fishSpecies.map(species => (
                     <button
@@ -405,9 +397,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium">{species.name}</span>
-                        <span className={`text-xs ${getStatusColor(species.status)}`}>
-                          {species.status}
-                        </span>
+                        <span className={`text-xs ${getStatusColor(species.status)}`}>{species.status}</span>
                       </div>
                       <div className="text-xs opacity-70">{species.scientificName}</div>
                     </button>

@@ -19,7 +19,7 @@ export default function DaySelector({ forecasts, selectedDay, onDaySelect, shoul
           const date = new Date(forecast.date * 1000)
           const isToday = index === 0
           const dayLabel = isToday ? 'Today' : forecast.dayName
-          const shouldBlur = shouldBlurAfterDay !== null && index > shouldBlurAfterDay
+          const shouldBlur = shouldBlurAfterDay && index > shouldBlurAfterDay
           const isClickable = !shouldBlur
 
           return (
@@ -42,7 +42,7 @@ export default function DaySelector({ forecasts, selectedDay, onDaySelect, shoul
             </button>
           )
         })}
-        
+
         {/* Section overlay for all blurred cards */}
         {hasBlurredCards && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
