@@ -14,6 +14,7 @@ import DaySelector from '../components/forecast/day-selector'
 import DayOverview from '../components/forecast/day-overview'
 import ForecastFooter from '../components/forecast/forecast-footer'
 import EmptyState from '../components/common/empty-state'
+import { useAuthForecast } from '@/hooks/use-auth-forecast'
 
 function ForecastContent() {
   const searchParams = useSearchParams()
@@ -31,6 +32,9 @@ function ForecastContent() {
   const [error, setError] = useState<string | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
   const [forecastDays, setForecastDays] = useState(14)
+  
+  // Use auth forecast hook to manage data based on authentication
+  const { isAuthenticated, forecastData, availableDays, shouldBlurAfterDay } = useAuthForecast(forecasts)
 
   const hasValidCoordinates = lat !== 0 && lon !== 0
 
@@ -103,6 +107,8 @@ function ForecastContent() {
           hotspot={hotspot}
           species={species}
           forecastDays={forecastDays}
+          availableDays={availableDays}
+          isAuthenticated={isAuthenticated}
           loading={loading}
           onBack={goBack}
           onForecastDaysChange={setForecastDays}
@@ -113,37 +119,37 @@ function ForecastContent() {
 
         {error && !loading && <ErrorState error={error} />}
 
-        {openMeteoData && !loading && <DataSummary openMeteoData={openMeteoData} forecastsCount={forecasts.length} />}
+        {openMeteoData && !loading && <DataSummary openMeteoData={openMeteoData} forecastsCount={forecastData.length} />}
 
-        {forecasts.length > 0 && !loading && (
+        {forecastData.length > 0 && !loading && (
           <div className="space-y-6">
-            <DaySelector forecasts={forecasts} selectedDay={selectedDay} onDaySelect={setSelectedDay} />
+            <DaySelector forecasts={forecastData} selectedDay={selectedDay} onDaySelect={setSelectedDay} shouldBlurAfterDay={shouldBlurAfterDay} />
 
-            {forecasts[selectedDay] && (
+            {forecastData[selectedDay] && (
               <div className="space-y-6">
-                <DayOverview forecast={forecasts[selectedDay]} />
+                <DayOverview forecast={forecastData[selectedDay]} />
 
                 <ShadcnMinutelyBarChart
-                  minutelyScores={forecasts[selectedDay].minutelyScores}
-                  twoHourForecasts={forecasts[selectedDay].twoHourForecasts}
-                  sunrise={forecasts[selectedDay].sunrise}
-                  sunset={forecasts[selectedDay].sunset}
-                  dayName={forecasts[selectedDay].dayName}
+                  minutelyScores={forecastData[selectedDay].minutelyScores}
+                  twoHourForecasts={forecastData[selectedDay].twoHourForecasts}
+                  sunrise={forecastData[selectedDay].sunrise}
+                  sunset={forecastData[selectedDay].sunset}
+                  dayName={forecastData[selectedDay].dayName}
                 />
 
                 <WeatherDataChart
-                  minutelyScores={forecasts[selectedDay].minutelyScores}
-                  twoHourForecasts={forecasts[selectedDay].twoHourForecasts}
-                  sunrise={forecasts[selectedDay].sunrise}
-                  sunset={forecasts[selectedDay].sunset}
-                  dayName={forecasts[selectedDay].dayName}
+                  minutelyScores={forecastData[selectedDay].minutelyScores}
+                  twoHourForecasts={forecastData[selectedDay].twoHourForecasts}
+                  sunrise={forecastData[selectedDay].sunrise}
+                  sunset={forecastData[selectedDay].sunset}
+                  dayName={forecastData[selectedDay].dayName}
                 />
               </div>
             )}
           </div>
         )}
 
-        {forecasts.length === 0 && !loading && !error && <EmptyState />}
+        {forecastData.length === 0 && !loading && !error && <EmptyState />}
 
         <ForecastFooter lat={lat} lon={lon} />
       </div>

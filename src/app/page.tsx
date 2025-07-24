@@ -1,49 +1,346 @@
-import LocationSelector from './components/location/location-selector'
+'use client'
 
-export default function Home() {
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from './utils/openMeteoApi'
+import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from './utils/fishingCalculations'
+import { findNearestTideStation, getCachedTideData, TideData } from './utils/tideApi'
+import ModernLoadingState from './components/common/modern-loading-state'
+import ErrorState from './components/common/error-state'
+
+// Component imports
+import NewForecastHeader from './components/forecast/new-forecast-header'
+import DayOutlook from './components/forecast/day-outlook'
+import OverallScore from './components/forecast/overall-score'
+import HourlyChart from './components/forecast/hourly-chart'
+import HourlyTable from './components/forecast/hourly-table'
+import WeatherConditions from './components/forecast/weather-conditions'
+import SpeciesRegulations from './components/forecast/species-regulations'
+import FishingReports from './components/forecast/fishing-reports'
+import Sidebar from './components/common/sidebar'
+import CompactLocationSelector from './components/location/compact-location-selector'
+import { useAuthForecast } from '@/hooks/use-auth-forecast'
+import { useAuth } from '@/contexts/auth-context'
+import { UserPreferencesService } from '@/lib/user-preferences'
+
+// Real fishing location and species data
+interface FishingHotspot {
+  name: string
+  coordinates: { lat: number; lon: number }
+}
+
+interface FishingLocation {
+  id: string
+  name: string
+  coordinates: { lat: number; lon: number }
+  hotspots: FishingHotspot[]
+}
+
+interface FishSpecies {
+  id: string
+  name: string
+  scientificName: string
+  minSize: string
+  dailyLimit: string
+  status: 'Open' | 'Closed' | 'Non Retention'
+  gear: string
+  season: string
+  description: string
+}
+
+const fishingLocations: FishingLocation[] = [
+  {
+    id: 'victoria-sidney',
+    name: 'Victoria, Sidney',
+    coordinates: { lat: 48.4113, lon: -123.398 },
+    hotspots: [
+      { name: 'Breakwater (Shore Fishing)', coordinates: { lat: 48.4113, lon: -123.398 } },
+      { name: 'Waterfront', coordinates: { lat: 48.4284, lon: -123.3656 } },
+      { name: 'Ten Mile Point (Shore Fishing)', coordinates: { lat: 48.4167, lon: -123.3 } },
+      { name: 'Oak Bay', coordinates: { lat: 48.4264, lon: -123.3145 } },
+      { name: 'Waterfront Bay', coordinates: { lat: 48.4632, lon: -123.3127 } },
+      { name: 'Constance Bank', coordinates: { lat: 48.3833, lon: -123.4167 } },
+      { name: 'Sidney', coordinates: { lat: 48.65, lon: -123.4 } },
+    ],
+  },
+  {
+    id: 'sooke-port-renfrew',
+    name: 'Sooke, Port Renfrew',
+    coordinates: { lat: 48.3415, lon: -123.5507 },
+    hotspots: [
+      { name: 'East Sooke', coordinates: { lat: 48.35, lon: -123.6167 } },
+      { name: 'Becher Bay', coordinates: { lat: 48.3167, lon: -123.6333 } },
+      { name: 'Pedder Bay', coordinates: { lat: 48.3415, lon: -123.5507 } },
+      { name: 'Church Rock', coordinates: { lat: 48.3, lon: -123.6 } },
+    ],
+  },
+]
+
+const fishSpecies: FishSpecies[] = [
+  {
+    id: 'lingcod',
+    name: 'Lingcod',
+    scientificName: 'Ophiodon elongatus',
+    minSize: '65cm',
+    dailyLimit: '1',
+    status: 'Open',
+    gear: 'Hook and line',
+    season: 'Year-round',
+    description: 'Large predatory fish, great eating',
+  },
+  {
+    id: 'pink-salmon',
+    name: 'Pink Salmon',
+    scientificName: 'Oncorhynchus gorbuscha',
+    minSize: '30cm',
+    dailyLimit: '4',
+    status: 'Open',
+    gear: 'Barbless hook and line',
+    season: 'July - September (odd years)',
+    description: 'Humpy salmon, abundant in odd years',
+  },
+  {
+    id: 'coho-salmon',
+    name: 'Coho Salmon',
+    scientificName: 'Oncorhynchus kisutch',
+    minSize: '30cm',
+    dailyLimit: '2',
+    status: 'Open',
+    gear: 'Barbless hook and line',
+    season: 'June - October',
+    description: 'Silver salmon, excellent fighting fish',
+  },
+  {
+    id: 'halibut',
+    name: 'Halibut',
+    scientificName: 'Hippoglossus stenolepis',
+    minSize: '83cm',
+    dailyLimit: '1',
+    status: 'Closed',
+    gear: 'Hook and line',
+    season: 'Year-round',
+    description: 'Large flatfish, excellent table fare',
+  },
+  {
+    id: 'chinook-salmon',
+    name: 'Chinook Salmon',
+    scientificName: 'Oncorhynchus tshawytscha',
+    minSize: '62cm',
+    dailyLimit: '0',
+    status: 'Closed',
+    gear: 'Barbless hook and line',
+    season: 'Year-round (varies by area)',
+    description: 'King salmon, largest Pacific salmon species',
+  },
+]
+
+function NewForecastContent() {
+  const searchParams = useSearchParams()
+
+  // Default to Victoria Waterfront if no parameters provided
+  const location = searchParams.get('location') || 'Victoria, Sidney'
+  const hotspot = searchParams.get('hotspot') || 'Waterfront'
+  const species = searchParams.get('species') || null
+  const lat = parseFloat(searchParams.get('lat') || '48.4284')
+  const lon = parseFloat(searchParams.get('lon') || '-123.3656')
+
+  // State variables
+  const [selectedLocation] = useState<string>(location)
+  const [selectedHotspot] = useState<string>(hotspot)
+  const [openMeteoData, setOpenMeteoData] = useState<ProcessedOpenMeteoData | null>(null)
+  const [forecasts, setForecasts] = useState<OpenMeteoDailyForecast[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [tideData, setTideData] = useState<TideData | null>(null)
+  const [selectedDay, setSelectedDay] = useState(0)
+  
+  // Use auth forecast hook to manage data based on authentication
+  const { forecastData, shouldBlurAfterDay } = useAuthForecast(forecasts)
+
+  // Coordinate validation
+  const hasValidCoordinates = lat !== 0 && lon !== 0
+
+  // Get current location data for dropdowns
+  const currentLocation = fishingLocations.find(loc => loc.name === selectedLocation)
+  const currentHotspot = currentLocation?.hotspots.find(h => h.name === selectedHotspot)
+
+  // Use URL coordinates if valid, otherwise use selected location coordinates (memoized to prevent re-creation)
+  const coordinates = useMemo(() => {
+    return hasValidCoordinates
+      ? { lat, lon }
+      : currentHotspot?.coordinates || currentLocation?.coordinates || { lat: 48.4113, lon: -123.398 }
+  }, [hasValidCoordinates, lat, lon, currentHotspot?.coordinates, currentLocation?.coordinates])
+
+  const fetchForecastData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Fetch tide data
+      const tideStation = findNearestTideStation(coordinates)
+      const tideResult = await getCachedTideData(tideStation)
+      setTideData(tideResult)
+
+      // Fetch weather forecast
+      const result = await fetchOpenMeteoWeather(coordinates, 14)
+
+      if (!result.success) {
+        setError(result.error || 'Failed to fetch weather data')
+        return
+      }
+
+      setOpenMeteoData(result.data!)
+
+      // Generate daily forecasts with tide data
+      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, tideResult, species)
+      setForecasts(dailyForecasts)
+    } catch (err) {
+      console.error('Error fetching forecast data:', err)
+      setError('Failed to fetch weather data')
+    } finally {
+      setLoading(false)
+    }
+  }, [coordinates, species])
+
+  useEffect(() => {
+    fetchForecastData()
+  }, [fetchForecastData])
+
+
+  // Handle invalid coordinates
+  if (!hasValidCoordinates && (lat !== 0 || lon !== 0)) {
+    return <ErrorState error="Invalid coordinates provided" />
+  }
+
+  if (loading) {
+    return <ModernLoadingState forecastDays={14} />
+  }
+
+  if (error) {
+    return <ErrorState error={error} />
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black p-4">
-      <div className="max-w-5xl mx-auto">
-        <header className="text-center py-12">
-          <div className="mb-6">
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-gray-300 to-gray-400 bg-clip-text text-transparent mb-4">
-              Fishing Forecast
-            </h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-gray-400 to-gray-600 mx-auto rounded-full"></div>
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Sidebar */}
+      <Sidebar />
+      
+      {/* Main Content */}
+      <div className="ml-64 min-h-screen overflow-auto">
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          {/* Location Selector */}
+          <CompactLocationSelector />
+          
+          {/* Header */}
+          <NewForecastHeader 
+            location={selectedLocation}
+            hotspot={selectedHotspot}
+          />
+
+          {/* Top Row: Forecast Outlook and Overall Score */}          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Forecast Outlook */}
+            <div className="lg:col-span-2">
+              <DayOutlook 
+                forecasts={forecastData} 
+                selectedDay={selectedDay}
+                onDaySelect={setSelectedDay}
+                shouldBlurAfterDay={shouldBlurAfterDay}
+              />
+            </div>
+
+            {/* Overall Score */}
+            <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
           </div>
-        </header>
 
-        <main className="bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700/50 p-8 md:p-10">
-          <LocationSelector />
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Charts and Table */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Hourly Fishing Score Chart */}
+              <HourlyChart forecasts={forecastData} selectedDay={selectedDay} />
 
-          <div className="mt-8 pt-8 border-t border-gray-700">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-white mb-4">Data Analysis</h2>
-              <p className="text-gray-400 mb-6">Explore historical fishing data and algorithm performance</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-                <a
-                  href="/victoria-analysis"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg transition-colors font-medium block"
-                >
-                  <div className="font-semibold mb-1">Victoria Analysis</div>
-                  <div className="text-sm text-blue-200">Real vs Algorithm Comparison</div>
-                </a>
-                <a
-                  href="/data-comparison"
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg transition-colors font-medium block"
-                >
-                  <div className="font-semibold mb-1">Live Data Comparison</div>
-                  <div className="text-sm text-green-200">Compare with iNaturalist Data</div>
-                </a>
-              </div>
+              {/* Hourly Data Table */}
+              <HourlyTable 
+                forecasts={forecastData}
+                openMeteoData={openMeteoData}
+                tideData={tideData}
+                selectedDay={selectedDay}
+              />
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Weather and Conditions */}
+              <WeatherConditions 
+                forecasts={forecastData}
+                openMeteoData={openMeteoData}
+                tideData={tideData}
+                selectedDay={selectedDay}
+              />
+
+              {/* Species Regulations */}
+              <SpeciesRegulations species={fishSpecies} />
+
+              {/* Reports */}
+              <FishingReports />
             </div>
           </div>
-        </main>
-
-        <footer className="text-center py-8">
-          <p className="text-gray-500 text-sm">Powered by advanced weather and marine data • Updated every hour</p>
-        </footer>
+        </div>
       </div>
     </div>
+  )
+}
+
+function HomePage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const { user } = useAuth()
+  
+  useEffect(() => {
+    const loadDefaultLocation = async () => {
+      // If no parameters are provided, redirect to default location
+      if (!searchParams.get('location') && !searchParams.get('hotspot')) {
+        try {
+          // Get user's favorite location if authenticated, otherwise use default
+          const defaultLocation = await UserPreferencesService.getDefaultLocation()
+          
+          const params = new URLSearchParams({
+            location: defaultLocation.location,
+            hotspot: defaultLocation.hotspot,
+            lat: defaultLocation.lat.toString(),
+            lon: defaultLocation.lon.toString()
+          })
+          
+          if (defaultLocation.species) {
+            params.set('species', defaultLocation.species)
+          }
+          
+          router.replace(`/?${params.toString()}`)
+        } catch (error) {
+          console.error('Error loading default location:', error)
+          // Fallback to hardcoded default
+          const params = new URLSearchParams({
+            location: 'Victoria, Sidney',
+            hotspot: 'Waterfront',
+            lat: '48.4284',
+            lon: '-123.3656'
+          })
+          router.replace(`/?${params.toString()}`)
+        }
+      }
+    }
+
+    loadDefaultLocation()
+  }, [searchParams, router, user])
+  
+  return <NewForecastContent />
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<ModernLoadingState forecastDays={14} />}>
+      <HomePage />
+    </Suspense>
   )
 }
