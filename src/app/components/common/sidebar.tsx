@@ -74,6 +74,7 @@ export default function Sidebar() {
 
   const isCurrentPage = pathname === '/'
   const isProfilePage = pathname === '/profile'
+  const showAuth = false
 
   return (
     <div className="w-64 h-screen bg-gray-950 border-r border-gray-800 flex flex-col fixed left-0 top-0">
@@ -129,7 +130,7 @@ export default function Sidebar() {
 
       {/* Profile & Auth Section */}
       <div className="p-4 border-t border-gray-800">
-        {user && (
+        {user && showAuth && (
           <div className="mb-4">
             <Link
               href="/profile"
@@ -145,9 +146,7 @@ export default function Sidebar() {
           </div>
         )}
 
-        <div className="flex justify-center mb-4">
-          <AuthButton variant="outline" size="sm" />
-        </div>
+        <div className="flex justify-center mb-4">{showAuth && <AuthButton variant="outline" size="sm" />}</div>
         <div className="text-center text-xs text-gray-500">
           <p>© 2025 ReelCaster</p>
           <p className="mt-1">All rights reserved</p>
