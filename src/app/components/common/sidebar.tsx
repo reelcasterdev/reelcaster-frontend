@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { MapPin, Compass, Fish, BookOpen, Calendar, Image, Menu, X } from 'lucide-react'
 import { AuthButton } from '../auth/auth-button'
-import { useAuth } from '@/contexts/auth-context'
 
 interface NavItem {
   id: string
@@ -19,7 +18,6 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user } = useAuth()
 
   const navItems: NavItem[] = [
     {
