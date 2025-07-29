@@ -226,8 +226,8 @@ function NewForecastContent() {
       <Sidebar />
       
       {/* Main Content */}
-      <div className="ml-64 min-h-screen overflow-auto">
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="lg:ml-64 min-h-screen overflow-auto">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6 pt-16 lg:pt-6">
           {/* Location Selector */}
           <CompactLocationSelector />
           
@@ -238,7 +238,7 @@ function NewForecastContent() {
           />
 
           {/* Top Row: Forecast Outlook and Overall Score */}          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Forecast Outlook */}
             <div className="lg:col-span-2">
               <DayOutlook 
@@ -254,9 +254,9 @@ function NewForecastContent() {
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Left Column - Charts and Table */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               {/* Hourly Fishing Score Chart */}
               <HourlyChart forecasts={forecastData} selectedDay={selectedDay} />
 
@@ -270,7 +270,7 @@ function NewForecastContent() {
             </div>
 
             {/* Right Column */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Weather and Conditions */}
               <WeatherConditions 
                 forecasts={forecastData}

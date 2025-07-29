@@ -374,31 +374,6 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl border border-slate-600/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                    <Bell className="h-5 w-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">App Notifications</p>
-                    <p className="text-sm text-slate-400">Receive notifications within the app</p>
-                  </div>
-                </div>
-                <Button
-                  variant={preferences.notificationsEnabled ? 'default' : 'outline'}
-                  size="sm"
-                  className={preferences.notificationsEnabled ? 'bg-green-600 hover:bg-green-700' : ''}
-                  onClick={() =>
-                    setPreferences(prev => ({
-                      ...prev,
-                      notificationsEnabled: !prev.notificationsEnabled,
-                    }))
-                  }
-                >
-                  {preferences.notificationsEnabled ? 'Enabled' : 'Disabled'}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl border border-slate-600/50">
-                <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center">
                     <Mail className="h-5 w-5 text-purple-400" />
                   </div>
@@ -443,10 +418,12 @@ export default function ProfilePage() {
                         id="notification-time"
                         type="time"
                         value={preferences.notificationTime || '06:00'}
-                        onChange={(e) => setPreferences(prev => ({ 
-                          ...prev, 
-                          notificationTime: e.target.value 
-                        }))}
+                        onChange={e =>
+                          setPreferences(prev => ({
+                            ...prev,
+                            notificationTime: e.target.value,
+                          }))
+                        }
                         className="bg-slate-700 border-slate-600 text-white h-10 focus:ring-2 focus:ring-blue-500"
                       />
                       <p className="text-xs text-slate-500">Time to receive daily forecast (24-hour format)</p>
@@ -456,12 +433,14 @@ export default function ProfilePage() {
                       <Label htmlFor="timezone" className="text-white text-sm font-medium">
                         Timezone
                       </Label>
-                      <Select 
-                        value={preferences.timezone || 'America/Vancouver'} 
-                        onValueChange={(value) => setPreferences(prev => ({ 
-                          ...prev, 
-                          timezone: value 
-                        }))}
+                      <Select
+                        value={preferences.timezone || 'America/Vancouver'}
+                        onValueChange={value =>
+                          setPreferences(prev => ({
+                            ...prev,
+                            timezone: value,
+                          }))
+                        }
                       >
                         <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-10 focus:ring-2 focus:ring-blue-500">
                           <SelectValue />
@@ -487,7 +466,7 @@ export default function ProfilePage() {
                         {new Date(`2000-01-01T${preferences.notificationTime || '06:00'}`).toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
-                          hour12: true
+                          hour12: true,
                         })}{' '}
                         {preferences.timezone?.split('/')[1]?.replace('_', ' ') || 'Vancouver'} time
                       </p>
