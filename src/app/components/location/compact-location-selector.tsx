@@ -278,8 +278,8 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
   }
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-      <div className="flex flex-wrap gap-3">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-gray-700">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
         {/* Location Dropdown */}
         <div className="relative dropdown-container">
           <button
@@ -288,15 +288,15 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
               setShowHotspotDropdown(false)
               setShowSpeciesDropdown(false)
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
+            className="flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white w-full sm:w-auto"
           >
             <MapPin className="w-4 h-4" />
-            <span className="font-medium">{currentLocation?.name || 'Select Location'}</span>
-            <ChevronDown className="w-4 h-4" />
+            <span className="font-medium flex-1 sm:flex-none">{currentLocation?.name || 'Select Location'}</span>
+            <ChevronDown className="w-4 h-4 flex-shrink-0" />
           </button>
 
           {showLocationDropdown && (
-            <div className="absolute top-full left-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
+            <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
               <div className="p-2">
                 {fishingLocations.map(location => (
                   <button
@@ -326,15 +326,15 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
                 setShowLocationDropdown(false)
                 setShowSpeciesDropdown(false)
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
+              className="flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white w-full sm:w-auto"
             >
               <MapPin className="w-4 h-4" />
-              <span className="font-medium">{selectedHotspot || 'Select Hotspot'}</span>
-              <ChevronDown className="w-4 h-4" />
+              <span className="font-medium flex-1 sm:flex-none">{selectedHotspot || 'Select Hotspot'}</span>
+              <ChevronDown className="w-4 h-4 flex-shrink-0" />
             </button>
 
             {showHotspotDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-72 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-72 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-64 overflow-y-auto">
                 <div className="p-2">
                   {currentLocation.hotspots.map(hotspot => (
                     <button
@@ -364,15 +364,15 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
                 setShowLocationDropdown(false)
                 setShowHotspotDropdown(false)
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
+              className="flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white w-full sm:w-auto"
             >
               <Fish className="w-4 h-4" />
-              <span className="font-medium">{currentSpecies?.name || 'All Species'}</span>
-              <ChevronDown className="w-4 h-4" />
+              <span className="font-medium flex-1 sm:flex-none">{currentSpecies?.name || 'All Species'}</span>
+              <ChevronDown className="w-4 h-4 flex-shrink-0" />
             </button>
 
             {showSpeciesDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-96 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-96 overflow-y-auto">
                 <div className="p-2">
                   {/* All Species option */}
                   <button
