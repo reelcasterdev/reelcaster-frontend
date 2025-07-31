@@ -252,7 +252,7 @@ function NewForecastContent() {
       
       {/* Main Content */}
       <div className="lg:ml-64 min-h-screen overflow-auto">
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6 pt-16 lg:pt-6">
+        <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-3 sm:space-y-6 pt-16 lg:pt-6">
           {/* Location Selector */}
           <CompactLocationSelector />
           
@@ -265,9 +265,12 @@ function NewForecastContent() {
             cacheInfo={cacheInfo}
           />
 
-          {/* Top Row: Forecast Outlook and Overall Score */}          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Forecast Outlook */}
+          {/* Mobile: Stack everything vertically */}
+          {/* Desktop: Keep grid layout */}
+          
+          {/* Top Section - Always full width on mobile */}
+          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+            {/* Forecast Outlook - Full width on mobile */}
             <div className="lg:col-span-2">
               <DayOutlook 
                 forecasts={forecastData} 
@@ -277,16 +280,36 @@ function NewForecastContent() {
               />
             </div>
 
-            {/* Overall Score */}
-            <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
+            {/* Overall Score - Full width on mobile */}
+            <div className="lg:col-span-1">
+              <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
+            </div>
           </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Left Column - Charts and Table */}
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {/* Main Content - Stack on mobile, grid on desktop */}
+          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+            {/* Charts and Table Section */}
+            <div className="lg:col-span-2 space-y-3 sm:space-y-6">
               {/* Hourly Fishing Score Chart */}
               <HourlyChart forecasts={forecastData} selectedDay={selectedDay} />
+
+              {/* Weather and Conditions - Show here on mobile, hide on desktop */}
+              <div className="lg:hidden">
+                <WeatherConditions 
+                  forecasts={forecastData}
+                  openMeteoData={openMeteoData}
+                  tideData={tideData}
+                  selectedDay={selectedDay}
+                />
+              </div>
+
+              {/* Species Regulations - Show here on mobile, hide on desktop */}
+              <div className="lg:hidden">
+                <SpeciesRegulations 
+                  species={getRegulationsByLocation(selectedLocation)?.species || []} 
+                  areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+                />
+              </div>
 
               {/* Hourly Data Table */}
               <HourlyTable 
@@ -297,8 +320,8 @@ function NewForecastContent() {
               />
             </div>
 
-            {/* Right Column */}
-            <div className="space-y-4 sm:space-y-6">
+            {/* Right Column - Desktop only */}
+            <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
               {/* Weather and Conditions */}
               <WeatherConditions 
                 forecasts={forecastData}
@@ -316,6 +339,11 @@ function NewForecastContent() {
               {/* Reports */}
               <FishingReports />
             </div>
+          </div>
+
+          {/* Reports - Show at bottom on mobile */}
+          <div className="lg:hidden">
+            <FishingReports />
           </div>
         </div>
       </div>

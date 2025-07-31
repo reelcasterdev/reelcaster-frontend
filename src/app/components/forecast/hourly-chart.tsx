@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ReferenceLine } from 'recharts'
-import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
+import { useState, useEffect } from 'react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer } from 'recharts'
+import { ChartTooltip } from '@/components/ui/chart'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { getScoreColor } from '../../utils/formatters'
+import MobileFriendlyChart from '../charts/mobile-friendly-chart'
 
 interface HourlyChartProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -13,6 +14,18 @@ interface HourlyChartProps {
 
 export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
+  const [isMobile, setIsMobile] = useState(false)
+  
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640) // sm breakpoint
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   
   // Get selected day's forecast
   const selectedForecast = forecasts[selectedDay]
@@ -22,6 +35,27 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
       <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
         <p className="text-slate-400">No data available for selected day</p>
       </div>
+    )
+  }
+
+  // Get day name for selected day
+  const dayName = new Date(selectedForecast.date * 1000).toLocaleDateString('en-US', { 
+    weekday: 'long',
+    month: 'short', 
+    day: 'numeric' 
+  })
+
+  // Use mobile-friendly chart on small screens
+  if (isMobile) {
+    return (
+      <MobileFriendlyChart
+        minutelyScores={selectedForecast.minutelyScores}
+        twoHourForecasts={selectedForecast.twoHourForecasts}
+        sunrise={selectedForecast.sunrise}
+        sunset={selectedForecast.sunset}
+        dayName={dayName}
+        isMobile={true}
+      />
     )
   }
 
@@ -91,11 +125,6 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
   const maxScore = Math.max(...selectedForecast.minutelyScores.map(s => s.score))
   const avgScore = selectedForecast.minutelyScores.reduce((sum, s) => sum + s.score, 0) / selectedForecast.minutelyScores.length
 
-  const chartConfig = {
-    score: {
-      label: 'Fishing Score',
-    },
-  }
 
   // Custom tooltip content
   const CustomTooltip = ({
@@ -123,34 +152,27 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
     return null
   }
 
-  // Get day name for selected day
-  const dayName = new Date(selectedForecast.date * 1000).toLocaleDateString('en-US', { 
-    weekday: 'long',
-    month: 'short', 
-    day: 'numeric' 
-  })
-
   return (
-    <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+    <div className="bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-700">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-white mb-2">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-2">
               15-Minute Fishing Scores - {dayName}
             </h2>
-            <p className="text-slate-300 text-sm">
+            <p className="text-slate-300 text-xs sm:text-sm">
               {selectedForecast.minutelyScores.length} data points • Best 2-hour window highlighted
             </p>
           </div>
 
           {bestTwoHourWindow && (
-            <div className="text-right">
+            <div className="sm:text-right">
               <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3">
-                <p className="text-blue-300 text-sm font-semibold">🏆 Best 2-Hour Window</p>
-                <p className="text-white font-bold">
+                <p className="text-blue-300 text-xs sm:text-sm font-semibold">🏆 Best 2-Hour Window</p>
+                <p className="text-white font-bold text-sm sm:text-base">
                   {formatTime(bestTwoHourWindow.startTime)} - {formatTime(bestTwoHourWindow.endTime)}
                 </p>
-                <p className={`text-lg font-bold ${getScoreColor(bestTwoHourWindow.score.total)}`}>
+                <p className={`text-base sm:text-lg font-bold ${getScoreColor(bestTwoHourWindow.score.total)}`}>
                   Score: {bestTwoHourWindow.score.total}/10
                 </p>
               </div>
@@ -160,71 +182,74 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
       </div>
 
       {/* Chart */}
-      <ChartContainer config={chartConfig} className="h-[400px] w-full">
-        <BarChart
-          data={chartData}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 20,
-            bottom: 60,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-          <XAxis
-            dataKey="time"
-            stroke="#94a3b8"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            interval="preserveStartEnd"
-            angle={-45}
-            textAnchor="end"
-            height={60}
-          />
-          <YAxis
-            stroke="#94a3b8"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            domain={[0, 10]}
-            label={{
-              value: 'Fishing Score',
-              angle: -90,
-              position: 'insideLeft',
-              style: { textAnchor: 'middle', fill: '#94a3b8' },
+      <div className="h-[300px] sm:h-[400px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{
+              top: 20,
+              right: 20,
+              left: 0,
+              bottom: 60,
             }}
-          />
-          <ChartTooltip content={<CustomTooltip />} />
-
-          {/* Reference lines for score ranges */}
-          <ReferenceLine y={8} stroke="#10b981" strokeDasharray="2 2" opacity={0.5} />
-          <ReferenceLine y={6} stroke="#f59e0b" strokeDasharray="2 2" opacity={0.5} />
-          <ReferenceLine y={4} stroke="#f97316" strokeDasharray="2 2" opacity={0.5} />
-
-          <Bar
-            dataKey="score"
-            radius={[2, 2, 0, 0]}
-            onMouseEnter={(data, index) => setActiveIndex(index)}
-            onMouseLeave={() => setActiveIndex(undefined)}
           >
-            {chartData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={entry.fill}
-                stroke={entry.isInBestWindow ? '#3b82f6' : 'transparent'}
-                strokeWidth={entry.isInBestWindow ? 2 : 0}
-                opacity={activeIndex === undefined || activeIndex === index ? 1 : 0.7}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ChartContainer>
+            <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+            <XAxis
+              dataKey="time"
+              stroke="#94a3b8"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              interval="preserveStartEnd"
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis
+              stroke="#94a3b8"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              domain={[0, 10]}
+              label={{
+                value: 'Score',
+                angle: -90,
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#94a3b8' },
+              }}
+            />
+            <ChartTooltip content={<CustomTooltip />} />
+
+            {/* Reference lines for score ranges */}
+            <ReferenceLine y={8} stroke="#10b981" strokeDasharray="2 2" opacity={0.5} />
+            <ReferenceLine y={6} stroke="#f59e0b" strokeDasharray="2 2" opacity={0.5} />
+            <ReferenceLine y={4} stroke="#f97316" strokeDasharray="2 2" opacity={0.5} />
+
+            <Bar
+              dataKey="score"
+              radius={[2, 2, 0, 0]}
+              onMouseEnter={(data, index) => setActiveIndex(index)}
+              onMouseLeave={() => setActiveIndex(undefined)}
+            >
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.fill}
+                  stroke={entry.isInBestWindow ? '#3b82f6' : 'transparent'}
+                  strokeWidth={entry.isInBestWindow ? 2 : 0}
+                  opacity={activeIndex === undefined || activeIndex === index ? 1 : 0.7}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* Peak time indicators */}
       <div className="mt-4 flex flex-wrap gap-2">
         {chartData
           .filter(d => d.isPeak)
+          .slice(0, 4) // Limit to 4 on mobile
           .map((peak, index) => (
             <div key={index} className="flex items-center gap-1 text-xs text-yellow-400">
               <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
@@ -233,28 +258,28 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
           ))}
       </div>
 
-      {/* Legend */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-6">
+      {/* Legend - Responsive */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm mt-6">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-green-500 rounded"></div>
+          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded"></div>
           <span className="text-slate-300">Excellent (8-10)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-amber-500 rounded"></div>
+          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-amber-500 rounded"></div>
           <span className="text-slate-300">Good (6-7.9)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-orange-500 rounded"></div>
+          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-orange-500 rounded"></div>
           <span className="text-slate-300">Fair (4-5.9)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-red-500 rounded"></div>
+          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded"></div>
           <span className="text-slate-300">Poor (&lt;4)</span>
         </div>
       </div>
 
-      {/* Additional Legend for Special Indicators */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mt-4 pt-4 border-t border-slate-700">
+      {/* Additional Legend for Special Indicators - Hidden on mobile */}
+      <div className="hidden sm:grid sm:grid-cols-3 gap-4 text-sm mt-4 pt-4 border-t border-slate-700">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-500 rounded border-2 border-blue-500"></div>
           <span className="text-blue-300">Best 2-Hour Window</span>
@@ -269,23 +294,23 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-          <p className="text-slate-400 text-sm">Average Score</p>
-          <p className="text-white font-bold text-lg">{avgScore.toFixed(1)}</p>
+      {/* Summary Stats - Responsive */}
+      <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+        <div className="bg-slate-700/50 rounded-lg p-2 sm:p-3 text-center">
+          <p className="text-slate-400 text-xs sm:text-sm">Average Score</p>
+          <p className="text-white font-bold text-base sm:text-lg">{avgScore.toFixed(1)}</p>
         </div>
-        <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-          <p className="text-slate-400 text-sm">Best Score</p>
-          <p className={`font-bold text-lg ${getScoreColor(maxScore)}`}>{maxScore.toFixed(1)}</p>
+        <div className="bg-slate-700/50 rounded-lg p-2 sm:p-3 text-center">
+          <p className="text-slate-400 text-xs sm:text-sm">Best Score</p>
+          <p className={`font-bold text-base sm:text-lg ${getScoreColor(maxScore)}`}>{maxScore.toFixed(1)}</p>
         </div>
-        <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-          <p className="text-slate-400 text-sm">Peak Periods</p>
-          <p className="text-yellow-400 font-bold text-lg">{chartData.filter(d => d.isPeak).length}</p>
+        <div className="bg-slate-700/50 rounded-lg p-2 sm:p-3 text-center">
+          <p className="text-slate-400 text-xs sm:text-sm">Peak Periods</p>
+          <p className="text-yellow-400 font-bold text-base sm:text-lg">{chartData.filter(d => d.isPeak).length}</p>
         </div>
-        <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-          <p className="text-slate-400 text-sm">Data Points</p>
-          <p className="text-white font-bold text-lg">{selectedForecast.minutelyScores.length}</p>
+        <div className="bg-slate-700/50 rounded-lg p-2 sm:p-3 text-center">
+          <p className="text-slate-400 text-xs sm:text-sm">Data Points</p>
+          <p className="text-white font-bold text-base sm:text-lg">{selectedForecast.minutelyScores.length}</p>
         </div>
       </div>
     </div>
