@@ -144,7 +144,7 @@ export default function Sidebar() {
 
         {/* Auth Section */}
         <div className="p-4 border-t border-gray-800">
-          <div className="flex justify-center mb-4">{showAuth && <AuthButton variant="outline" size="sm" />}</div>
+          <div className="flex mb-4">{showAuth && <AuthButton variant="outline" size="sm" />}</div>
           <div className="text-center text-xs text-gray-500">
             <p>© 2025 ReelCaster</p>
             <p className="mt-1">All rights reserved</p>

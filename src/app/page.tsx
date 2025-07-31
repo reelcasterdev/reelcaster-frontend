@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from './utils/openMeteoApi'
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from './utils/fishingCalculations'
 import { findNearestTideStation, getCachedTideData, TideData } from './utils/tideApi'
+import ForecastCacheService from './utils/forecastCacheService'
 import ModernLoadingState from './components/common/modern-loading-state'
 import ErrorState from './components/common/error-state'
 
@@ -154,6 +155,11 @@ function NewForecastContent() {
   const [tideData, setTideData] = useState<TideData | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
   
+  // Cache-related state
+  const [isCachedData, setIsCachedData] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [cacheInfo, setCacheInfo] = useState<{ createdAt?: string; expiresAt?: string }>({})
+  
   // Use auth forecast hook to manage data based on authentication
   const { forecastData, shouldBlurAfterDay } = useAuthForecast(forecasts)
 
@@ -171,36 +177,122 @@ function NewForecastContent() {
       : currentHotspot?.coordinates || currentLocation?.coordinates || { lat: 48.4113, lon: -123.398 }
   }, [hasValidCoordinates, lat, lon, currentHotspot?.coordinates, currentLocation?.coordinates])
 
-  const fetchForecastData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-
+  // Fresh data fetching function (used for both initial load and background refresh)
+  const fetchFreshForecastData = useCallback(async (): Promise<{
+    forecasts: OpenMeteoDailyForecast[]
+    openMeteoData: ProcessedOpenMeteoData
+    tideData: TideData | null
+  } | null> => {
     try {
       // Fetch tide data
       const tideStation = findNearestTideStation(coordinates)
       const tideResult = await getCachedTideData(tideStation)
-      setTideData(tideResult)
 
       // Fetch weather forecast
       const result = await fetchOpenMeteoWeather(coordinates, 14)
 
       if (!result.success) {
-        setError(result.error || 'Failed to fetch weather data')
-        return
+        throw new Error(result.error || 'Failed to fetch weather data')
       }
-
-      setOpenMeteoData(result.data!)
 
       // Generate daily forecasts with tide data
       const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, tideResult, species)
-      setForecasts(dailyForecasts)
+
+      return {
+        forecasts: dailyForecasts,
+        openMeteoData: result.data!,
+        tideData: tideResult
+      }
+    } catch (err) {
+      console.error('Error fetching fresh forecast data:', err)
+      throw err
+    }
+  }, [coordinates, species])
+
+  // Main forecast data fetching with caching
+  const fetchForecastData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    setIsCachedData(false)
+
+    try {
+      // Try to get cached data first
+      const cacheResult = await ForecastCacheService.getCachedForecast(
+        selectedLocation,
+        selectedHotspot,
+        species
+      )
+
+      if (cacheResult.cached && cacheResult.data) {
+        // We have cached data - use it immediately
+        setForecasts(cacheResult.data.forecasts)
+        setOpenMeteoData(cacheResult.data.openMeteoData)
+        setTideData(cacheResult.data.tideData)
+        setIsCachedData(true)
+        setCacheInfo({
+          createdAt: cacheResult.createdAt,
+          expiresAt: cacheResult.expiresAt
+        })
+        setLoading(false)
+
+        // Start background refresh
+        setIsRefreshing(true)
+        try {
+          const freshData = await fetchFreshForecastData()
+          if (freshData) {
+            // Store fresh data in cache
+            await ForecastCacheService.storeForecastCache(
+              selectedLocation,
+              selectedHotspot,
+              species,
+              coordinates,
+              freshData.forecasts,
+              freshData.openMeteoData,
+              freshData.tideData
+            )
+
+            // Update UI with fresh data for this user only
+            setForecasts(freshData.forecasts)
+            setOpenMeteoData(freshData.openMeteoData)
+            setTideData(freshData.tideData)
+            setIsCachedData(false) // Now showing fresh data
+            setCacheInfo({}) // Clear cache info since we have fresh data
+          }
+        } catch (refreshError) {
+          console.error('Background refresh failed:', refreshError)
+          // Keep serving cached data - don't show error to user
+        } finally {
+          setIsRefreshing(false)
+        }
+      } else {
+        // No cached data - fetch fresh data
+        const freshData = await fetchFreshForecastData()
+        if (freshData) {
+          setForecasts(freshData.forecasts)
+          setOpenMeteoData(freshData.openMeteoData)  
+          setTideData(freshData.tideData)
+          setIsCachedData(false)
+          setCacheInfo({})
+
+          // Store in cache for future requests
+          await ForecastCacheService.storeForecastCache(
+            selectedLocation,
+            selectedHotspot,
+            species,
+            coordinates,
+            freshData.forecasts,
+            freshData.openMeteoData,
+            freshData.tideData
+          )
+        }
+      }
     } catch (err) {
       console.error('Error fetching forecast data:', err)
       setError('Failed to fetch weather data')
     } finally {
       setLoading(false)
     }
-  }, [coordinates, species])
+  }, [coordinates, species, selectedLocation, selectedHotspot, fetchFreshForecastData])
 
   useEffect(() => {
     fetchForecastData()
@@ -235,6 +327,9 @@ function NewForecastContent() {
           <NewForecastHeader 
             location={selectedLocation}
             hotspot={selectedHotspot}
+            isCachedData={isCachedData}
+            isRefreshing={isRefreshing}
+            cacheInfo={cacheInfo}
           />
 
           {/* Top Row: Forecast Outlook and Overall Score */}          
