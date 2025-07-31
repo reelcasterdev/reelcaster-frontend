@@ -23,6 +23,7 @@ import CompactLocationSelector from './components/location/compact-location-sele
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
+import { getRegulationsByLocation } from './data/regulations'
 
 // Real fishing location and species data
 interface FishingHotspot {
@@ -37,17 +38,6 @@ interface FishingLocation {
   hotspots: FishingHotspot[]
 }
 
-interface FishSpecies {
-  id: string
-  name: string
-  scientificName: string
-  minSize: string
-  dailyLimit: string
-  status: 'Open' | 'Closed' | 'Non Retention'
-  gear: string
-  season: string
-  description: string
-}
 
 const fishingLocations: FishingLocation[] = [
   {
@@ -77,63 +67,6 @@ const fishingLocations: FishingLocation[] = [
   },
 ]
 
-const fishSpecies: FishSpecies[] = [
-  {
-    id: 'lingcod',
-    name: 'Lingcod',
-    scientificName: 'Ophiodon elongatus',
-    minSize: '65cm',
-    dailyLimit: '1',
-    status: 'Open',
-    gear: 'Hook and line',
-    season: 'Year-round',
-    description: 'Large predatory fish, great eating',
-  },
-  {
-    id: 'pink-salmon',
-    name: 'Pink Salmon',
-    scientificName: 'Oncorhynchus gorbuscha',
-    minSize: '30cm',
-    dailyLimit: '4',
-    status: 'Open',
-    gear: 'Barbless hook and line',
-    season: 'July - September (odd years)',
-    description: 'Humpy salmon, abundant in odd years',
-  },
-  {
-    id: 'coho-salmon',
-    name: 'Coho Salmon',
-    scientificName: 'Oncorhynchus kisutch',
-    minSize: '30cm',
-    dailyLimit: '2',
-    status: 'Open',
-    gear: 'Barbless hook and line',
-    season: 'June - October',
-    description: 'Silver salmon, excellent fighting fish',
-  },
-  {
-    id: 'halibut',
-    name: 'Halibut',
-    scientificName: 'Hippoglossus stenolepis',
-    minSize: '83cm',
-    dailyLimit: '1',
-    status: 'Closed',
-    gear: 'Hook and line',
-    season: 'Year-round',
-    description: 'Large flatfish, excellent table fare',
-  },
-  {
-    id: 'chinook-salmon',
-    name: 'Chinook Salmon',
-    scientificName: 'Oncorhynchus tshawytscha',
-    minSize: '62cm',
-    dailyLimit: '0',
-    status: 'Closed',
-    gear: 'Barbless hook and line',
-    season: 'Year-round (varies by area)',
-    description: 'King salmon, largest Pacific salmon species',
-  },
-]
 
 function NewForecastContent() {
   const searchParams = useSearchParams()
@@ -375,7 +308,10 @@ function NewForecastContent() {
               />
 
               {/* Species Regulations */}
-              <SpeciesRegulations species={fishSpecies} />
+              <SpeciesRegulations 
+                species={getRegulationsByLocation(selectedLocation)?.species || []} 
+                areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+              />
 
               {/* Reports */}
               <FishingReports />

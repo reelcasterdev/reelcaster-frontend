@@ -1,0 +1,102 @@
+{
+  "areaId": "20",
+  "areaName": "Sooke",
+  "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s20-eng.html",
+  "lastUpdated": "2025-07-31",
+  "species": [
+    {
+      "id": "chinook-salmon",
+      "name": "Chinook Salmon",
+      "scientificName": "Oncorhynchus tshawytscha",
+      "dailyLimit": "1",
+      "annualLimit": "10",
+      "minSize": "45cm",
+      "status": "Open",
+      "gear": "Barbless hook and line",
+      "season": "Year-round",
+      "notes": [
+        "Combined hatchery and wild",
+        "Must have salmon conservation stamp",
+        "Must record retained catch immediately"
+      ]
+    },
+    {
+      "id": "coho-salmon",
+      "name": "Coho Salmon",
+      "scientificName": "Oncorhynchus kisutch",
+      "dailyLimit": "2",
+      "minSize": "30cm",
+      "status": "Open",
+      "gear": "Barbless hook and line",
+      "season": "June - October",
+      "notes": ["Combined hatchery and wild"]
+    },
+    {
+      "id": "chum-salmon",
+      "name": "Chum Salmon",
+      "scientificName": "Oncorhynchus keta",
+      "dailyLimit": "2",
+      "minSize": "30cm",
+      "status": "Open",
+      "gear": "Barbless hook and line",
+      "season": "September - December"
+    },
+    {
+      "id": "pink-salmon",
+      "name": "Pink Salmon",
+      "scientificName": "Oncorhynchus gorbuscha",
+      "dailyLimit": "4",
+      "minSize": "30cm",
+      "status": "Open",
+      "gear": "Barbless hook and line",
+      "season": "July - September (odd years)"
+    },
+    {
+      "id": "sockeye-salmon",
+      "name": "Sockeye Salmon",
+      "scientificName": "Oncorhynchus nerka",
+      "dailyLimit": "0",
+      "status": "Non Retention",
+      "gear": "Barbless hook and line",
+      "season": "Year-round closure"
+    },
+    {
+      "id": "lingcod",
+      "name": "Lingcod",
+      "scientificName": "Ophiodon elongatus",
+      "dailyLimit": "3",
+      "minSize": "65cm",
+      "status": "Open",
+      "gear": "Angling, spear fishing while diving",
+      "season": "Year-round",
+      "notes": [
+        "Areas 20-1 to 20-4: Daily limit 3",
+        "Areas 20-5 to 20-7: Daily limit 1"
+      ]
+    },
+    {
+      "id": "halibut",
+      "name": "Halibut",
+      "scientificName": "Hippoglossus stenolepis",
+      "dailyLimit": "1",
+      "annualLimit": "10",
+      "maxSize": "102cm",
+      "status": "Open",
+      "gear": "Angling, spear fishing while diving",
+      "season": "Year-round",
+      "notes": ["Head-on measurement"]
+    }
+  ],
+  "generalRules": [
+    "Must have BC Tidal Waters sport fishing licence",
+    "Possession limit typically double daily limit",
+    "Barbless hooks required",
+    "Must record certain retained catches immediately"
+  ],
+  "protectedAreas": [
+    "Race Rocks",
+    "Rockfish Conservation Areas in Becher Bay",
+    "Rockfish Conservation Areas in Sooke Bay",
+    "Pacific Rim National Park (specific closures)"
+  ]
+}
