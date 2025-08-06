@@ -18,6 +18,7 @@ import HourlyTable from './components/forecast/hourly-table'
 import WeatherConditions from './components/forecast/weather-conditions'
 import SpeciesRegulations from './components/forecast/species-regulations'
 import FishingReports from './components/forecast/fishing-reports'
+import { FishingReportDisplay } from './components/forecast/fishing-report-display'
 import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
@@ -234,7 +235,7 @@ function NewForecastContent() {
 
   // Handle invalid coordinates
   if (!hasValidCoordinates && (lat !== 0 || lon !== 0)) {
-    return <ErrorState error="Invalid coordinates provided" />
+    return <ErrorState message="Invalid coordinates provided" />
   }
 
   if (loading) {
@@ -242,7 +243,7 @@ function NewForecastContent() {
   }
 
   if (error) {
-    return <ErrorState error={error} />
+    return <ErrorState message={error} />
   }
 
   return (
@@ -318,6 +319,7 @@ function NewForecastContent() {
                 tideData={tideData}
                 selectedDay={selectedDay}
               />
+              
             </div>
 
             {/* Right Column - Desktop only */}
@@ -344,6 +346,11 @@ function NewForecastContent() {
           {/* Reports - Show at bottom on mobile */}
           <div className="lg:hidden">
             <FishingReports />
+          </div>
+
+          {/* Fishing Report Display */}
+          <div className="mt-6">
+            <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
           </div>
         </div>
       </div>

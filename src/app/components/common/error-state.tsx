@@ -1,8 +1,8 @@
-interface ErrorStateProps {
-  error: string
+export interface ErrorStateProps {
+  message: string
 }
 
-export default function ErrorState({ error }: ErrorStateProps) {
+export default function ErrorState({ message }: ErrorStateProps) {
   return (
     <div className="bg-red-900/50 border border-red-700 rounded-2xl p-6 mb-6">
       <div className="flex items-center gap-3">
@@ -13,7 +13,7 @@ export default function ErrorState({ error }: ErrorStateProps) {
         </div>
         <div>
           <h3 className="text-red-300 font-semibold">Error</h3>
-          <p className="text-red-300">{error}</p>
+          <p className="text-red-300">{message}</p>
         </div>
       </div>
     </div>

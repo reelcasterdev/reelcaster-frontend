@@ -8,6 +8,7 @@ interface DaySelectorProps {
   shouldBlurAfterDay?: number | null
 }
 
+
 export default function DaySelector({ forecasts, selectedDay, onDaySelect, shouldBlurAfterDay }: DaySelectorProps) {
   const hasBlurredCards = shouldBlurAfterDay !== null
 
