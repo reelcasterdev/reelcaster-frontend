@@ -1,0 +1,237 @@
+{
+  "reportMetadata": {
+    "source": "Island Outfitters",
+    "reportId": "2025-03-16",
+    "date": "2025-03-16",
+    "weekEnding": "March 16, 2025",
+    "location": "Victoria, Sidney",
+    "region": "Juan de Fuca Strait"
+  },
+  "overallConditions": {
+    "salmon": "GOOD",
+    "bottomFishing": "FAIR",
+    "crabbing": "FAIR"
+  },
+  "hotspotReports": {
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "SLOW",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Slow",
+          "size": "5-12 lbs",
+          "bestDepths": "Close to the bottom",
+          "bestArea": "In the Gap and by the Flats"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "AP Needlefish",
+        "Green/Glow Skinny Gs",
+        "Wee Gs",
+        "Coho Killers"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Anchovies",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Trolling",
+        "Jigging"
+      ],
+      "notes": "Most springs were feeders from 5-7 lbs in size."
+    },
+    "Waterfront": {
+      "conditions": {
+        "salmon": "SPOTTY",
+        "halibut": "Not specified",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Spotty",
+          "size": "5-10 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "Flagpole"
+        }
+      },
+      "topBaits": [
+        "Six inch herring"
+      ],
+      "topLures": [
+        "Apexes",
+        "Krippled KC",
+        "Skinny G's",
+        "Wee G's",
+        "AP Tackleworks"
+      ],
+      "flashers": [
+        "Bon Chovy",
+        "Madi",
+        "Blue/Silver Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Six inch herring",
+        "teaserHeadColors": [
+          "Chartreuse",
+          "Bloody Nose",
+          "Purple Haze"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "There have been a few keepers in the 5-10 lb size range and the occasional larger one."
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "SLOW",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Slow",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Fairfax, Coal Island, Sidney Spit, Channel, Powder Wharf, Saanichton Spit"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Salmon were scattered in the area. Many of the salmon keepers but most are undersized."
+    },
+    "Constance Bank": {
+      "conditions": {
+        "salmon": "GOOD",
+        "halibut": "Not specified",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Good",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Constance Bank"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Ten Mile Point": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    }
+  },
+  "recommendedTackle": {
+    "flashers": [
+      "Bon Chovy",
+      "Madi",
+      "Blue/Silver Hot Spots"
+    ],
+    "teaserHeadColors": [
+      "Chartreuse",
+      "Bloody Nose",
+      "Purple Haze"
+    ],
+    "spoons": [
+      "AP Needlefish",
+      "Green/Glow Skinny Gs",
+      "Wee Gs",
+      "Coho Killers",
+      "Krippled KC"
+    ],
+    "jigs": [
+      "Not specified"
+    ],
+    "otherLures": [
+      "Apexes",
+      "Skinny G's",
+      "Wee G's",
+      "AP Tackleworks"
+    ],
+    "bait": [
+      "Anchovies",
+      "Six inch herring"
+    ],
+    "depths": "Not specified",
+    "setupDetails": "Not specified"
+  },
+  "fishingTips": [
+    "Be sure to get your new fishing license before your next trip.",
+    "Review regulations before going out."
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "reportMetadata": {
+    "source": "Island Outfitters",
+    "reportId": "2025-05-25",
+    "date": "2025-05-25",
+    "weekEnding": "May 25, 2025",
+    "location": "Victoria, Sidney",
+    "region": "British Columbia"
+  },
+  "overallConditions": {
+    "salmon": "SLOW",
+    "bottomFishing": "GOOD",
+    "crabbing": "FAIR"
+  },
+  "hotspotReports": {
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "GOOD",
+        "halibut": "GOOD",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Active",
+          "size": "6-10 lbs, some up to 14 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "The Gap and the Flats"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "AP Needlefish",
+        "Herring Aid Skinny Gs"
+      ],
+      "flashers": [
+        "Bon Chovy",
+        "Madi",
+        "Blue/Silver Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Anchovies",
+        "teaserHeadColors": [
+          "Chartreuse",
+          "Bloody Nose",
+          "Purple Haze"
+        ]
+      },
+      "techniques": [
+        "Trolling",
+        "Jigging"
+      ],
+      "notes": "Best chinook fishing has been on the tide change for fish holding close to the bottom."
+    },
+    "Waterfront": {
+      "conditions": {
+        "salmon": "SPOTTY",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "SPOTTY",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Constance Bank": {
+      "conditions": {
+        "salmon": "GOOD",
+        "halibut": "GOOD",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Active",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "AP Tackleworks",
+        "Skinny G's",
+        "Krippled 'KC'"
+      ],
+      "flashers": [
+        "Betsy",
+        "Bon Chovy",
+        "Green/Glow Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Anchovies",
+        "teaserHeadColors": [
+          "Chartreuse",
+          "Bloody Nose",
+          "Purple Haze"
+        ]
+      },
+      "techniques": [
+        "Trolling"
+      ],
+      "notes": "Most salmon were keepers in the 6-10 lb size range."
+    },
+    "Ten Mile Point": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    }
+  },
+  "recommendedTackle": {
+    "flashers": [
+      "Bon Chovy",
+      "Madi",
+      "Blue/Silver Hot Spots",
+      "Betsy",
+      "Green/Glow Hot Spots"
+    ],
+    "teaserHeadColors": [
+      "Chartreuse",
+      "Bloody Nose",
+      "Purple Haze"
+    ],
+    "spoons": [
+      "AP Needlefish",
+      "Herring Aid Skinny Gs",
+      "AP Tackleworks",
+      "Skinny G's",
+      "Krippled 'KC'"
+    ],
+    "jigs": [
+      "Not specified"
+    ],
+    "otherLures": [
+      "Not specified"
+    ],
+    "bait": [
+      "Anchovies"
+    ],
+    "depths": "Not specified",
+    "setupDetails": "Not specified"
+  },
+  "fishingTips": [
+    "Trolling spoons along the bottom in 80-120 feet has been the best technique for salmon."
+  ]
+}
