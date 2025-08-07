@@ -32,7 +32,7 @@ export default function Sidebar() {
       label: 'Historical Reports',
       href: '/historical-reports',
       icon: <Clock className="w-5 h-5" />,
-      isActive: pathname === '/historical-reports',
+      isActive: true,
     },
     {
       id: 'my-spots',
