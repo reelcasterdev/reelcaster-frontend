@@ -25,7 +25,7 @@ export default function Sidebar() {
       label: 'Dashboard',
       href: '/',
       icon: <MapPin className="w-5 h-5" />,
-      isActive: pathname === '/',
+      isActive: true,
     },
     {
       id: 'historical-reports',
@@ -78,7 +78,6 @@ export default function Sidebar() {
     },
   ]
 
-  const isCurrentPage = pathname === '/'
   const showAuth = true
 
   return (
@@ -116,7 +115,7 @@ export default function Sidebar() {
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                      isCurrentPage
+                      pathname === item.href
                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     }`}
