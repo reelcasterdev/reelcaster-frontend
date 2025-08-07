@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Compass, Fish, BookOpen, Calendar, Image, Menu, X } from 'lucide-react'
+import { MapPin, Compass, Fish, BookOpen, Calendar, Image, Menu, X, Clock } from 'lucide-react'
 import { AuthButton } from '../auth/auth-button'
 
 interface NavItem {
@@ -25,7 +25,14 @@ export default function Sidebar() {
       label: 'Dashboard',
       href: '/',
       icon: <MapPin className="w-5 h-5" />,
-      isActive: true,
+      isActive: pathname === '/',
+    },
+    {
+      id: 'historical-reports',
+      label: 'Historical Reports',
+      href: '/historical-reports',
+      icon: <Clock className="w-5 h-5" />,
+      isActive: pathname === '/historical-reports',
     },
     {
       id: 'my-spots',

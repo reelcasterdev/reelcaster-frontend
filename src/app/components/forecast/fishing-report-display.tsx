@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Fish, MapPin, Waves, Calendar, TrendingUp, Anchor, TreePine, ChevronRight, AlertCircle } from 'lucide-react'
+import { Fish, Waves, Calendar, TrendingUp, Anchor, ChevronRight, AlertCircle } from 'lucide-react'
 
 const conditionColors: Record<string, string> = {
   'EXCELLENT': 'from-green-500 to-green-600',

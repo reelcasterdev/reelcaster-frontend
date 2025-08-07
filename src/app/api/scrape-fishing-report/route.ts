@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { scrapeFishingReport } from '@/app/utils/scrape-fishing-report'
 import { ScrapeFishingReportRequest, ScrapeFishingReportResponse } from '@/app/types/fishing-report'
 
+// Use Edge Runtime to avoid Node.js specific issues during build
+export const runtime = 'edge'
+
 export async function POST(request: NextRequest) {
   try {
     // Check if API key is configured

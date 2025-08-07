@@ -1,17 +1,18 @@
 import * as cheerio from 'cheerio'
-import OpenAI from 'openai'
 import { FishingReportData } from '../types/fishing-report'
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
 
 export async function scrapeFishingReport(
   url: string,
   location: string,
   hotspots: string[]
 ): Promise<FishingReportData> {
+  // Dynamic import to avoid build-time issues with File API
+  const OpenAI = (await import('openai')).default
+  
+  // Initialize OpenAI client inside the function
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
   try {
     // Fetch the webpage
     const response = await fetch(url)
