@@ -1,0 +1,199 @@
+{
+  "reportMetadata": {
+    "source": "Island Outfitters",
+    "reportId": "2025-02-23",
+    "date": "2025-02-23",
+    "weekEnding": "February 23, 2025",
+    "location": "Victoria",
+    "region": "Victoria, British Columbia"
+  },
+  "overallConditions": {
+    "salmon": "FAIR",
+    "bottomFishing": "Not specified",
+    "crabbing": "GOOD"
+  },
+  "hotspotReports": {
+    "Waterfront": {
+      "conditions": {
+        "salmon": "VERY GOOD",
+        "halibut": "Not specified",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Active",
+          "size": "5-10 lbs with occasional larger ones in the teens",
+          "bestDepths": "Not specified",
+          "bestArea": "From Finlayson Point to Trial Island and near Albert Head"
+        }
+      },
+      "topBaits": [
+        "6 inch herring"
+      ],
+      "topLures": [
+        "Apexes",
+        "Krippled KC",
+        "Skinny G's",
+        "Wee G's",
+        "AP Tackleworks"
+      ],
+      "flashers": [
+        "Bon Chovy",
+        "Madi",
+        "Blue/Silver Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "6 inch herring",
+        "teaserHeadColors": [
+          "Chartreuse",
+          "Bloody Nose",
+          "Purple Haze"
+        ]
+      },
+      "techniques": [
+        "trolling"
+      ],
+      "notes": "Best fishing was along the waterfront."
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "GOOD",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Active",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Moses Point, Coal Island, Sidney Channel, Powder Wharf, Saanichton Spit"
+        }
+      },
+      "topBaits": [],
+      "topLures": [],
+      "flashers": [],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": []
+      },
+      "techniques": [],
+      "notes": "Salmon were scattered in the area. Many keeps but also undersized fish."
+    },
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Active",
+          "size": "5-7 lbs with some in the mid-teens",
+          "bestDepths": "Not specified",
+          "bestArea": "In the Gap and by the Flats"
+        }
+      },
+      "topBaits": [
+        "AP Needlefish",
+        "Green/Glow Skinny Gs",
+        "Wee Gs",
+        "Coho Killers"
+      ],
+      "topLures": [],
+      "flashers": [
+        "Betsy",
+        "Bon Chovy",
+        "Green/Glow Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": []
+      },
+      "techniques": [
+        "trolling",
+        "jigging"
+      ],
+      "notes": "Best chinook fishing has been close to the bottom."
+    },
+    "Constance Bank": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [],
+      "topLures": [],
+      "flashers": [],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": []
+      },
+      "techniques": [],
+      "notes": "Not specified"
+    },
+    "Ten Mile Point": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [],
+      "topLures": [],
+      "flashers": [],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": []
+      },
+      "techniques": [],
+      "notes": "Not specified"
+    }
+  },
+  "recommendedTackle": {
+    "flashers": [
+      "Bon Chovy",
+      "Madi",
+      "Blue/Silver Hot Spots",
+      "Betsy",
+      "Green/Glow Hot Spots"
+    ],
+    "teaserHeadColors": [
+      "Chartreuse",
+      "Bloody Nose",
+      "Purple Haze"
+    ],
+    "spoons": [
+      "Krippled KC",
+      "Skinny G's",
+      "Wee G's",
+      "AP Tackleworks",
+      "AP Needlefish",
+      "Green/Glow Skinny Gs",
+      "Coho Killers"
+    ],
+    "jigs": [],
+    "otherLures": [],
+    "bait": [
+      "6 inch herring",
+      "Anchovies"
+    ],
+    "depths": "Not specified",
+    "setupDetails": "Not specified"
+  },
+  "fishingTips": []
+}

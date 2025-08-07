@@ -1,0 +1,231 @@
+{
+  "reportMetadata": {
+    "source": "Island Outfitters",
+    "reportId": "2025-04-13",
+    "date": "2025-04-13",
+    "weekEnding": "April 13, 2025",
+    "location": "Victoria, Sidney",
+    "region": "British Columbia"
+  },
+  "overallConditions": {
+    "salmon": "FAIR",
+    "bottomFishing": "GOOD",
+    "crabbing": "FAIR"
+  },
+  "hotspotReports": {
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "SPOTTY",
+        "halibut": "GOOD",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "SPOTTY",
+          "size": "up to 12 lbs",
+          "bestDepths": "close to the bottom",
+          "bestArea": "on the Flats"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "AP Needlefish",
+        "Green/Glow Skinny Gs",
+        "Wee Gs",
+        "Coho Killers"
+      ],
+      "flashers": [
+        "Betsy",
+        "Bon Chovy",
+        "Green/Glow Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Anchovies",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "trolling",
+        "jigging"
+      ],
+      "notes": "Effective spoons this past week were the AP Needlefish, Green/Glow Skinny Gs, Wee Gs, and Coho Killers."
+    },
+    "Waterfront": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "SPOTTY",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "SPOTTY",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Prawning has been the focus of most boats this past week. Reports of limit catches were common, especially for traps left to soak overnight."
+    },
+    "Constance Bank": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "GOOD",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Ten Mile Point": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    }
+  },
+  "recommendedTackle": {
+    "flashers": [
+      "Betsy",
+      "Bon Chovy",
+      "Green/Glow Hot Spots"
+    ],
+    "teaserHeadColors": [
+      "Chartreuse",
+      "Bloody Nose",
+      "Purple Haze"
+    ],
+    "spoons": [
+      "AP Needlefish",
+      "Green/Glow Skinny Gs",
+      "Wee Gs",
+      "Coho Killers",
+      "Peetz Hookum",
+      "Krippled 'KC'",
+      "Skinny G's",
+      "Wee G's",
+      "AP Tackleworks"
+    ],
+    "jigs": [
+      "Not specified"
+    ],
+    "otherLures": [
+      "Not specified"
+    ],
+    "bait": [
+      "Anchovies"
+    ],
+    "depths": "80-120 feet for halibut; near the bottom for salmon",
+    "setupDetails": "Not specified"
+  },
+  "fishingTips": [
+    "Check for changes in regulations before going out.",
+    "Ensure you have your fishing license before your next trip."
+  ]
+}

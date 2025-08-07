@@ -18,11 +18,13 @@ import HourlyTable from './components/forecast/hourly-table'
 import WeatherConditions from './components/forecast/weather-conditions'
 import SpeciesRegulations from './components/forecast/species-regulations'
 import FishingReports from './components/forecast/fishing-reports'
+import { FishingReportDisplay } from './components/forecast/fishing-report-display'
 import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
+import { getRegulationsByLocation } from './data/regulations'
 
 // Real fishing location and species data
 interface FishingHotspot {
@@ -37,17 +39,6 @@ interface FishingLocation {
   hotspots: FishingHotspot[]
 }
 
-interface FishSpecies {
-  id: string
-  name: string
-  scientificName: string
-  minSize: string
-  dailyLimit: string
-  status: 'Open' | 'Closed' | 'Non Retention'
-  gear: string
-  season: string
-  description: string
-}
 
 const fishingLocations: FishingLocation[] = [
   {
@@ -77,63 +68,6 @@ const fishingLocations: FishingLocation[] = [
   },
 ]
 
-const fishSpecies: FishSpecies[] = [
-  {
-    id: 'lingcod',
-    name: 'Lingcod',
-    scientificName: 'Ophiodon elongatus',
-    minSize: '65cm',
-    dailyLimit: '1',
-    status: 'Open',
-    gear: 'Hook and line',
-    season: 'Year-round',
-    description: 'Large predatory fish, great eating',
-  },
-  {
-    id: 'pink-salmon',
-    name: 'Pink Salmon',
-    scientificName: 'Oncorhynchus gorbuscha',
-    minSize: '30cm',
-    dailyLimit: '4',
-    status: 'Open',
-    gear: 'Barbless hook and line',
-    season: 'July - September (odd years)',
-    description: 'Humpy salmon, abundant in odd years',
-  },
-  {
-    id: 'coho-salmon',
-    name: 'Coho Salmon',
-    scientificName: 'Oncorhynchus kisutch',
-    minSize: '30cm',
-    dailyLimit: '2',
-    status: 'Open',
-    gear: 'Barbless hook and line',
-    season: 'June - October',
-    description: 'Silver salmon, excellent fighting fish',
-  },
-  {
-    id: 'halibut',
-    name: 'Halibut',
-    scientificName: 'Hippoglossus stenolepis',
-    minSize: '83cm',
-    dailyLimit: '1',
-    status: 'Closed',
-    gear: 'Hook and line',
-    season: 'Year-round',
-    description: 'Large flatfish, excellent table fare',
-  },
-  {
-    id: 'chinook-salmon',
-    name: 'Chinook Salmon',
-    scientificName: 'Oncorhynchus tshawytscha',
-    minSize: '62cm',
-    dailyLimit: '0',
-    status: 'Closed',
-    gear: 'Barbless hook and line',
-    season: 'Year-round (varies by area)',
-    description: 'King salmon, largest Pacific salmon species',
-  },
-]
 
 function NewForecastContent() {
   const searchParams = useSearchParams()
@@ -301,7 +235,7 @@ function NewForecastContent() {
 
   // Handle invalid coordinates
   if (!hasValidCoordinates && (lat !== 0 || lon !== 0)) {
-    return <ErrorState error="Invalid coordinates provided" />
+    return <ErrorState message="Invalid coordinates provided" />
   }
 
   if (loading) {
@@ -309,7 +243,7 @@ function NewForecastContent() {
   }
 
   if (error) {
-    return <ErrorState error={error} />
+    return <ErrorState message={error} />
   }
 
   return (
@@ -319,7 +253,7 @@ function NewForecastContent() {
       
       {/* Main Content */}
       <div className="lg:ml-64 min-h-screen overflow-auto">
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6 pt-16 lg:pt-6">
+        <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-3 sm:space-y-6 pt-16 lg:pt-6">
           {/* Location Selector */}
           <CompactLocationSelector />
           
@@ -332,9 +266,12 @@ function NewForecastContent() {
             cacheInfo={cacheInfo}
           />
 
-          {/* Top Row: Forecast Outlook and Overall Score */}          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Forecast Outlook */}
+          {/* Mobile: Stack everything vertically */}
+          {/* Desktop: Keep grid layout */}
+          
+          {/* Top Section - Always full width on mobile */}
+          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+            {/* Forecast Outlook - Full width on mobile */}
             <div className="lg:col-span-2">
               <DayOutlook 
                 forecasts={forecastData} 
@@ -344,16 +281,36 @@ function NewForecastContent() {
               />
             </div>
 
-            {/* Overall Score */}
-            <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
+            {/* Overall Score - Full width on mobile */}
+            <div className="lg:col-span-1">
+              <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
+            </div>
           </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Left Column - Charts and Table */}
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {/* Main Content - Stack on mobile, grid on desktop */}
+          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+            {/* Charts and Table Section */}
+            <div className="lg:col-span-2 space-y-3 sm:space-y-6">
               {/* Hourly Fishing Score Chart */}
               <HourlyChart forecasts={forecastData} selectedDay={selectedDay} />
+
+              {/* Weather and Conditions - Show here on mobile, hide on desktop */}
+              <div className="lg:hidden">
+                <WeatherConditions 
+                  forecasts={forecastData}
+                  openMeteoData={openMeteoData}
+                  tideData={tideData}
+                  selectedDay={selectedDay}
+                />
+              </div>
+
+              {/* Species Regulations - Show here on mobile, hide on desktop */}
+              <div className="lg:hidden">
+                <SpeciesRegulations 
+                  species={getRegulationsByLocation(selectedLocation)?.species || []} 
+                  areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+                />
+              </div>
 
               {/* Hourly Data Table */}
               <HourlyTable 
@@ -362,10 +319,11 @@ function NewForecastContent() {
                 tideData={tideData}
                 selectedDay={selectedDay}
               />
+              
             </div>
 
-            {/* Right Column */}
-            <div className="space-y-4 sm:space-y-6">
+            {/* Right Column - Desktop only */}
+            <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
               {/* Weather and Conditions */}
               <WeatherConditions 
                 forecasts={forecastData}
@@ -375,11 +333,24 @@ function NewForecastContent() {
               />
 
               {/* Species Regulations */}
-              <SpeciesRegulations species={fishSpecies} />
+              <SpeciesRegulations 
+                species={getRegulationsByLocation(selectedLocation)?.species || []} 
+                areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+              />
 
               {/* Reports */}
               <FishingReports />
             </div>
+          </div>
+
+          {/* Reports - Show at bottom on mobile */}
+          <div className="lg:hidden">
+            <FishingReports />
+          </div>
+
+          {/* Fishing Report Display */}
+          <div className="mt-6">
+            <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
           </div>
         </div>
       </div>

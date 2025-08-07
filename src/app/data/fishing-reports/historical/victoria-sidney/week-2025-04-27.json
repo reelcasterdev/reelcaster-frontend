@@ -1,0 +1,220 @@
+{
+  "reportMetadata": {
+    "source": "Island Outfitters",
+    "reportId": "2025-03-23",
+    "date": "2025-03-23",
+    "weekEnding": "March 23, 2025",
+    "location": "Victoria, Sidney",
+    "region": "Juan de Fuca Strait"
+  },
+  "overallConditions": {
+    "salmon": "SLOW",
+    "bottomFishing": "FAIR",
+    "crabbing": "FAIR"
+  },
+  "hotspotReports": {
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "SLOW",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "SLOW",
+          "size": "5-12 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "The Gap and by the Flats"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "AP Needlefish",
+        "Green/Glow Skinny Gs",
+        "Wee Gs",
+        "Coho Killers"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Trolling",
+        "Jigging"
+      ],
+      "notes": "Most anglers have been trolling spoons, but anglers jigging are also getting a few."
+    },
+    "Waterfront": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "SLOW",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "SLOW",
+          "size": "Undersized to larger",
+          "bestDepths": "Not specified",
+          "bestArea": "Sidney Spit and Channel, Powder Wharf, Saanichton Spit"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Many of the salmon keepers but most are undersized."
+    },
+    "Constance Bank": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Ten Mile Point": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    }
+  },
+  "recommendedTackle": {
+    "flashers": [
+      "Not specified"
+    ],
+    "teaserHeadColors": [
+      "Not specified"
+    ],
+    "spoons": [
+      "AP Needlefish",
+      "Green/Glow Skinny Gs",
+      "Wee Gs",
+      "Coho Killers"
+    ],
+    "jigs": [
+      "Not specified"
+    ],
+    "otherLures": [
+      "Not specified"
+    ],
+    "bait": [
+      "Anchovies"
+    ],
+    "depths": "Not specified",
+    "setupDetails": "Not specified"
+  },
+  "fishingTips": [
+    "Check fishing licenses before your next trip.",
+    "Review regulations before going out."
+  ]
+}

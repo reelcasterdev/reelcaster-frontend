@@ -1,0 +1,234 @@
+{
+  "reportMetadata": {
+    "source": "Island Outfitters",
+    "reportId": "2025-02-16",
+    "date": "2025-02-16",
+    "weekEnding": "February 16, 2025",
+    "location": "Victoria, Sidney",
+    "region": "British Columbia"
+  },
+  "overallConditions": {
+    "salmon": "FAIR",
+    "bottomFishing": "Not specified",
+    "crabbing": "GOOD"
+  },
+  "hotspotReports": {
+    "Waterfront": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "Not specified",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "FAIR",
+          "size": "5-10 lbs, occasional larger in teens",
+          "bestDepths": "Not specified",
+          "bestArea": "From Finlayson Point to Trial Island and near Albert Head"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "Krippled KC",
+        "Skinny G's",
+        "Wee G's",
+        "AP Tackleworks"
+      ],
+      "flashers": [
+        "Bon Chovy",
+        "Madi",
+        "Blue/Silver Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Anchovies",
+        "teaserHeadColors": [
+          "Chartreuse",
+          "Bloody Nose",
+          "Purple Haze"
+        ]
+      },
+      "techniques": [
+        "Trolling"
+      ],
+      "notes": "Best fishing reported along the waterfront."
+    },
+    "Constance Bank": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "FAIR",
+          "size": "5-7 lbs, occasional larger in mid-teens",
+          "bestDepths": "Close to the bottom",
+          "bestArea": "In the Gap and by the Flats"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "AP Needlefish",
+        "Green/Glow Skinny Gs",
+        "Wee Gs",
+        "Coho Killers"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Trolling",
+        "Jigging"
+      ],
+      "notes": "Reports of a few nice springs being caught."
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "FAIR",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Moses Point, Coal Island, Sidney Channel, Powder Wharf, Saanichton Spit"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Salmon were scattered in the area."
+    },
+    "Ten Mile Point": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    }
+  },
+  "recommendedTackle": {
+    "flashers": [
+      "Bon Chovy",
+      "Madi",
+      "Blue/Silver Hot Spots"
+    ],
+    "teaserHeadColors": [
+      "Chartreuse",
+      "Bloody Nose",
+      "Purple Haze"
+    ],
+    "spoons": [
+      "Krippled KC",
+      "Skinny G's",
+      "Wee G's",
+      "AP Tackleworks",
+      "AP Needlefish",
+      "Green/Glow Skinny Gs",
+      "Coho Killers"
+    ],
+    "jigs": [
+      "Not specified"
+    ],
+    "otherLures": [
+      "Not specified"
+    ],
+    "bait": [
+      "Anchovies"
+    ],
+    "depths": "Not specified",
+    "setupDetails": "Not specified"
+  },
+  "fishingTips": [
+    "Focus on areas where salmon are reported to be holding close to the bottom.",
+    "Use effective spoons and flashers that have been working well in recent reports."
+  ]
+}

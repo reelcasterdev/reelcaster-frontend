@@ -1,0 +1,235 @@
+{
+  "reportMetadata": {
+    "source": "Island Outfitters",
+    "reportId": "2025-04-20",
+    "date": "2025-04-20",
+    "weekEnding": "April 20, 2025",
+    "location": "Victoria, Sidney",
+    "region": "Juan de Fuca Strait"
+  },
+  "overallConditions": {
+    "salmon": "FAIR",
+    "bottomFishing": "GOOD",
+    "crabbing": "GOOD"
+  },
+  "hotspotReports": {
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "GOOD",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "FAIR",
+          "size": "up to 14 lbs",
+          "bestDepths": "close to the bottom",
+          "bestArea": "Flats"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "AP Needlefish",
+        "Green/Glow Skinny Gs",
+        "Wee Gs",
+        "Coho Killers"
+      ],
+      "flashers": [
+        "Bon Chovy",
+        "Green/Glow Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Anchovies",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "trolling",
+        "jigging"
+      ],
+      "notes": "Reports of hatchery marked springs being caught."
+    },
+    "Waterfront": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "SPOTTY",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "SPOTTY",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Sidney Channel"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "searching for bait"
+      ],
+      "notes": "Reports of limit catches in prawning."
+    },
+    "Constance Bank": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "GOOD",
+        "crabbing": "FAIR"
+      },
+      "species": {
+        "Chinook": {
+          "status": "FAIR",
+          "size": "4 - 8 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "Constance Bank"
+        }
+      },
+      "topBaits": [
+        "Six inch herring"
+      ],
+      "topLures": [
+        "Apexes",
+        "Krippled KC",
+        "Skinny G's",
+        "Wee G's",
+        "AP Tackleworks"
+      ],
+      "flashers": [
+        "Bon Chovy",
+        "Madi",
+        "Blue/Silver Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Six inch herring",
+        "teaserHeadColors": [
+          "Chartreuse",
+          "Bloody Nose",
+          "Purple Haze"
+        ]
+      },
+      "techniques": [
+        "trolling"
+      ],
+      "notes": "Best fishing was at Constance Bank."
+    },
+    "Ten Mile Point": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    }
+  },
+  "recommendedTackle": {
+    "flashers": [
+      "Bon Chovy",
+      "Green/Glow Hot Spots"
+    ],
+    "teaserHeadColors": [
+      "Chartreuse",
+      "Bloody Nose",
+      "Purple Haze"
+    ],
+    "spoons": [
+      "AP Needlefish",
+      "Green/Glow Skinny Gs",
+      "Wee Gs",
+      "Coho Killers",
+      "Apexes",
+      "Krippled KC"
+    ],
+    "jigs": [
+      "Not specified"
+    ],
+    "otherLures": [
+      "Not specified"
+    ],
+    "bait": [
+      "Anchovies",
+      "Six inch herring"
+    ],
+    "depths": "Not specified",
+    "setupDetails": "Not specified"
+  },
+  "fishingTips": [
+    "Trolling spoons along the bottom in 80-120 feet has been effective for salmon.",
+    "Prawning is best with traps left to soak overnight."
+  ]
+}

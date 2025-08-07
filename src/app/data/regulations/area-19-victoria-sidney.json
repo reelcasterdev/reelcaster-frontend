@@ -1,0 +1,142 @@
+{
+  "areaId": "19",
+  "areaName": "Victoria, Sidney",
+  "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s19-eng.html",
+  "lastUpdated": "2025-07-31",
+  "species": [
+    {
+      "id": "chinook-salmon",
+      "name": "Chinook Salmon",
+      "scientificName": "Oncorhynchus tshawytscha",
+      "dailyLimit": "0-1",
+      "annualLimit": "10",
+      "minSize": "45cm",
+      "maxSize": "62cm",
+      "status": "Restricted",
+      "gear": "Barbless hook and line",
+      "season": "Varies by subarea",
+      "notes": [
+        "Must have salmon conservation stamp",
+        "Must record retained catch immediately",
+        "Only hatchery-marked fish allowed in some areas"
+      ]
+    },
+    {
+      "id": "chum-salmon",
+      "name": "Chum Salmon",
+      "scientificName": "Oncorhynchus keta",
+      "dailyLimit": "2",
+      "minSize": "30cm",
+      "status": "Open",
+      "gear": "Barbless hook and line",
+      "season": "September - December"
+    },
+    {
+      "id": "coho-salmon",
+      "name": "Coho Salmon",
+      "scientificName": "Oncorhynchus kisutch",
+      "dailyLimit": "2",
+      "minSize": "30cm",
+      "status": "Open",
+      "gear": "Barbless hook and line",
+      "season": "June - October",
+      "notes": ["Hatchery-marked only"]
+    },
+    {
+      "id": "pink-salmon",
+      "name": "Pink Salmon",
+      "scientificName": "Oncorhynchus gorbuscha",
+      "dailyLimit": "4",
+      "minSize": "30cm",
+      "status": "Open",
+      "gear": "Barbless hook and line",
+      "season": "July - September (odd years)"
+    },
+    {
+      "id": "sockeye-salmon",
+      "name": "Sockeye Salmon",
+      "scientificName": "Oncorhynchus nerka",
+      "dailyLimit": "0",
+      "minSize": "30cm",
+      "status": "Non Retention",
+      "gear": "Barbless hook and line",
+      "season": "Year-round closure"
+    },
+    {
+      "id": "halibut",
+      "name": "Halibut",
+      "scientificName": "Hippoglossus stenolepis",
+      "dailyLimit": "1",
+      "annualLimit": "10",
+      "maxSize": "102cm",
+      "status": "Open",
+      "gear": "Hook and line",
+      "season": "Year-round",
+      "notes": ["Head-on measurement"]
+    },
+    {
+      "id": "lingcod",
+      "name": "Lingcod",
+      "scientificName": "Ophiodon elongatus",
+      "dailyLimit": "1",
+      "annualLimit": "10",
+      "minSize": "65cm",
+      "status": "Open",
+      "gear": "Hook and line",
+      "season": "Year-round",
+      "notes": ["Minimum fillet size 53cm head-off"]
+    },
+    {
+      "id": "rockfish",
+      "name": "Rockfish",
+      "scientificName": "Sebastes spp.",
+      "dailyLimit": "1",
+      "status": "Open",
+      "gear": "Hook and line",
+      "season": "Year-round",
+      "notes": [
+        "Yelloweye Rockfish: 0 (Non-Retention)",
+        "Must use descender device for released fish"
+      ]
+    },
+    {
+      "id": "trout",
+      "name": "Trout",
+      "scientificName": "Oncorhynchus mykiss",
+      "dailyLimit": "2",
+      "minSize": "30cm",
+      "status": "Open",
+      "gear": "Hook and line",
+      "season": "Year-round",
+      "notes": ["Hatchery-marked only"]
+    },
+    {
+      "id": "dungeness-crab",
+      "name": "Dungeness Crab",
+      "scientificName": "Metacarcinus magister",
+      "dailyLimit": "4",
+      "minSize": "165mm",
+      "status": "Open",
+      "gear": "Trap, ring net, diving",
+      "season": "Year-round",
+      "notes": ["No female crabs"]
+    },
+    {
+      "id": "red-rock-crab",
+      "name": "Red Rock Crab",
+      "scientificName": "Cancer productus",
+      "dailyLimit": "4",
+      "minSize": "115mm",
+      "status": "Open",
+      "gear": "Trap, ring net, diving",
+      "season": "Year-round",
+      "notes": ["No female crabs"]
+    }
+  ],
+  "generalRules": [
+    "Must have BC Tidal Waters sport fishing licence",
+    "Must record certain retained catches immediately",
+    "Barbless hooks required for salmon",
+    "Some areas have specific closures"
+  ]
+}
