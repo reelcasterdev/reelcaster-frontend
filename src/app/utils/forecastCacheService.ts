@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { ProcessedOpenMeteoData } from './openMeteoApi'
 import { OpenMeteoDailyForecast } from './fishingCalculations'
 import { TideData } from './tideApi'
+import { CHSWaterData } from './chsTideApi'
 
 // Environment variables with fallbacks
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -22,6 +23,7 @@ export interface CacheEntry {
   forecast_data: OpenMeteoDailyForecast[]
   open_meteo_data: ProcessedOpenMeteoData
   tide_data: TideData | null
+  chs_tide_data?: CHSWaterData | null
   created_at: string
   expires_at: string
   cache_duration_hours: number
@@ -40,6 +42,7 @@ export interface CacheResult {
     forecasts: OpenMeteoDailyForecast[]
     openMeteoData: ProcessedOpenMeteoData
     tideData: TideData | null
+    chsTideData?: CHSWaterData | null
   } | null
   cached: boolean
   createdAt?: string
@@ -213,7 +216,8 @@ After running the setup script, refresh your application.
         data: {
           forecasts: data.forecast_data as OpenMeteoDailyForecast[],
           openMeteoData: data.open_meteo_data as ProcessedOpenMeteoData,
-          tideData: data.tide_data as TideData | null
+          tideData: data.tide_data as TideData | null,
+          chsTideData: data.chs_tide_data as CHSWaterData | null
         },
         cached: true,
         createdAt: data.created_at,
@@ -233,7 +237,8 @@ After running the setup script, refresh your application.
     coordinates: { lat: number; lon: number },
     forecasts: OpenMeteoDailyForecast[],
     openMeteoData: ProcessedOpenMeteoData,
-    tideData: TideData | null
+    tideData: TideData | null,
+    chsTideData?: CHSWaterData | null
   ): Promise<boolean> {
     // Return success (no-op) if Supabase is not configured
     if (!supabase) {
@@ -262,6 +267,7 @@ After running the setup script, refresh your application.
         forecast_data: forecasts,
         open_meteo_data: openMeteoData,
         tide_data: tideData,
+        chs_tide_data: chsTideData || null,
         expires_at: expiresAt.toISOString(),
         cache_duration_hours: cacheDurationHours
       }
