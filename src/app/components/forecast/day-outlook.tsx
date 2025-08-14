@@ -99,7 +99,7 @@ export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect, sh
             // Calculate the average score of the best 2-hour period
             const bestScore =
               forecast.twoHourForecasts.length > 0 ? Math.max(...forecast.twoHourForecasts.map(f => f.score.total)) : 0
-            const dayScore = Math.round(bestScore)
+            const dayScore = bestScore
 
             const date = new Date(forecast.date * 1000)
             const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
@@ -162,7 +162,7 @@ export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect, sh
                     transition-all duration-300
                   `}
                     >
-                      <span className="relative z-10">{dayScore}</span>
+                      <span className="relative z-10">{dayScore.toFixed(1)}</span>
 
                       {/* Shimmer effect */}
                       <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

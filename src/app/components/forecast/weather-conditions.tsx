@@ -1,11 +1,11 @@
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
-import { TideData } from '../../utils/tideApi'
+import { CHSWaterData } from '../../utils/chsTideApi'
 
 interface WeatherConditionsProps {
   forecasts: OpenMeteoDailyForecast[]
   openMeteoData: ProcessedOpenMeteoData | null
-  tideData: TideData | null
+  tideData: CHSWaterData | null
   selectedDay?: number
 }
 

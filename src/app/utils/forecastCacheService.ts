@@ -2,7 +2,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { ProcessedOpenMeteoData } from './openMeteoApi'
 import { OpenMeteoDailyForecast } from './fishingCalculations'
-import { TideData } from './tideApi'
 import { CHSWaterData } from './chsTideApi'
 
 // Environment variables with fallbacks
@@ -22,8 +21,7 @@ export interface CacheEntry {
   coordinates: { lat: number; lon: number }
   forecast_data: OpenMeteoDailyForecast[]
   open_meteo_data: ProcessedOpenMeteoData
-  tide_data: TideData | null
-  chs_tide_data?: CHSWaterData | null
+  tide_data: CHSWaterData | null // Database column name
   created_at: string
   expires_at: string
   cache_duration_hours: number
@@ -41,8 +39,7 @@ export interface CacheResult {
   data: {
     forecasts: OpenMeteoDailyForecast[]
     openMeteoData: ProcessedOpenMeteoData
-    tideData: TideData | null
-    chsTideData?: CHSWaterData | null
+    chsTideData: CHSWaterData | null
   } | null
   cached: boolean
   createdAt?: string
@@ -216,8 +213,7 @@ After running the setup script, refresh your application.
         data: {
           forecasts: data.forecast_data as OpenMeteoDailyForecast[],
           openMeteoData: data.open_meteo_data as ProcessedOpenMeteoData,
-          tideData: data.tide_data as TideData | null,
-          chsTideData: data.chs_tide_data as CHSWaterData | null
+          chsTideData: data.tide_data as CHSWaterData | null
         },
         cached: true,
         createdAt: data.created_at,
@@ -237,8 +233,7 @@ After running the setup script, refresh your application.
     coordinates: { lat: number; lon: number },
     forecasts: OpenMeteoDailyForecast[],
     openMeteoData: ProcessedOpenMeteoData,
-    tideData: TideData | null,
-    chsTideData?: CHSWaterData | null
+    tideData: CHSWaterData | null
   ): Promise<boolean> {
     // Return success (no-op) if Supabase is not configured
     if (!supabase) {
@@ -266,8 +261,7 @@ After running the setup script, refresh your application.
         coordinates,
         forecast_data: forecasts,
         open_meteo_data: openMeteoData,
-        tide_data: tideData,
-        chs_tide_data: chsTideData || null,
+        tide_data: tideData, // Map to the database column name
         expires_at: expiresAt.toISOString(),
         cache_duration_hours: cacheDurationHours
       }

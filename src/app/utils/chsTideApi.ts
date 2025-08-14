@@ -127,7 +127,7 @@ export const CHS_STATIONS: Record<string, { id: string; code: string; name: stri
 
 // CHS API configuration
 const CHS_API_BASE = typeof window !== 'undefined' 
-  ? '/api/chs-tide?endpoint=' // Use proxy in browser
+  ? '/api/chs-tide' // Use proxy in browser
   : 'https://api.iwls-sine.azure.cloud-nuage.dfo-mpo.gc.ca/api/v1' // Direct in SSR
 const RATE_LIMIT_DELAY = 350 // ms between requests (respecting 3 req/sec limit)
 
@@ -167,7 +167,7 @@ export const fetchStationMetadata = async (stationId: string): Promise<CHSStatio
 
   try {
     const endpoint = typeof window !== 'undefined' 
-      ? `${CHS_API_BASE}${encodeURIComponent(`/stations/${stationId}`)}`
+      ? `/api/chs-tide/stations/${stationId}`
       : `${CHS_API_BASE}/stations/${stationId}`
     const response = await rateLimitedFetch(endpoint)
     if (!response.ok) throw new Error(`Failed to fetch station: ${response.status}`)
@@ -206,25 +206,27 @@ export const fetchWaterLevels = async (
   }
 
   try {
+    // Use the data endpoint with wlp time series for water level predictions
     const params = new URLSearchParams({
+      'time-series-code': 'wlp',
       from: startTime.toISOString(),
       to: endTime.toISOString(),
-      resolution: 'ONE_MINUTE',
     })
     
     const endpoint = typeof window !== 'undefined'
-      ? `${CHS_API_BASE}${encodeURIComponent(`/stations/${stationId}/water-levels?${params}`)}`
-      : `${CHS_API_BASE}/stations/${stationId}/water-levels?${params}`
+      ? `${CHS_API_BASE}/stations/${stationId}/data?${params}`
+      : `${CHS_API_BASE}/stations/${stationId}/data?${params}`
+    
     const response = await rateLimitedFetch(endpoint)
     
     if (!response.ok) throw new Error(`Failed to fetch water levels: ${response.status}`)
     
     const data = await response.json()
-    const waterLevels: CHSWaterLevel[] = data.values.map((item: any) => ({
-      timestamp: new Date(item.timestamp).getTime() / 1000,
+    const waterLevels: CHSWaterLevel[] = data.map((item: any) => ({
+      timestamp: new Date(item.eventDate).getTime() / 1000,
       height: item.value,
-      type: item.dataType?.toLowerCase() || 'predicted',
-      quality: item.quality?.toLowerCase() || 'good',
+      type: 'predicted',
+      quality: item.qcFlagCode === '2' ? 'good' : 'fair',
     }))
     
     responseCache.set(cacheKey, { data: waterLevels, timestamp: Date.now() })
@@ -248,24 +250,65 @@ export const fetchTideEvents = async (
   }
 
   try {
-    const year = date.getFullYear()
-    const month = date.getMonth() + 1
-    const day = date.getDate()
+    // Use the data endpoint with wlp-hilo time series for high/low tide predictions
+    const startTime = new Date(date)
+    startTime.setHours(0, 0, 0, 0)
+    const endTime = new Date(date)
+    endTime.setHours(23, 59, 59, 999)
+    
+    const params = new URLSearchParams({
+      'time-series-code': 'wlp-hilo',
+      from: startTime.toISOString(),
+      to: endTime.toISOString(),
+    })
     
     const endpoint = typeof window !== 'undefined'
-      ? `${CHS_API_BASE}${encodeURIComponent(`/stations/${stationId}/tide-tables/${year}/${month}/${day}`)}`
-      : `${CHS_API_BASE}/stations/${stationId}/tide-tables/${year}/${month}/${day}`
+      ? `${CHS_API_BASE}/stations/${stationId}/data?${params}`
+      : `${CHS_API_BASE}/stations/${stationId}/data?${params}`
+    
     const response = await rateLimitedFetch(endpoint)
     
     if (!response.ok) throw new Error(`Failed to fetch tide events: ${response.status}`)
     
     const data = await response.json()
-    const tideEvents: CHSTideEvent[] = data.extremes.map((item: any) => ({
-      timestamp: new Date(item.timestamp).getTime() / 1000,
-      height: item.value,
-      type: item.extremeType?.toLowerCase() === 'high' ? 'high' : 'low',
-      level: item.level?.toLowerCase(),
-    }))
+    const tideEvents: CHSTideEvent[] = []
+    
+    // Process the tide data - wlp-hilo returns high and low tides
+    // The API returns multiple values, we need to determine which are highs and lows
+    // based on the pattern of values
+    
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i]
+      const currentValue = item.value
+      const currentTime = new Date(item.eventDate)
+      
+      if (i > 0 && i < data.length - 1) {
+        const nextValue = data[i + 1].value
+        const prevValue = data[i - 1].value
+        
+        // Determine if this is a high or low tide based on neighboring values
+        const isHigh = currentValue > prevValue && currentValue > nextValue
+        const isLow = currentValue < prevValue && currentValue < nextValue
+        
+        if (isHigh || isLow) {
+          tideEvents.push({
+            timestamp: currentTime.getTime() / 1000,
+            height: currentValue,
+            type: isHigh ? 'high' : 'low',
+          })
+        }
+      } else if (i === 0 || i === data.length - 1) {
+        // For first and last points, determine based on adjacent value
+        const adjacentValue = i === 0 ? data[1].value : data[data.length - 2].value
+        const isHigh = currentValue > adjacentValue
+        
+        tideEvents.push({
+          timestamp: currentTime.getTime() / 1000,
+          height: currentValue,
+          type: isHigh ? 'high' : 'low',
+        })
+      }
+    }
     
     responseCache.set(cacheKey, { data: tideEvents, timestamp: Date.now() })
     return tideEvents.sort((a, b) => a.timestamp - b.timestamp)

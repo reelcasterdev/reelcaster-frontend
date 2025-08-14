@@ -1,6 +1,5 @@
 // Open-Meteo integration imports
 import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
-import { TideData } from './tideApi'
 import { CHSWaterData } from './chsTideApi'
 
 // Species-specific fishing profile system
@@ -313,7 +312,7 @@ export const calculateOpenMeteoFishingScore = (
   minuteData: OpenMeteo15MinData,
   sunrise: number,
   sunset: number,
-  tideData?: TideData | CHSWaterData | null,
+  tideData?: CHSWaterData | null,
   speciesName?: string | null,
 ): FishingScore => {
   // Get species profile for adjustments
@@ -356,17 +355,16 @@ export const calculateOpenMeteoFishingScore = (
   let currentSpeedScore = 5.0
   let currentDirectionScore = 5.0
   
-  if (tideData && 'waterLevels' in tideData) {
+  if (tideData) {
     // CHS data available - use enhanced scoring
-    const chsData = tideData as CHSWaterData
-    tideScore = calculateEnhancedTideScore(chsData, speciesProfile)
-    waterTempScore = calculateWaterTemperatureScore(chsData.waterTemperature, speciesProfile)
-    const currentScores = calculateCurrentScore(chsData.currentSpeed, chsData.currentDirection, speciesProfile)
+    tideScore = calculateEnhancedTideScore(tideData, speciesProfile)
+    waterTempScore = calculateWaterTemperatureScore(tideData.waterTemperature, speciesProfile)
+    const currentScores = calculateCurrentScore(tideData.currentSpeed, tideData.currentDirection, speciesProfile)
     currentSpeedScore = currentScores.speed
     currentDirectionScore = currentScores.direction
   } else {
-    // Use old tide scoring
-    tideScore = calculateTideScore(tideData as TideData | null)
+    // No tide data - use default score
+    tideScore = 5.0
   }
 
   // Species-specific adjustments
@@ -784,41 +782,6 @@ export const calculateCurrentScore = (
   }
 }
 
-export const calculateTideScore = (tideData: TideData | null): number => {
-  // Return neutral score if no tide data available
-  if (!tideData) return 5.0
-
-  // Peak scoring periods - moving water is key for fishing success
-  const timeToChangeHours = tideData.timeToChange / 60
-
-  // Best: 1-2 hours before/after tide change (moving water)
-  if (timeToChangeHours <= 2) {
-    const movementScore = 10 - timeToChangeHours * 2.5 // 10 at change, 5 at 2hrs
-
-    // Bonus for rising tide (many species feed more actively on incoming tide)
-    const tideTypeBonus = tideData.isRising ? 1.2 : 1.0
-
-    // Bonus for larger tide ranges (more water movement)
-    const rangeBonus = tideData.tideRange > 3.0 ? 1.1 : 1.0
-
-    // Bonus for faster change rates (more active water)
-    const rateBonus = tideData.changeRate > 0.5 ? 1.1 : 1.0
-
-    const finalScore = movementScore * tideTypeBonus * rangeBonus * rateBonus
-    return Math.min(finalScore, 10)
-  }
-
-  // Moderate: 2-4 hours from tide change (some movement)
-  if (timeToChangeHours <= 4) {
-    const baseScore = 5 - (timeToChangeHours - 2) * 1.5 // 5 to 2
-    const rangeBonus = tideData.tideRange > 3.0 ? 1.2 : 1.0
-    return Math.min(baseScore * rangeBonus, 10)
-  }
-
-  // Poor: Slack tide periods (4+ hours from change - minimal movement)
-  const slackScore = 2 - Math.min((timeToChangeHours - 4) * 0.5, 1.5) // 2 to 0.5
-  return Math.max(slackScore, 0.5)
-}
 
 // Enhanced tide scoring with CHS data
 export const calculateEnhancedTideScore = (
@@ -859,7 +822,7 @@ export const calculateEnhancedTideScore = (
 
 export const generateOpenMeteoDailyForecasts = (
   openMeteoData: ProcessedOpenMeteoData,
-  tideData?: TideData | CHSWaterData | null,
+  tideData?: CHSWaterData | null,
   speciesName?: string | null,
 ): OpenMeteoDailyForecast[] => {
   const dailyForecasts: OpenMeteoDailyForecast[] = []

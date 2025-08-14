@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { CHSWaterData } from '@/app/utils/chsTideApi'
-import { TideData } from '@/app/utils/tideApi'
 import { 
   Waves, 
   TrendingUp, 
@@ -17,7 +16,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 interface TideStatusWidgetProps {
-  tideData?: CHSWaterData | TideData | null
+  tideData?: CHSWaterData | null
   className?: string
   compact?: boolean
 }
@@ -34,14 +33,9 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
     )
   }
 
-  // Check if it's CHS data (has waterLevels property) or old TideData
-  const isCHSData = 'waterLevels' in tideData
-
   // Helper function to get fishing quality
   const getFishingQuality = () => {
-    const timeToChangeHours = isCHSData 
-      ? (tideData as CHSWaterData).timeToNextTide / 60
-      : tideData.timeToChange / 60
+    const timeToChangeHours = tideData.timeToNextTide / 60
     
     if (timeToChangeHours <= 1) return { label: 'Excellent', color: 'text-green-400', bgColor: 'bg-green-500' }
     if (timeToChangeHours <= 2) return { label: 'Good', color: 'text-lime-400', bgColor: 'bg-lime-500' }
@@ -50,23 +44,15 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
   }
 
   const quality = getFishingQuality()
-  const currentHeight = isCHSData ? (tideData as CHSWaterData).currentHeight : tideData.currentHeight
+  const currentHeight = tideData.currentHeight
   const isRising = tideData.isRising
   const changeRate = tideData.changeRate
-  const tidalRange = isCHSData ? (tideData as CHSWaterData).tidalRange : tideData.tideRange
-  const timeToNextTide = isCHSData 
-    ? (tideData as CHSWaterData).timeToNextTide 
-    : tideData.timeToChange
-  const nextTide = isCHSData 
-    ? (tideData as CHSWaterData).nextTide
-    : { 
-        type: tideData.nextChangeType,
-        timestamp: tideData.nextChangeTime,
-        height: 0 // Old API doesn't provide height
-      }
-  const currentSpeed = isCHSData ? (tideData as CHSWaterData).currentSpeed : undefined
-  const currentDirection = isCHSData ? (tideData as CHSWaterData).currentDirection : undefined
-  const waterTemp = isCHSData ? (tideData as CHSWaterData).waterTemperature : undefined
+  const tidalRange = tideData.tidalRange
+  const timeToNextTide = tideData.timeToNextTide
+  const nextTide = tideData.nextTide
+  const currentSpeed = tideData.currentSpeed
+  const currentDirection = tideData.currentDirection
+  const waterTemp = tideData.waterTemperature
 
   if (compact) {
     return (
@@ -74,7 +60,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Waves className="h-4 w-4 text-slate-400" />
-            <span className="text-sm font-medium text-white">{currentHeight.toFixed(1)}m</span>
+            <span className="text-sm font-medium text-white">{(currentHeight * 3.28084).toFixed(1)}ft</span>
             {isRising ? (
               <TrendingUp className="h-3 w-3 text-green-400" />
             ) : (
@@ -110,7 +96,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
           <div>
             <div className="text-slate-400 text-sm mb-1">Current Height</div>
             <div className="flex items-center gap-2">
-              <span className="text-white text-2xl font-bold">{currentHeight.toFixed(2)}m</span>
+              <span className="text-white text-2xl font-bold">{(currentHeight * 3.28084).toFixed(1)}ft</span>
               {isRising ? (
                 <TrendingUp className="h-5 w-5 text-green-400" />
               ) : (
@@ -122,7 +108,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
             <div className="text-slate-400 text-sm mb-1">Change Rate</div>
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-slate-400" />
-              <span className="text-white text-xl font-semibold">{changeRate.toFixed(2)}m/hr</span>
+              <span className="text-white text-xl font-semibold">{(changeRate * 3.28084).toFixed(2)}ft/hr</span>
             </div>
           </div>
         </div>
@@ -142,9 +128,9 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
             <span className="text-sm text-white">
               {format(new Date(nextTide.timestamp * 1000), 'HH:mm')}
             </span>
-            {isCHSData && nextTide.height > 0 && (
+            {nextTide.height > 0 && (
               <span className="text-sm text-slate-400">
-                {nextTide.height.toFixed(2)}m
+                {(nextTide.height * 3.28084).toFixed(1)}ft
               </span>
             )}
           </div>
@@ -187,7 +173,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         <div className="grid grid-cols-2 gap-6">
           <div>
             <div className="text-slate-400 text-sm mb-1">Tidal Range</div>
-            <div className="text-white text-xl font-semibold">{tidalRange.toFixed(2)}m</div>
+            <div className="text-white text-xl font-semibold">{(tidalRange * 3.28084).toFixed(1)}ft</div>
           </div>
           {waterTemp !== undefined && (
             <div>
@@ -201,10 +187,10 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         </div>
 
         {/* Station information */}
-        {isCHSData && (tideData as CHSWaterData).station && (
+        {tideData.station && (
           <div className="pt-3 border-t border-slate-700">
             <p className="text-xs text-slate-500">
-              Station: {(tideData as CHSWaterData).station.name}
+              Station: {tideData.station.name}
             </p>
           </div>
         )}
