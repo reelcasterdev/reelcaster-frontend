@@ -1,6 +1,6 @@
 // Open-Meteo integration imports
 import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
-import { TideData } from './tideApi'
+import { CHSWaterData } from './chsTideApi'
 
 // Species-specific fishing profile system
 export interface SpeciesProfile {
@@ -9,12 +9,18 @@ export interface SpeciesProfile {
   // Temperature preferences (Celsius)
   optimalTempRange: [number, number]
   tolerableTempRange: [number, number]
+  // Water temperature preferences (Celsius)
+  optimalWaterTempRange: [number, number]
+  tolerableWaterTempRange: [number, number]
   // Pressure sensitivity (how much pressure changes affect this species)
   pressureSensitivity: number // 0.5-2.0 multiplier
   // Wind preferences
   windTolerance: number // 0.5-2.0 - higher values = more wind tolerant
   // Tide importance (how much tides matter for this species)
   tideImportance: number // 0.5-2.0 multiplier for tide score
+  // Current preferences
+  currentSpeedPreference: number // 0.5-2.0 - preference for current speed
+  optimalCurrentSpeed: [number, number] // knots
   // Time of day preferences
   dawnActivityBonus: number // 0.8-1.5 multiplier
   duskActivityBonus: number // 0.8-1.5 multiplier
@@ -39,9 +45,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Chinook Salmon',
     optimalTempRange: [8, 14],
     tolerableTempRange: [4, 18],
+    optimalWaterTempRange: [7, 13],
+    tolerableWaterTempRange: [4, 16],
     pressureSensitivity: 1.4, // Very sensitive to pressure changes
     windTolerance: 0.7, // Prefer calmer waters
     tideImportance: 1.6, // Highly tide-dependent
+    currentSpeedPreference: 1.5, // Prefer moderate to strong currents
+    optimalCurrentSpeed: [0.5, 2.0],
     dawnActivityBonus: 1.4,
     duskActivityBonus: 1.3,
     midDayActivity: 0.7,
@@ -55,9 +65,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Coho Salmon',
     optimalTempRange: [10, 16],
     tolerableTempRange: [6, 20],
+    optimalWaterTempRange: [9, 15],
+    tolerableWaterTempRange: [5, 18],
     pressureSensitivity: 1.2,
     windTolerance: 0.9, // More wind tolerant than Chinook
     tideImportance: 1.3,
+    currentSpeedPreference: 1.3,
+    optimalCurrentSpeed: [0.4, 1.8],
     dawnActivityBonus: 1.3,
     duskActivityBonus: 1.4,
     midDayActivity: 0.8,
@@ -71,9 +85,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Chum Salmon',
     optimalTempRange: [8, 14],
     tolerableTempRange: [4, 18],
+    optimalWaterTempRange: [7, 13],
+    tolerableWaterTempRange: [4, 16],
     pressureSensitivity: 1.1,
     windTolerance: 1.0,
     tideImportance: 1.4,
+    currentSpeedPreference: 1.2,
+    optimalCurrentSpeed: [0.3, 1.5],
     dawnActivityBonus: 1.2,
     duskActivityBonus: 1.2,
     midDayActivity: 0.9,
@@ -87,9 +105,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Pink Salmon',
     optimalTempRange: [10, 16],
     tolerableTempRange: [6, 20],
+    optimalWaterTempRange: [9, 15],
+    tolerableWaterTempRange: [5, 18],
     pressureSensitivity: 1.0,
     windTolerance: 1.1,
     tideImportance: 1.2,
+    currentSpeedPreference: 1.1,
+    optimalCurrentSpeed: [0.3, 1.4],
     dawnActivityBonus: 1.2,
     duskActivityBonus: 1.3,
     midDayActivity: 0.9,
@@ -103,9 +125,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Sockeye Salmon',
     optimalTempRange: [8, 15],
     tolerableTempRange: [5, 18],
+    optimalWaterTempRange: [7, 14],
+    tolerableWaterTempRange: [4, 17],
     pressureSensitivity: 1.3,
     windTolerance: 0.8,
     tideImportance: 1.1, // Less tide-dependent than other salmon
+    currentSpeedPreference: 1.0,
+    optimalCurrentSpeed: [0.2, 1.2],
     dawnActivityBonus: 1.3,
     duskActivityBonus: 1.4,
     midDayActivity: 0.6,
@@ -119,9 +145,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Halibut',
     optimalTempRange: [6, 12],
     tolerableTempRange: [2, 16],
+    optimalWaterTempRange: [5, 11],
+    tolerableWaterTempRange: [2, 14],
     pressureSensitivity: 0.8, // Less pressure sensitive
     windTolerance: 1.2, // Can handle rougher conditions
     tideImportance: 1.8, // Very tide-dependent (bottom feeder)
+    currentSpeedPreference: 1.6, // Strong preference for current
+    optimalCurrentSpeed: [0.8, 2.5],
     dawnActivityBonus: 1.1,
     duskActivityBonus: 1.2,
     midDayActivity: 1.0, // Active throughout day
@@ -135,9 +165,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Lingcod',
     optimalTempRange: [8, 14],
     tolerableTempRange: [4, 18],
+    optimalWaterTempRange: [7, 13],
+    tolerableWaterTempRange: [4, 16],
     pressureSensitivity: 0.9,
     windTolerance: 1.3,
     tideImportance: 1.5, // Structure-oriented, tide-dependent
+    currentSpeedPreference: 1.4,
+    optimalCurrentSpeed: [0.5, 2.0],
     dawnActivityBonus: 1.2,
     duskActivityBonus: 1.3,
     midDayActivity: 0.9,
@@ -151,9 +185,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Rockfish',
     optimalTempRange: [8, 16],
     tolerableTempRange: [4, 20],
+    optimalWaterTempRange: [7, 15],
+    tolerableWaterTempRange: [4, 18],
     pressureSensitivity: 0.7, // Structure fish, less weather sensitive
     windTolerance: 1.4,
     tideImportance: 1.3,
+    currentSpeedPreference: 0.8, // Less current dependent
+    optimalCurrentSpeed: [0.1, 1.0],
     dawnActivityBonus: 1.1,
     duskActivityBonus: 1.2,
     midDayActivity: 1.0,
@@ -167,9 +205,13 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
     name: 'Greenling',
     optimalTempRange: [10, 18],
     tolerableTempRange: [6, 22],
+    optimalWaterTempRange: [9, 17],
+    tolerableWaterTempRange: [5, 20],
     pressureSensitivity: 0.8,
     windTolerance: 1.1,
     tideImportance: 1.2,
+    currentSpeedPreference: 0.9,
+    optimalCurrentSpeed: [0.2, 1.2],
     dawnActivityBonus: 1.2,
     duskActivityBonus: 1.2,
     midDayActivity: 1.0,
@@ -220,6 +262,7 @@ export interface FishingScore {
     pressure: number
     wind: number
     temperature: number
+    waterTemperature: number // NEW: Water temperature factor
     precipitation: number
     cloudCover: number
     timeOfDay: number
@@ -229,6 +272,8 @@ export interface FishingScore {
     atmospheric: number
     comfort: number
     tide: number
+    currentSpeed: number // NEW: Current speed factor
+    currentDirection: number // NEW: Current direction factor
     species: number // Species-specific adjustment
   }
 }
@@ -267,7 +312,7 @@ export const calculateOpenMeteoFishingScore = (
   minuteData: OpenMeteo15MinData,
   sunrise: number,
   sunset: number,
-  tideData?: TideData | null,
+  tideData?: CHSWaterData | null,
   speciesName?: string | null,
 ): FishingScore => {
   // Get species profile for adjustments
@@ -303,7 +348,24 @@ export const calculateOpenMeteoFishingScore = (
 
   // Timing & Tide Factors
   let timeScore = calculateTimeScore(minuteData.timestamp, sunrise, sunset) // 4%
-  let tideScore = calculateTideScore(tideData || null) // 11%
+  
+  // Use enhanced tide scoring if CHS data is available
+  let tideScore: number
+  let waterTempScore = 5.0 // Default neutral score
+  let currentSpeedScore = 5.0
+  let currentDirectionScore = 5.0
+  
+  if (tideData) {
+    // CHS data available - use enhanced scoring
+    tideScore = calculateEnhancedTideScore(tideData, speciesProfile)
+    waterTempScore = calculateWaterTemperatureScore(tideData.waterTemperature, speciesProfile)
+    const currentScores = calculateCurrentScore(tideData.currentSpeed, tideData.currentDirection, speciesProfile)
+    currentSpeedScore = currentScores.speed
+    currentDirectionScore = currentScores.direction
+  } else {
+    // No tide data - use default score
+    tideScore = 5.0
+  }
 
   // Species-specific adjustments
   let speciesAdjustment = 5.0 // Neutral base score
@@ -377,6 +439,7 @@ export const calculateOpenMeteoFishingScore = (
     pressure: Math.round(pressureScore * 100) / 100,
     wind: Math.round(windScore * 100) / 100,
     temperature: Math.round(temperatureScore * 100) / 100,
+    waterTemperature: Math.round(waterTempScore * 100) / 100,
     precipitation: Math.round(precipitationScore * 100) / 100,
     cloudCover: Math.round(cloudScore * 100) / 100,
     timeOfDay: Math.round(timeScore * 100) / 100,
@@ -386,25 +449,52 @@ export const calculateOpenMeteoFishingScore = (
     atmospheric: Math.round(atmosphericScore * 100) / 100,
     comfort: Math.round(comfortScore * 100) / 100,
     tide: Math.round(tideScore * 100) / 100,
+    currentSpeed: Math.round(currentSpeedScore * 100) / 100,
+    currentDirection: Math.round(currentDirectionScore * 100) / 100,
     species: Math.round(speciesAdjustment * 100) / 100,
   }
 
-  // Adjusted weights to accommodate species factor (now sum to 1.0)
-  const totalScore =
-    pressureScore * 0.14 + // Barometric pressure
-    windScore * 0.13 + // Enhanced wind (speed + gusts + direction)
-    temperatureScore * 0.11 + // Temperature (species-adjusted)
-    precipitationScore * 0.11 + // Precipitation (species-adjusted)
-    tideScore * 0.11 + // Tide conditions (species-adjusted)
-    cloudScore * 0.06 + // Cloud cover (species-adjusted)
-    visibilityScore * 0.06 + // Visibility
-    sunshineScore * 0.05 + // Sunshine duration (species-adjusted)
-    lightningScore * 0.05 + // Lightning safety
-    atmosphericScore * 0.04 + // Atmospheric stability (CAPE)
-    comfortScore * 0.04 + // Angler comfort
-    timeScore * 0.04 + // Time of day (species-adjusted)
-    speciesAdjustment * 0.06 // Species seasonal/behavioral factor
-  // Total = 1.00 (100%)
+  // Adjusted weights to include new water factors when available
+  let totalScore: number
+  
+  if (tideData && 'waterLevels' in tideData) {
+    // With CHS data - include water temperature and current factors
+    totalScore =
+      pressureScore * 0.13 + // Barometric pressure
+      windScore * 0.12 + // Enhanced wind
+      temperatureScore * 0.09 + // Air temperature
+      waterTempScore * 0.05 + // Water temperature (NEW)
+      precipitationScore * 0.10 + // Precipitation
+      tideScore * 0.08 + // Tide movement
+      currentSpeedScore * 0.04 + // Current speed (NEW)
+      currentDirectionScore * 0.02 + // Current direction (NEW)
+      cloudScore * 0.06 + // Cloud cover
+      visibilityScore * 0.06 + // Visibility
+      sunshineScore * 0.05 + // Sunshine duration
+      lightningScore * 0.05 + // Lightning safety
+      atmosphericScore * 0.04 + // Atmospheric stability
+      comfortScore * 0.04 + // Angler comfort
+      timeScore * 0.04 + // Time of day
+      speciesAdjustment * 0.03 // Species factor
+    // Total = 1.00 (100%)
+  } else {
+    // Without CHS data - use original weights
+    totalScore =
+      pressureScore * 0.14 + // Barometric pressure
+      windScore * 0.13 + // Enhanced wind
+      temperatureScore * 0.11 + // Temperature
+      precipitationScore * 0.11 + // Precipitation
+      tideScore * 0.11 + // Tide conditions
+      cloudScore * 0.06 + // Cloud cover
+      visibilityScore * 0.06 + // Visibility
+      sunshineScore * 0.05 + // Sunshine duration
+      lightningScore * 0.05 + // Lightning safety
+      atmosphericScore * 0.04 + // Atmospheric stability
+      comfortScore * 0.04 + // Angler comfort
+      timeScore * 0.04 + // Time of day
+      speciesAdjustment * 0.06 // Species factor
+    // Total = 1.00 (100%)
+  }
 
   return {
     total: Math.min(Math.max(Math.round(totalScore * 100) / 100, 0), 10), // Clamp between 0-10
@@ -595,45 +685,144 @@ export const calculateEnhancedWindScore = (windSpeed: number, windGusts: number,
   return Math.min(score * directionBonus, 10)
 }
 
-export const calculateTideScore = (tideData: TideData | null): number => {
-  // Return neutral score if no tide data available
-  if (!tideData) return 5.0
+// New scoring functions for water temperature and currents
+export const calculateWaterTemperatureScore = (waterTemp: number | undefined, speciesProfile?: SpeciesProfile | null): number => {
+  // If no water temperature data, return neutral score
+  if (waterTemp === undefined) return 5.0
+  
+  // Default scoring (if no species profile)
+  if (!speciesProfile) {
+    if (waterTemp >= 8 && waterTemp <= 14) return 10
+    if (waterTemp >= 6 && waterTemp < 8) return 7 + (waterTemp - 6) * 1.5
+    if (waterTemp > 14 && waterTemp <= 16) return 10 - (waterTemp - 14) * 1.5
+    if (waterTemp >= 4 && waterTemp < 6) return 3 + (waterTemp - 4) * 2
+    if (waterTemp > 16 && waterTemp <= 20) return 7 - (waterTemp - 16) * 1.25
+    return 2 // Extreme temperatures
+  }
+  
+  // Species-specific scoring
+  const [optimalMin, optimalMax] = speciesProfile.optimalWaterTempRange
+  const [tolerableMin, tolerableMax] = speciesProfile.tolerableWaterTempRange
+  
+  if (waterTemp >= optimalMin && waterTemp <= optimalMax) {
+    // Perfect temperature range
+    const midPoint = (optimalMin + optimalMax) / 2
+    const deviation = Math.abs(waterTemp - midPoint)
+    const range = (optimalMax - optimalMin) / 2
+    return 10 - (deviation / range) * 2 // 8-10 score in optimal range
+  }
+  
+  if (waterTemp >= tolerableMin && waterTemp <= tolerableMax) {
+    // Tolerable range
+    if (waterTemp < optimalMin) {
+      const score = 3 + ((waterTemp - tolerableMin) / (optimalMin - tolerableMin)) * 5
+      return Math.max(3, Math.min(8, score))
+    } else {
+      const score = 8 - ((waterTemp - optimalMax) / (tolerableMax - optimalMax)) * 5
+      return Math.max(3, Math.min(8, score))
+    }
+  }
+  
+  // Outside tolerable range
+  return 1
+}
 
-  // Peak scoring periods - moving water is key for fishing success
-  const timeToChangeHours = tideData.timeToChange / 60
+export const calculateCurrentScore = (
+  currentSpeed: number | undefined,
+  currentDirection: number | undefined,
+  speciesProfile?: SpeciesProfile | null
+): { speed: number; direction: number } => {
+  // Default scores if no current data
+  if (currentSpeed === undefined) return { speed: 5.0, direction: 5.0 }
+  
+  let speedScore = 5.0
+  let directionScore = 5.0
+  
+  // Calculate speed score
+  if (!speciesProfile) {
+    // Default scoring
+    if (currentSpeed <= 0.2) speedScore = 3 // Too slow
+    else if (currentSpeed <= 0.5) speedScore = 6
+    else if (currentSpeed <= 1.5) speedScore = 9 // Optimal range
+    else if (currentSpeed <= 2.5) speedScore = 7
+    else speedScore = 4 // Too fast
+  } else {
+    // Species-specific scoring
+    const [optimalMin, optimalMax] = speciesProfile.optimalCurrentSpeed
+    
+    if (currentSpeed >= optimalMin && currentSpeed <= optimalMax) {
+      speedScore = 10
+    } else if (currentSpeed < optimalMin) {
+      speedScore = 3 + (currentSpeed / optimalMin) * 5
+    } else {
+      speedScore = Math.max(2, 10 - (currentSpeed - optimalMax) * 2)
+    }
+    
+    // Apply species preference multiplier
+    speedScore *= speciesProfile.currentSpeedPreference
+  }
+  
+  // Calculate direction score (simplified - could be enhanced with local bathymetry)
+  if (currentDirection !== undefined) {
+    // Favor currents that bring baitfish (NE flood and SW ebb in BC)
+    if ((currentDirection >= 30 && currentDirection <= 60) || 
+        (currentDirection >= 210 && currentDirection <= 240)) {
+      directionScore = 8
+    } else if ((currentDirection >= 0 && currentDirection <= 90) || 
+               (currentDirection >= 180 && currentDirection <= 270)) {
+      directionScore = 6
+    } else {
+      directionScore = 4
+    }
+  }
+  
+  return {
+    speed: Math.min(10, speedScore),
+    direction: Math.min(10, directionScore)
+  }
+}
 
-  // Best: 1-2 hours before/after tide change (moving water)
+
+// Enhanced tide scoring with CHS data
+export const calculateEnhancedTideScore = (
+  chsData: CHSWaterData | null,
+  speciesProfile?: SpeciesProfile | null
+): number => {
+  if (!chsData) return 5.0
+  
+  // Base tide movement score
+  const timeToChangeHours = chsData.timeToNextTide / 60
+  let baseScore = 5.0
+  
   if (timeToChangeHours <= 2) {
-    const movementScore = 10 - timeToChangeHours * 2.5 // 10 at change, 5 at 2hrs
-
-    // Bonus for rising tide (many species feed more actively on incoming tide)
-    const tideTypeBonus = tideData.isRising ? 1.2 : 1.0
-
-    // Bonus for larger tide ranges (more water movement)
-    const rangeBonus = tideData.tideRange > 3.0 ? 1.1 : 1.0
-
-    // Bonus for faster change rates (more active water)
-    const rateBonus = tideData.changeRate > 0.5 ? 1.1 : 1.0
-
-    const finalScore = movementScore * tideTypeBonus * rangeBonus * rateBonus
-    return Math.min(finalScore, 10)
+    baseScore = 10 - timeToChangeHours * 2.5
+  } else if (timeToChangeHours <= 4) {
+    baseScore = 5 - (timeToChangeHours - 2) * 1.5
+  } else {
+    baseScore = 2 - Math.min((timeToChangeHours - 4) * 0.5, 1.5)
   }
-
-  // Moderate: 2-4 hours from tide change (some movement)
-  if (timeToChangeHours <= 4) {
-    const baseScore = 5 - (timeToChangeHours - 2) * 1.5 // 5 to 2
-    const rangeBonus = tideData.tideRange > 3.0 ? 1.2 : 1.0
-    return Math.min(baseScore * rangeBonus, 10)
+  
+  // Apply bonuses
+  const risingBonus = chsData.isRising ? 1.2 : 1.0
+  const rangeBonus = chsData.tidalRange > 3.0 ? 1.1 : 1.0
+  const rateBonus = chsData.changeRate > 0.5 ? 1.1 : 1.0
+  
+  // Current speed bonus (if available)
+  const currentBonus = chsData.currentSpeed && chsData.currentSpeed > 0.5 ? 1.1 : 1.0
+  
+  let finalScore = baseScore * risingBonus * rangeBonus * rateBonus * currentBonus
+  
+  // Apply species-specific tide importance
+  if (speciesProfile) {
+    finalScore *= speciesProfile.tideImportance
   }
-
-  // Poor: Slack tide periods (4+ hours from change - minimal movement)
-  const slackScore = 2 - Math.min((timeToChangeHours - 4) * 0.5, 1.5) // 2 to 0.5
-  return Math.max(slackScore, 0.5)
+  
+  return Math.min(finalScore, 10)
 }
 
 export const generateOpenMeteoDailyForecasts = (
   openMeteoData: ProcessedOpenMeteoData,
-  tideData?: TideData | null,
+  tideData?: CHSWaterData | null,
   speciesName?: string | null,
 ): OpenMeteoDailyForecast[] => {
   const dailyForecasts: OpenMeteoDailyForecast[] = []

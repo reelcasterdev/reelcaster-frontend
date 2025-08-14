@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from './utils/openMeteoApi'
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from './utils/fishingCalculations'
-import { findNearestTideStation, getCachedTideData, TideData } from './utils/tideApi'
+import { fetchCHSTideData, CHSWaterData } from './utils/chsTideApi'
 import ForecastCacheService from './utils/forecastCacheService'
 import ModernLoadingState from './components/common/modern-loading-state'
 import ErrorState from './components/common/error-state'
@@ -19,6 +19,8 @@ import WeatherConditions from './components/forecast/weather-conditions'
 import SpeciesRegulations from './components/forecast/species-regulations'
 import FishingReports from './components/forecast/fishing-reports'
 import { FishingReportDisplay } from './components/forecast/fishing-report-display'
+import { TideChart } from './components/forecast/tide-chart'
+import { TideStatusWidget } from './components/forecast/tide-status-widget'
 import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
@@ -86,7 +88,8 @@ function NewForecastContent() {
   const [forecasts, setForecasts] = useState<OpenMeteoDailyForecast[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [tideData, setTideData] = useState<TideData | null>(null)
+  // Single source of truth for tide data - using CHS API
+  const [tideData, setTideData] = useState<CHSWaterData | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
   
   // Cache-related state
@@ -115,12 +118,23 @@ function NewForecastContent() {
   const fetchFreshForecastData = useCallback(async (): Promise<{
     forecasts: OpenMeteoDailyForecast[]
     openMeteoData: ProcessedOpenMeteoData
-    tideData: TideData | null
+    tideData: CHSWaterData | null
   } | null> => {
     try {
-      // Fetch tide data
-      const tideStation = findNearestTideStation(coordinates)
-      const tideResult = await getCachedTideData(tideStation)
+      // Fetch tide data from CHS API
+      let finalTideData: CHSWaterData | null = null
+      
+      try {
+        const locationId = selectedLocation.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
+        console.log('Fetching CHS data for location:', locationId)
+        const chsData = await fetchCHSTideData(locationId)
+        if (chsData) {
+          console.log('CHS data fetched successfully')
+          finalTideData = chsData
+        }
+      } catch (chsError) {
+        console.warn('CHS tide data not available:', chsError)
+      }
 
       // Fetch weather forecast
       const result = await fetchOpenMeteoWeather(coordinates, 14)
@@ -130,18 +144,22 @@ function NewForecastContent() {
       }
 
       // Generate daily forecasts with tide data
-      const dailyForecasts = generateOpenMeteoDailyForecasts(result.data!, tideResult, species)
+      const dailyForecasts = generateOpenMeteoDailyForecasts(
+        result.data!, 
+        finalTideData, 
+        species
+      )
 
       return {
         forecasts: dailyForecasts,
         openMeteoData: result.data!,
-        tideData: tideResult
+        tideData: finalTideData
       }
     } catch (err) {
       console.error('Error fetching fresh forecast data:', err)
       throw err
     }
-  }, [coordinates, species])
+  }, [coordinates, species, selectedLocation])
 
   // Main forecast data fetching with caching
   const fetchForecastData = useCallback(async () => {
@@ -161,7 +179,9 @@ function NewForecastContent() {
         // We have cached data - use it immediately
         setForecasts(cacheResult.data.forecasts)
         setOpenMeteoData(cacheResult.data.openMeteoData)
-        setTideData(cacheResult.data.tideData)
+        // Set CHS tide data from cache
+        const cachedTideData = cacheResult.data.chsTideData || null
+        setTideData(cachedTideData)
         setIsCachedData(true)
         setCacheInfo({
           createdAt: cacheResult.createdAt,
@@ -304,6 +324,22 @@ function NewForecastContent() {
                 />
               </div>
 
+              {/* Tide Status Widget - Mobile */}
+              {tideData && (
+                <div className="lg:hidden mb-4">
+                  <TideStatusWidget 
+                    tideData={tideData} 
+                  />
+                </div>
+              )}
+
+              {/* Tide Chart - Mobile */}
+              {tideData && (
+                <div className="lg:hidden mb-4">
+                  <TideChart tideData={tideData} />
+                </div>
+              )}
+
               {/* Species Regulations - Show here on mobile, hide on desktop */}
               <div className="lg:hidden">
                 <SpeciesRegulations 
@@ -316,9 +352,16 @@ function NewForecastContent() {
               <HourlyTable 
                 forecasts={forecastData}
                 openMeteoData={openMeteoData}
-                tideData={tideData}
+                tideData={tideData || tideData}
                 selectedDay={selectedDay}
               />
+
+              {/* Tide Chart - Desktop (below hourly table) */}
+              {tideData && (
+                <div className="mt-6">
+                  <TideChart tideData={tideData} />
+                </div>
+              )}
               
             </div>
 
@@ -331,6 +374,13 @@ function NewForecastContent() {
                 tideData={tideData}
                 selectedDay={selectedDay}
               />
+
+              {/* Tide Status Widget - Desktop */}
+              {tideData && (
+                <TideStatusWidget 
+                  tideData={tideData} 
+                />
+              )}
 
               {/* Species Regulations */}
               <SpeciesRegulations 

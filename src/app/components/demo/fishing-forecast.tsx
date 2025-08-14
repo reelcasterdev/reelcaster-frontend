@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { fetchOpenMeteoWeather } from '../../utils/openMeteoApi'
 import { FishingScore, OpenMeteoDailyForecast, generateOpenMeteoDailyForecasts } from '../../utils/fishingCalculations'
-import { TideData, findNearestTideStation, getCachedTideData } from '../../utils/tideApi'
+import { CHSWaterData, fetchCHSTideData } from '../../utils/chsTideApi'
 import { formatDate, formatTime, getScoreColor, getScoreLabel } from '../../utils/formatters'
 import { LoadingStep, createLoadingSteps } from '../../utils/loadingSteps'
 import ShadcnMinutelyBarChart from '../charts/shadcn-minutely-bar-chart'
@@ -19,7 +19,7 @@ interface ForecastProps {
 }
 
 export default function FishingForecast({ location, hotspot, species, coordinates, onBack }: ForecastProps) {
-  const [tideData, setTideData] = useState<TideData | null>(null)
+  const [tideData, setTideData] = useState<CHSWaterData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fishingScore, setFishingScore] = useState<FishingScore | null>(null)
@@ -44,10 +44,14 @@ export default function FishingForecast({ location, hotspot, species, coordinate
     await executeStep(1)
 
     // Fetch tide data for the location
-    const tideStation = findNearestTideStation(coordinates)
-    const tideResult = await getCachedTideData(tideStation)
-    setTideData(tideResult)
-    console.log('Tide data fetched:', { station: tideStation.name, tideResult })
+    const locationId = location.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
+    try {
+      const chsData = await fetchCHSTideData(locationId)
+      setTideData(chsData)
+      console.log('CHS tide data fetched:', chsData)
+    } catch (error) {
+      console.warn('Failed to fetch CHS tide data:', error)
+    }
 
     // Use Open-Meteo API for enhanced 15-minute resolution data
     const weatherResult = await fetchOpenMeteoWeather(coordinates, 3) // 3 days for standard forecast
@@ -65,8 +69,8 @@ export default function FishingForecast({ location, hotspot, species, coordinate
 
     await executeStep(3)
     if (weatherResult.data) {
-      // Generate daily forecasts with enhanced algorithm including tide data
-      const daily = generateOpenMeteoDailyForecasts(weatherResult.data, tideResult, species)
+      // Generate daily forecasts with enhanced algorithm
+      const daily = generateOpenMeteoDailyForecasts(weatherResult.data, null, species)
       console.log(
         'Generated enhanced daily forecasts with tide data:',
         daily.map(d => ({
@@ -278,7 +282,7 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                 {tideData && (
                   <div className="px-4 py-2 bg-blue-900/30 rounded-lg border border-blue-600/50">
                     <div className="text-blue-300 text-sm font-medium">🌊 Enhanced with Tide Data</div>
-                    <div className="text-blue-200 text-xs">Score includes tide conditions from {tideData.station}</div>
+                    <div className="text-blue-200 text-xs">Score includes tide conditions from {tideData.station.name}</div>
                   </div>
                 )}
                 {species && (
@@ -300,7 +304,7 @@ export default function FishingForecast({ location, hotspot, species, coordinate
             <div className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 backdrop-blur-sm rounded-2xl border border-blue-600/50 p-6">
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                 <span className="text-3xl">🌊</span>
-                Tide Conditions - {tideData.station}
+                Tide Conditions - {tideData.station.name}
               </h2>
 
               <div className="grid md:grid-cols-3 gap-6">
@@ -333,20 +337,20 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                       <span className="text-gray-300">Type:</span>
                       <span
                         className={`font-semibold ${
-                          tideData.nextChangeType === 'high' ? 'text-blue-400' : 'text-purple-400'
+                          tideData.nextTide.type === 'high' ? 'text-blue-400' : 'text-purple-400'
                         }`}
                       >
-                        {tideData.nextChangeType === 'high' ? '🔵 High Tide' : '🟣 Low Tide'}
+                        {tideData.nextTide.type === 'high' ? '🔵 High Tide' : '🟣 Low Tide'}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">Time:</span>
-                      <span className="text-white font-semibold">{formatTime(tideData.nextChangeTime)}</span>
+                      <span className="text-white font-semibold">{formatTime(tideData.nextTide.timestamp)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">In:</span>
                       <span className="text-gray-200">
-                        {Math.floor(tideData.timeToChange / 60)}h {Math.round(tideData.timeToChange % 60)}m
+                        {Math.floor(tideData.timeToNextTide / 60)}h {Math.round(tideData.timeToNextTide % 60)}m
                       </span>
                     </div>
                   </div>
@@ -358,20 +362,20 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-300">Range:</span>
-                      <span className="text-white font-semibold">{tideData.tideRange.toFixed(1)}m</span>
+                      <span className="text-white font-semibold">{tideData.tidalRange.toFixed(1)}m</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">Quality:</span>
                       <span
                         className={`font-semibold ${
-                          tideData.tideRange > 3.5
+                          tideData.tidalRange > 3.5
                             ? 'text-green-400'
-                            : tideData.tideRange > 2.5
+                            : tideData.tidalRange > 2.5
                             ? 'text-yellow-400'
                             : 'text-orange-400'
                         }`}
                       >
-                        {tideData.tideRange > 3.5 ? 'Excellent' : tideData.tideRange > 2.5 ? 'Good' : 'Moderate'}
+                        {tideData.tidalRange > 3.5 ? 'Excellent' : tideData.tidalRange > 2.5 ? 'Good' : 'Moderate'}
                       </span>
                     </div>
                     <div className="text-xs text-gray-400 mt-2">Larger ranges create more water movement</div>
@@ -385,8 +389,8 @@ export default function FishingForecast({ location, hotspot, species, coordinate
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="text-green-200 font-medium">Best Times (Moving Water):</div>
-                    <div className="text-sm text-gray-300">• 2 hours before {tideData.nextChangeType} tide</div>
-                    <div className="text-sm text-gray-300">• 1 hour after {tideData.nextChangeType} tide</div>
+                    <div className="text-sm text-gray-300">• 2 hours before {tideData.nextTide.type} tide</div>
+                    <div className="text-sm text-gray-300">• 1 hour after {tideData.nextTide.type} tide</div>
                     {tideData.isRising && (
                       <div className="text-sm text-green-400">✨ Rising tide bonus - fish feed actively!</div>
                     )}
