@@ -173,7 +173,7 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
                   {formatTime(bestTwoHourWindow.startTime)} - {formatTime(bestTwoHourWindow.endTime)}
                 </p>
                 <p className={`text-base sm:text-lg font-bold ${getScoreColor(bestTwoHourWindow.score.total)}`}>
-                  Score: {bestTwoHourWindow.score.total}/10
+                  Score: {bestTwoHourWindow.score.total.toFixed(1)}/10
                 </p>
               </div>
             </div>

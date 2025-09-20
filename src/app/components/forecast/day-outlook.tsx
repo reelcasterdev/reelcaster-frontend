@@ -84,8 +84,8 @@ export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect, sh
       {/* Days Container */}
       <div className="relative">
         {/* Scroll gradient overlays - Hidden on mobile */}
-        <div className="hidden sm:block absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-slate-800 to-transparent z-10 pointer-events-none rounded-l-xl"></div>
-        <div className="hidden sm:block absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none rounded-r-xl"></div>
+        <div className="hidden sm:block absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-slate-800 to-transparent  pointer-events-none rounded-l-xl"></div>
+        <div className="hidden sm:block absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none rounded-r-xl"></div>
 
         <div
           className="flex gap-2 sm:gap-3 overflow-x-auto pb-3 sm:pb-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50 -mx-2 px-2 sm:mx-0 sm:px-2 relative"
@@ -158,11 +158,15 @@ export default function DayOutlook({ forecasts, selectedDay = 0, onDaySelect, sh
                       className={`
                     w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl relative
                     bg-gradient-to-br ${getScoreColor(dayScore)} shadow-lg ${getScoreGlow(dayScore)}
-                    ${isSelected ? 'ring-2 sm:ring-4 ring-blue-400/50 shadow-xl sm:shadow-2xl' : 'sm:group-hover:shadow-xl sm:group-hover:scale-110'}
+                    ${
+                      isSelected
+                        ? 'ring-2 sm:ring-4 ring-blue-400/50 shadow-xl sm:shadow-2xl'
+                        : 'sm:group-hover:shadow-xl sm:group-hover:scale-110'
+                    }
                     transition-all duration-300
                   `}
                     >
-                      <span className="relative z-10">{dayScore.toFixed(1)}</span>
+                      <span className="relative">{dayScore.toFixed(1)}</span>
 
                       {/* Shimmer effect */}
                       <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
