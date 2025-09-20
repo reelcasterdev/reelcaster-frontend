@@ -190,7 +190,8 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
           setSelectedHotspot(hotspot)
         }
         if (species) {
-          const speciesData = fishSpecies.find(s => s.name === species)
+          // Try to find by ID first, then by name for backwards compatibility
+          const speciesData = fishSpecies.find(s => s.id === species || s.name === species)
           if (speciesData) {
             setSelectedSpecies(speciesData.id)
           }
@@ -232,7 +233,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
       })
 
       if (currentSpecies) {
-        params.set('species', currentSpecies.name)
+        params.set('species', currentSpecies.id)
       }
 
       router.push(`/?${params.toString()}`)
@@ -240,15 +241,12 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
     }
   }, [currentLocation, selectedHotspot, currentSpecies, router, onLocationChange])
 
-  // Only update URL when user makes a selection, not on initial load
+  // Update URL when selections change
   useEffect(() => {
-    const isInitialLoad =
-      searchParams.get('location') === currentLocation?.name && searchParams.get('hotspot') === selectedHotspot
-
-    if (currentLocation && selectedHotspot && !isInitialLoad) {
+    if (currentLocation && selectedHotspot) {
       updateUrl()
     }
-  }, [selectedLocation, selectedHotspot, selectedSpecies])
+  }, [selectedLocation, selectedHotspot, selectedSpecies, currentLocation, updateUrl])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -278,7 +276,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
   }
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-gray-700">
+    <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-gray-700">
       <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
         {/* Location Dropdown */}
         <div className="relative dropdown-container">
@@ -296,7 +294,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
           </button>
 
           {showLocationDropdown && (
-            <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
+            <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-64 bg-gray-900 rounded-lg shadow-xl border border-gray-700 z-[9999]">
               <div className="p-2">
                 {fishingLocations.map(location => (
                   <button
@@ -334,7 +332,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
             </button>
 
             {showHotspotDropdown && (
-              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-72 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-72 bg-gray-900 rounded-lg shadow-xl border border-gray-700 z-[9999] max-h-64 overflow-y-auto">
                 <div className="p-2">
                   {currentLocation.hotspots.map(hotspot => (
                     <button
@@ -372,7 +370,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
             </button>
 
             {showSpeciesDropdown && (
-              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-96 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-80 bg-gray-900 rounded-lg shadow-xl border border-gray-700 z-[9999] max-h-64 overflow-y-auto">
                 <div className="p-2">
                   {/* All Species option */}
                   <button

@@ -1,6 +1,7 @@
 // Open-Meteo integration imports
 import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
 import { CHSWaterData } from './chsTideApi'
+import { calculateSpeciesSpecificScore } from './speciesAlgorithms'
 
 // Species-specific fishing profile system
 export interface SpeciesProfile {
@@ -226,9 +227,14 @@ export const SPECIES_PROFILES: { [key: string]: SpeciesProfile } = {
 export const getSpeciesProfile = (speciesName: string | null): SpeciesProfile | null => {
   if (!speciesName) return null
 
-  const normalizedName = speciesName.toLowerCase().replace(/[^a-z]/g, '-')
+  // Direct match by ID
+  if (SPECIES_PROFILES[speciesName]) {
+    return SPECIES_PROFILES[speciesName]
+  }
 
-  // Direct match
+  const normalizedName = speciesName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z-]/g, '')
+
+  // Try normalized name
   if (SPECIES_PROFILES[normalizedName]) {
     return SPECIES_PROFILES[normalizedName]
   }
@@ -238,7 +244,8 @@ export const getSpeciesProfile = (speciesName: string | null): SpeciesProfile | 
     if (
       profile.name.toLowerCase().includes(speciesName.toLowerCase()) ||
       speciesName.toLowerCase().includes(profile.name.toLowerCase()) ||
-      key.includes(normalizedName.substring(0, 6))
+      key.includes(normalizedName.substring(0, 6)) ||
+      normalizedName.includes(key.substring(0, 6))
     ) {
       return profile
     }
@@ -315,7 +322,36 @@ export const calculateOpenMeteoFishingScore = (
   tideData?: CHSWaterData | null,
   speciesName?: string | null,
 ): FishingScore => {
-  // Get species profile for adjustments
+  // Try species-specific algorithm first if species is selected
+  if (speciesName) {
+    const speciesResult = calculateSpeciesSpecificScore(speciesName, minuteData, tideData || undefined)
+    if (speciesResult) {
+      // Convert species result to FishingScore format
+      return {
+        total: Math.min(Math.max(speciesResult.total, 0), 10),
+        breakdown: {
+          pressure: speciesResult.factors.pressure?.score * 10 || 0,
+          wind: speciesResult.factors.wind?.score * 10 || 0,
+          temperature: speciesResult.factors.waterTemp?.score * 10 || 0,
+          waterTemperature: speciesResult.factors.waterTemp?.score * 10 || 5,
+          precipitation: speciesResult.factors.precipitation?.score * 10 || 0,
+          cloudCover: 5, // Not in species algorithms
+          timeOfDay: speciesResult.factors.lightTime?.score * 10 || 0,
+          visibility: 5, // Not in species algorithms
+          sunshine: 5, // Not in species algorithms
+          lightning: 5, // Not in species algorithms
+          atmospheric: 5, // Not in species algorithms
+          comfort: 5, // Not in species algorithms
+          tide: (speciesResult.factors.tidalRange?.score || speciesResult.factors.slackTide?.score || 0.5) * 10,
+          currentSpeed: speciesResult.factors.currentFlow?.score * 10 || 5,
+          currentDirection: 5, // Not separately tracked
+          species: speciesResult.factors.seasonality?.score * 10 || 5,
+        }
+      }
+    }
+  }
+
+  // Fall back to general algorithm if no species selected or species not found
   const speciesProfile = getSpeciesProfile(speciesName || null)
   const season = getCurrentSeason(minuteData.timestamp)
 
