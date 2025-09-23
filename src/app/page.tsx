@@ -312,7 +312,7 @@ function NewForecastContent() {
             {/* Charts and Table Section */}
             <div className="lg:col-span-2 space-y-3 sm:space-y-6">
               {/* Hourly Fishing Score Chart */}
-              <HourlyChart forecasts={forecastData} selectedDay={selectedDay} />
+              <HourlyChart forecasts={forecastData} selectedDay={selectedDay} species={species} />
 
               {/* Weather and Conditions - Show here on mobile, hide on desktop */}
               <div className="lg:hidden">

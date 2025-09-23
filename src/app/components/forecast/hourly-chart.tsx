@@ -6,15 +6,23 @@ import { ChartTooltip } from '@/components/ui/chart'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { getScoreColor } from '../../utils/formatters'
 import MobileFriendlyChart from '../charts/mobile-friendly-chart'
+import ScoreDetailsModal from './score-details-modal'
+import { Info } from 'lucide-react'
 
 interface HourlyChartProps {
   forecasts: OpenMeteoDailyForecast[]
   selectedDay?: number
+  species?: string | null
 }
 
-export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartProps) {
+export default function HourlyChart({ forecasts, selectedDay = 0, species }: HourlyChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
   const [isMobile, setIsMobile] = useState(false)
+  const [selectedScore, setSelectedScore] = useState<{
+    score: any
+    timestamp: number
+    index: number
+  } | null>(null)
   
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -175,6 +183,17 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
                 <p className={`text-base sm:text-lg font-bold ${getScoreColor(bestTwoHourWindow.score.total)}`}>
                   Score: {bestTwoHourWindow.score.total.toFixed(1)}/10
                 </p>
+                <button
+                  onClick={() => setSelectedScore({
+                    score: bestTwoHourWindow.score,
+                    timestamp: bestTwoHourWindow.startTime,
+                    index: -1
+                  })}
+                  className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                >
+                  <Info className="w-3 h-3" />
+                  View Details
+                </button>
               </div>
             </div>
           )}
@@ -230,6 +249,17 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
               radius={[2, 2, 0, 0]}
               onMouseEnter={(data, index) => setActiveIndex(index)}
               onMouseLeave={() => setActiveIndex(undefined)}
+              onClick={(data, index) => {
+                const scoreData = selectedForecast.minutelyScores[index]
+                if (scoreData && scoreData.scoreDetails) {
+                  setSelectedScore({
+                    score: scoreData.scoreDetails,
+                    timestamp: scoreData.timestamp,
+                    index
+                  })
+                }
+              }}
+              style={{ cursor: 'pointer' }}
             >
               {chartData.map((entry, index) => (
                 <Cell
@@ -238,6 +268,7 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
                   stroke={entry.isInBestWindow ? '#3b82f6' : 'transparent'}
                   strokeWidth={entry.isInBestWindow ? 2 : 0}
                   opacity={activeIndex === undefined || activeIndex === index ? 1 : 0.7}
+                  style={{ cursor: 'pointer' }}
                 />
               ))}
             </Bar>
@@ -313,6 +344,23 @@ export default function HourlyChart({ forecasts, selectedDay = 0 }: HourlyChartP
           <p className="text-white font-bold text-base sm:text-lg">{selectedForecast.minutelyScores.length}</p>
         </div>
       </div>
+
+      {/* Info message about clicking bars */}
+      <div className="mt-4 flex items-center gap-2 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+        <Info className="w-4 h-4 text-blue-400 flex-shrink-0" />
+        <p className="text-xs text-blue-300">
+          Click on any bar to see detailed score breakdown with all factors, weights, and values
+        </p>
+      </div>
+
+      {/* Score Details Modal */}
+      <ScoreDetailsModal
+        isOpen={selectedScore !== null}
+        onClose={() => setSelectedScore(null)}
+        score={selectedScore?.score || null}
+        timestamp={selectedScore?.timestamp}
+        species={species}
+      />
     </div>
   )
 }

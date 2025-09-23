@@ -306,6 +306,7 @@ export interface OpenMeteoDailyForecast {
     time: string
     timestamp: number
     score: number
+    scoreDetails?: FishingScore  // Full score object with breakdown
     temp: number
     conditions: string
     icon: string
@@ -909,11 +910,12 @@ export const generateOpenMeteoDailyForecasts = (
     // Generate 15-minute scores
     const minutelyScores = dayMinutely.map(minuteData => {
       const weather = getWeatherDescription(minuteData.weatherCode)
+      const fullScore = calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName)
       return {
         time: minuteData.time,
         timestamp: minuteData.timestamp,
-        score: calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName)
-          .total,
+        score: fullScore.total,
+        scoreDetails: fullScore,  // Store full score object with breakdown
         temp: minuteData.temp,
         conditions: weather.description,
         icon: weather.icon,
