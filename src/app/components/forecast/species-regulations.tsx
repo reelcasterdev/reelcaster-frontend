@@ -24,6 +24,9 @@ interface SpeciesRegulationsProps {
 
 export default function SpeciesRegulations({ species, areaUrl }: SpeciesRegulationsProps) {
   const [expandedSpecies, setExpandedSpecies] = useState<string | null>(null)
+  const [showAllSpecies, setShowAllSpecies] = useState(false)
+
+  const displayedSpecies = showAllSpecies ? species : species.slice(0, 5)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -62,7 +65,7 @@ export default function SpeciesRegulations({ species, areaUrl }: SpeciesRegulati
       </div>
       
       <div className="space-y-2">
-        {species.map((fish) => (
+        {displayedSpecies.map((fish) => (
           <div key={fish.id} className="border border-slate-700/50 rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSpecies(fish.id)}
@@ -80,29 +83,22 @@ export default function SpeciesRegulations({ species, areaUrl }: SpeciesRegulati
                 )}
               </div>
             </button>
-            
+
             {expandedSpecies === fish.id && (
               <div className="px-4 py-3 bg-slate-700/20 border-t border-slate-700/50">
                 <div className="space-y-2 text-sm">
-                  {fish.scientificName && (
-                    <div className="flex">
-                      <span className="text-slate-400 w-24">Scientific:</span>
-                      <span className="text-slate-300 italic">{fish.scientificName}</span>
-                    </div>
-                  )}
-                  
                   <div className="flex">
                     <span className="text-slate-400 w-24">Daily Limit:</span>
                     <span className="text-slate-300">{fish.dailyLimit}</span>
                   </div>
-                  
+
                   {fish.annualLimit && (
                     <div className="flex">
                       <span className="text-slate-400 w-24">Annual Limit:</span>
                       <span className="text-slate-300">{fish.annualLimit}</span>
                     </div>
                   )}
-                  
+
                   {(fish.minSize || fish.maxSize) && (
                     <div className="flex">
                       <span className="text-slate-400 w-24">Size Limit:</span>
@@ -113,17 +109,17 @@ export default function SpeciesRegulations({ species, areaUrl }: SpeciesRegulati
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="flex">
                     <span className="text-slate-400 w-24">Gear:</span>
                     <span className="text-slate-300">{fish.gear}</span>
                   </div>
-                  
+
                   <div className="flex">
                     <span className="text-slate-400 w-24">Season:</span>
                     <span className="text-slate-300">{fish.season}</span>
                   </div>
-                  
+
                   {fish.notes && fish.notes.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-slate-700/50">
                       <span className="text-slate-400 block mb-1">Important Notes:</span>
@@ -139,7 +135,16 @@ export default function SpeciesRegulations({ species, areaUrl }: SpeciesRegulati
             )}
           </div>
         ))}
-        
+
+        {species.length > 5 && (
+          <button
+            onClick={() => setShowAllSpecies(!showAllSpecies)}
+            className="w-full py-3 text-center text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium border border-slate-700/50 rounded-lg hover:bg-slate-700/20"
+          >
+            {showAllSpecies ? 'Show Less' : `Show ${species.length - 5} More Species`}
+          </button>
+        )}
+
         {species.length === 0 && (
           <div className="text-center py-8 text-slate-400">
             No regulation data available for this location

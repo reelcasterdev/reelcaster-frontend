@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer } from 'recharts'
+import { Bar, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Area, ComposedChart, Cell } from 'recharts'
 import { ChartTooltip } from '@/components/ui/chart'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { getScoreColor } from '../../utils/formatters'
@@ -18,6 +18,7 @@ interface HourlyChartProps {
 export default function HourlyChart({ forecasts, selectedDay = 0, species }: HourlyChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
   const [isMobile, setIsMobile] = useState(false)
+  const [chartType, setChartType] = useState<'bar' | 'line'>('line')
   const [selectedScore, setSelectedScore] = useState<{
     score: any
     timestamp: number
@@ -163,38 +164,64 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
   return (
     <div className="bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-700">
       <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-2">
-              15-Minute Fishing Scores - {dayName}
-            </h2>
-            <p className="text-slate-300 text-xs sm:text-sm">
-              {selectedForecast.minutelyScores.length} data points • Best 2-hour window highlighted
-            </p>
+        <div className="flex flex-col gap-4">
+          {/* Title and Toggle Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-white mb-2">
+                15-Minute Fishing Scores - {dayName}
+              </h2>
+              <p className="text-slate-300 text-xs sm:text-sm">
+                {selectedForecast.minutelyScores.length} data points • Best 2-hour window highlighted
+              </p>
+            </div>
+
+            {/* Chart Type Toggle */}
+            <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg p-1">
+              <button
+                onClick={() => setChartType('line')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  chartType === 'line'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Line
+              </button>
+              <button
+                onClick={() => setChartType('bar')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  chartType === 'bar'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Bar
+              </button>
+            </div>
           </div>
 
+          {/* Best Window Info */}
           {bestTwoHourWindow && (
-            <div className="sm:text-right">
-              <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3">
-                <p className="text-blue-300 text-xs sm:text-sm font-semibold">🏆 Best 2-Hour Window</p>
-                <p className="text-white font-bold text-sm sm:text-base">
-                  {formatTime(bestTwoHourWindow.startTime)} - {formatTime(bestTwoHourWindow.endTime)}
-                </p>
-                <p className={`text-base sm:text-lg font-bold ${getScoreColor(bestTwoHourWindow.score.total)}`}>
-                  Score: {bestTwoHourWindow.score.total.toFixed(1)}/10
-                </p>
-                <button
-                  onClick={() => setSelectedScore({
-                    score: bestTwoHourWindow.score,
-                    timestamp: bestTwoHourWindow.startTime,
-                    index: -1
-                  })}
-                  className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-                >
-                  <Info className="w-3 h-3" />
-                  View Details
-                </button>
-              </div>
+            <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3 inline-block">
+              <p className="text-blue-300 text-xs sm:text-sm font-semibold">🏆 Best 2-Hour Window</p>
+              <p className="text-white font-bold text-sm sm:text-base">
+                {formatTime(bestTwoHourWindow.startTime)} - {formatTime(bestTwoHourWindow.endTime)}
+              </p>
+              <p className={`text-base sm:text-lg font-bold ${getScoreColor(bestTwoHourWindow.score.total)}`}>
+                Score: {bestTwoHourWindow.score.total.toFixed(1)}/10
+              </p>
+              <button
+                onClick={() => setSelectedScore({
+                  score: bestTwoHourWindow.score,
+                  timestamp: bestTwoHourWindow.startTime,
+                  index: -1
+                })}
+                className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+              >
+                <Info className="w-3 h-3" />
+                View Details
+              </button>
             </div>
           )}
         </div>
@@ -203,7 +230,7 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
       {/* Chart */}
       <div className="h-[300px] sm:h-[400px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
+          <ComposedChart
             data={chartData}
             margin={{
               top: 20,
@@ -211,7 +238,27 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
               left: 0,
               bottom: 60,
             }}
+            onClick={(e: any) => {
+              if (e && e.activePayload && e.activePayload.length > 0) {
+                const index = chartData.findIndex(d => d === e.activePayload[0].payload)
+                const scoreData = selectedForecast.minutelyScores[index]
+                if (scoreData && scoreData.scoreDetails) {
+                  setSelectedScore({
+                    score: scoreData.scoreDetails,
+                    timestamp: scoreData.timestamp,
+                    index
+                  })
+                }
+              }
+            }}
           >
+            <defs>
+              <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+
             <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
             <XAxis
               dataKey="time"
@@ -244,35 +291,55 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
             <ReferenceLine y={6} stroke="#f59e0b" strokeDasharray="2 2" opacity={0.5} />
             <ReferenceLine y={4} stroke="#f97316" strokeDasharray="2 2" opacity={0.5} />
 
-            <Bar
-              dataKey="score"
-              radius={[2, 2, 0, 0]}
-              onMouseEnter={(data, index) => setActiveIndex(index)}
-              onMouseLeave={() => setActiveIndex(undefined)}
-              onClick={(data, index) => {
-                const scoreData = selectedForecast.minutelyScores[index]
-                if (scoreData && scoreData.scoreDetails) {
-                  setSelectedScore({
-                    score: scoreData.scoreDetails,
-                    timestamp: scoreData.timestamp,
-                    index
-                  })
-                }
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.fill}
-                  stroke={entry.isInBestWindow ? '#3b82f6' : 'transparent'}
-                  strokeWidth={entry.isInBestWindow ? 2 : 0}
-                  opacity={activeIndex === undefined || activeIndex === index ? 1 : 0.7}
-                  style={{ cursor: 'pointer' }}
+            {chartType === 'line' ? (
+              <>
+                {/* Area under the line */}
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke="none"
+                  fill="url(#colorScore)"
                 />
-              ))}
-            </Bar>
-          </BarChart>
+
+                {/* Main line with clickable dots */}
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{
+                    r: 3,
+                    fill: '#3b82f6',
+                    style: { cursor: 'pointer' }
+                  }}
+                  activeDot={{
+                    r: 6,
+                    style: { cursor: 'pointer' }
+                  }}
+                />
+              </>
+            ) : (
+              /* Bar chart */
+              <Bar
+                dataKey="score"
+                radius={[2, 2, 0, 0]}
+                onMouseEnter={(data: any, index: number) => setActiveIndex(index)}
+                onMouseLeave={() => setActiveIndex(undefined)}
+                style={{ cursor: 'pointer' }}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.fill}
+                    stroke={entry.isInBestWindow ? '#3b82f6' : 'transparent'}
+                    strokeWidth={entry.isInBestWindow ? 2 : 0}
+                    opacity={activeIndex === undefined || activeIndex === index ? 1 : 0.7}
+                    style={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Bar>
+            )}
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
 

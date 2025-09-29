@@ -1,6 +1,7 @@
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { CHSWaterData } from '../../utils/chsTideApi'
+import { Cloud, CloudRain, CloudSnow, Sun, CloudDrizzle, Wind, ArrowUp, ArrowUpRight, ArrowRight, ArrowDownRight, ArrowDown, ArrowDownLeft, ArrowLeft, ArrowUpLeft, TrendingUp, TrendingDown } from 'lucide-react'
 
 interface HourlyTableProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -13,30 +14,87 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
   // Get selected day's forecast
   const selectedForecast = forecasts[selectedDay]
 
+  // Helper function to get weather icon based on weather code
+  const getWeatherIcon = (code: number) => {
+    if (code === 0 || code === 1) return <Sun className="w-5 h-5 text-yellow-400" />
+    if (code === 2) return <Cloud className="w-5 h-5 text-gray-400" />
+    if (code === 3) return <Cloud className="w-5 h-5 text-gray-500" />
+    if (code >= 51 && code <= 57) return <CloudDrizzle className="w-5 h-5 text-blue-400" />
+    if (code >= 61 && code <= 67) return <CloudRain className="w-5 h-5 text-blue-500" />
+    if (code >= 71 && code <= 77) return <CloudSnow className="w-5 h-5 text-blue-300" />
+    if (code >= 80 && code <= 82) return <CloudRain className="w-5 h-5 text-blue-600" />
+    return <Cloud className="w-5 h-5 text-gray-400" />
+  }
+
+  // Helper function to get wind direction arrow
+  const getWindArrow = (direction: number) => {
+    const arrows = [
+      <ArrowUp className="w-4 h-4" />,      // N
+      <ArrowUpRight className="w-4 h-4" />, // NE
+      <ArrowRight className="w-4 h-4" />,   // E
+      <ArrowDownRight className="w-4 h-4" />, // SE
+      <ArrowDown className="w-4 h-4" />,    // S
+      <ArrowDownLeft className="w-4 h-4" />, // SW
+      <ArrowLeft className="w-4 h-4" />,    // W
+      <ArrowUpLeft className="w-4 h-4" />   // NW
+    ]
+    return arrows[Math.round(direction / 45) % 8]
+  }
+
+  // Helper to get tide height at specific time
+  const getTideHeightAtTime = (timestamp: number) => {
+    if (!tideData || !tideData.predictions) return null
+
+    // Find the closest tide prediction
+    const closestPrediction = tideData.predictions.reduce((prev, curr) => {
+      const prevDiff = Math.abs(prev.time - timestamp)
+      const currDiff = Math.abs(curr.time - timestamp)
+      return currDiff < prevDiff ? curr : prev
+    })
+
+    return closestPrediction
+  }
+
   // Get hourly data for the table (every 3 hours for full day - 8 rows)
   const hourlyTableData = selectedForecast && openMeteoData
     ? [0, 3, 6, 9, 12, 15, 18, 21].map((hourIndex) => {
         const baseIndex = selectedDay * 96 // 96 = 24 hours * 4 (15-minute intervals)
         const dataIndex = Math.min(baseIndex + hourIndex * 4, openMeteoData.minutely15.length - 1)
         const data = openMeteoData.minutely15[dataIndex]
-        
+
         const scoreIndex = Math.min(hourIndex * 4, selectedForecast.minutelyScores.length - 1)
         const score = selectedForecast.minutelyScores[scoreIndex]
-        
+
         const hour = new Date(data.timestamp * 1000).getHours()
-        const displayHour = hour === 0 ? '12:00 AM' : 
+        const displayHour = hour === 0 ? '12:00 AM' :
           hour < 12 ? `${hour}:00 AM` :
           hour === 12 ? '12:00 PM' :
           `${hour - 12}:00 PM`
-        
+
         const windDir = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(data.windDirection / 45) % 8]
-        
+
+        // Get tide info for this time
+        const tidePrediction = getTideHeightAtTime(data.timestamp)
+        const tideHeight = tidePrediction ? tidePrediction.height.toFixed(1) : '--'
+        const tideRising = tidePrediction ?
+          (tidePrediction.time > data.timestamp ?
+            (tidePrediction.type === 'high') :
+            !(tidePrediction.type === 'high')
+          ) : undefined
+
         return {
           time: displayHour,
+          timestamp: data.timestamp,
           score: Math.round(score?.score || 5),
-          wind: `${Math.round(data.windSpeed)} ${windDir}`,
-          temp: `${Math.round(data.temp)}°`,
-          precip: `${Math.round(data.precipitation)}`
+          windSpeed: Math.round(data.windSpeed),
+          windDir: windDir,
+          windDirection: data.windDirection,
+          temp: Math.round(data.temp),
+          precip: Math.round(data.precipitation),
+          weatherCode: data.weatherCode,
+          pressure: Math.round(data.pressure),
+          tideHeight: tideHeight,
+          tideRising: tideRising
         }
       })
     : [
@@ -117,16 +175,59 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
             </div>
           </div>
 
-          {/* Wind Row */}
+          {/* Weather Icon Row */}
           <div className="flex border-b border-slate-700 hover:bg-slate-700/20 transition-colors">
             <div className="w-24 flex-shrink-0 p-3 text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center gap-2">
-              <span>💨</span>
+              <span>☁️</span>
+              <span>Weather</span>
+            </div>
+            <div className="flex flex-1">
+              {hourlyTableData.map((row, index) => (
+                <div key={index} className="flex-1 p-3 flex justify-center items-center border-l border-slate-700">
+                  {getWeatherIcon(row.weatherCode)}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Wind Row with Direction Arrows */}
+          <div className="flex border-b border-slate-700 hover:bg-slate-700/20 transition-colors">
+            <div className="w-24 flex-shrink-0 p-3 text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center gap-2">
+              <Wind className="w-4 h-4" />
               <span>Wind</span>
             </div>
             <div className="flex flex-1">
               {hourlyTableData.map((row, index) => (
-                <div key={index} className="flex-1 p-3 text-center text-slate-300 text-sm border-l border-slate-700">
-                  {row.wind}
+                <div key={index} className="flex-1 p-3 border-l border-slate-700">
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="text-slate-300 text-sm font-medium">{row.windSpeed}</span>
+                    <span className="text-slate-500 text-xs">km/h</span>
+                    {getWindArrow(row.windDirection)}
+                    <span className="text-slate-500 text-xs">{row.windDir}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tide Height Row */}
+          <div className="flex border-b border-slate-700 hover:bg-slate-700/20 transition-colors">
+            <div className="w-24 flex-shrink-0 p-3 text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center gap-2">
+              <span>🌊</span>
+              <span>Tide</span>
+            </div>
+            <div className="flex flex-1">
+              {hourlyTableData.map((row, index) => (
+                <div key={index} className="flex-1 p-3 border-l border-slate-700">
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="text-slate-300 text-sm font-medium">{row.tideHeight}</span>
+                    <span className="text-slate-500 text-xs">m</span>
+                    {row.tideRising !== undefined && (
+                      row.tideRising ?
+                      <TrendingUp className="w-4 h-4 text-blue-400" /> :
+                      <TrendingDown className="w-4 h-4 text-orange-400" />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -141,7 +242,7 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
             <div className="flex flex-1">
               {hourlyTableData.map((row, index) => (
                 <div key={index} className="flex-1 p-3 text-center text-slate-300 text-sm border-l border-slate-700">
-                  {row.temp}
+                  {row.temp}°C
                 </div>
               ))}
             </div>
@@ -150,13 +251,31 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
           {/* Precipitation Row */}
           <div className="flex border-b border-slate-700 hover:bg-slate-700/20 transition-colors">
             <div className="w-24 flex-shrink-0 p-3 text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center gap-2">
-              <span>🌧️</span>
+              <CloudRain className="w-4 h-4" />
               <span>Precip</span>
             </div>
             <div className="flex flex-1">
               {hourlyTableData.map((row, index) => (
+                <div key={index} className="flex-1 p-3 text-center border-l border-slate-700">
+                  <span className={`text-sm ${row.precip > 50 ? 'text-blue-400 font-semibold' : 'text-slate-300'}`}>
+                    {row.precip}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pressure Row */}
+          <div className="flex border-b border-slate-700 hover:bg-slate-700/20 transition-colors">
+            <div className="w-24 flex-shrink-0 p-3 text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center gap-2">
+              <span>🔵</span>
+              <span>Pressure</span>
+            </div>
+            <div className="flex flex-1">
+              {hourlyTableData.map((row, index) => (
                 <div key={index} className="flex-1 p-3 text-center text-slate-300 text-sm border-l border-slate-700">
-                  {row.precip}%
+                  {row.pressure}
+                  <span className="text-slate-500 text-xs ml-1">hPa</span>
                 </div>
               ))}
             </div>

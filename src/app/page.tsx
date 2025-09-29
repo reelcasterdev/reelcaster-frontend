@@ -258,27 +258,19 @@ function NewForecastContent() {
     return <ErrorState message="Invalid coordinates provided" />
   }
 
-  if (loading) {
-    return <ModernLoadingState forecastDays={14} />
-  }
-
-  if (error) {
-    return <ErrorState message={error} />
-  }
-
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Sidebar */}
       <Sidebar />
-      
+
       {/* Main Content */}
       <div className="lg:ml-64 min-h-screen overflow-auto">
         <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-3 sm:space-y-6 pt-16 lg:pt-6">
           {/* Location Selector */}
           <CompactLocationSelector />
-          
-          {/* Header */}
-          <NewForecastHeader 
+
+          {/* Header - Always show */}
+          <NewForecastHeader
             location={selectedLocation}
             hotspot={selectedHotspot}
             isCachedData={isCachedData}
@@ -286,122 +278,156 @@ function NewForecastContent() {
             cacheInfo={cacheInfo}
           />
 
-          {/* Mobile: Stack everything vertically */}
-          {/* Desktop: Keep grid layout */}
-          
-          {/* Top Section - Always full width on mobile */}
-          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
-            {/* Forecast Outlook - Full width on mobile */}
-            <div className="lg:col-span-2">
-              <DayOutlook 
-                forecasts={forecastData} 
-                selectedDay={selectedDay}
-                onDaySelect={setSelectedDay}
-                shouldBlurAfterDay={shouldBlurAfterDay}
-              />
-            </div>
+          {/* Show error if there is one */}
+          {error && (
+            <ErrorState message={error} />
+          )}
 
-            {/* Overall Score - Full width on mobile */}
-            <div className="lg:col-span-1">
-              <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
-            </div>
-          </div>
-
-          {/* Main Content - Stack on mobile, grid on desktop */}
-          <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
-            {/* Charts and Table Section */}
-            <div className="lg:col-span-2 space-y-3 sm:space-y-6">
-              {/* Hourly Fishing Score Chart */}
-              <HourlyChart forecasts={forecastData} selectedDay={selectedDay} species={species} />
-
-              {/* Weather and Conditions - Show here on mobile, hide on desktop */}
-              <div className="lg:hidden">
-                <WeatherConditions 
-                  forecasts={forecastData}
-                  openMeteoData={openMeteoData}
-                  tideData={tideData}
-                  selectedDay={selectedDay}
-                />
+          {/* Show loading skeleton or actual content */}
+          {loading ? (
+            // Simple loading skeleton instead of full-screen loader
+            <div className="space-y-6">
+              {/* Top Section Skeleton */}
+              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+                <div className="lg:col-span-2">
+                  <div className="bg-slate-800 rounded-lg h-48 animate-pulse" />
+                </div>
+                <div className="lg:col-span-1">
+                  <div className="bg-slate-800 rounded-lg h-48 animate-pulse" />
+                </div>
               </div>
 
-              {/* Tide Status Widget - Mobile */}
-              {tideData && (
-                <div className="lg:hidden mb-4">
-                  <TideStatusWidget 
-                    tideData={tideData} 
+              {/* Main Content Skeleton */}
+              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+                <div className="lg:col-span-2 space-y-3 sm:space-y-6">
+                  <div className="bg-slate-800 rounded-lg h-64 animate-pulse" />
+                  <div className="lg:hidden bg-slate-800 rounded-lg h-48 animate-pulse" />
+                  <div className="bg-slate-800 rounded-lg h-96 animate-pulse" />
+                </div>
+                <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
+                  <div className="bg-slate-800 rounded-lg h-48 animate-pulse" />
+                  <div className="bg-slate-800 rounded-lg h-64 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Top Section - Always full width on mobile */}
+              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+                {/* Left column - Forecast Outlook and Chart */}
+                <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+                  {/* Forecast Outlook */}
+                  <DayOutlook
+                    forecasts={forecastData}
+                    selectedDay={selectedDay}
+                    onDaySelect={setSelectedDay}
+                    shouldBlurAfterDay={shouldBlurAfterDay}
                   />
-                </div>
-              )}
 
-              {/* Tide Chart - Mobile */}
-              {tideData && (
-                <div className="lg:hidden mb-4">
-                  <TideChart tideData={tideData} />
+                  {/* Hourly Fishing Score Chart - Now above the fold */}
+                  <HourlyChart forecasts={forecastData} selectedDay={selectedDay} species={species} />
                 </div>
-              )}
 
-              {/* Species Regulations - Show here on mobile, hide on desktop */}
-              <div className="lg:hidden">
-                <SpeciesRegulations 
-                  species={getRegulationsByLocation(selectedLocation)?.species || []} 
-                  areaUrl={getRegulationsByLocation(selectedLocation)?.url}
-                />
+                {/* Overall Score - Full width on mobile */}
+                <div className="lg:col-span-1">
+                  <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
+                </div>
               </div>
 
-              {/* Hourly Data Table */}
-              <HourlyTable 
-                forecasts={forecastData}
-                openMeteoData={openMeteoData}
-                tideData={tideData || tideData}
-                selectedDay={selectedDay}
-              />
+              {/* Main Content - Stack on mobile, grid on desktop */}
+              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+                {/* Charts and Table Section */}
+                <div className="lg:col-span-2 space-y-3 sm:space-y-6">
+                  {/* Weather and Conditions - Show here on mobile, hide on desktop */}
+                  <div className="lg:hidden">
+                    <WeatherConditions
+                      forecasts={forecastData}
+                      openMeteoData={openMeteoData}
+                      tideData={tideData}
+                      selectedDay={selectedDay}
+                    />
+                  </div>
 
-              {/* Tide Chart - Desktop (below hourly table) */}
-              {tideData && (
-                <div className="mt-6">
-                  <TideChart tideData={tideData} />
+                  {/* Tide Status Widget - Mobile */}
+                  {tideData && (
+                    <div className="lg:hidden mb-4">
+                      <TideStatusWidget
+                        tideData={tideData}
+                      />
+                    </div>
+                  )}
+
+                  {/* Tide Chart - Mobile */}
+                  {tideData && (
+                    <div className="lg:hidden mb-4">
+                      <TideChart tideData={tideData} />
+                    </div>
+                  )}
+
+                  {/* Species Regulations - Show here on mobile, hide on desktop */}
+                  <div className="lg:hidden">
+                    <SpeciesRegulations
+                      species={getRegulationsByLocation(selectedLocation)?.species || []}
+                      areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+                    />
+                  </div>
+
+                  {/* Hourly Data Table */}
+                  <HourlyTable
+                    forecasts={forecastData}
+                    openMeteoData={openMeteoData}
+                    tideData={tideData || tideData}
+                    selectedDay={selectedDay}
+                  />
+
+                  {/* Tide Chart - Desktop (below hourly table) */}
+                  {tideData && (
+                    <div className="mt-6">
+                      <TideChart tideData={tideData} />
+                    </div>
+                  )}
+
                 </div>
-              )}
-              
-            </div>
 
-            {/* Right Column - Desktop only */}
-            <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
-              {/* Weather and Conditions */}
-              <WeatherConditions 
-                forecasts={forecastData}
-                openMeteoData={openMeteoData}
-                tideData={tideData}
-                selectedDay={selectedDay}
-              />
+                {/* Right Column - Desktop only */}
+                <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
+                  {/* Weather and Conditions */}
+                  <WeatherConditions
+                    forecasts={forecastData}
+                    openMeteoData={openMeteoData}
+                    tideData={tideData}
+                    selectedDay={selectedDay}
+                  />
 
-              {/* Tide Status Widget - Desktop */}
-              {tideData && (
-                <TideStatusWidget 
-                  tideData={tideData} 
-                />
-              )}
+                  {/* Tide Status Widget - Desktop */}
+                  {tideData && (
+                    <TideStatusWidget
+                      tideData={tideData}
+                    />
+                  )}
 
-              {/* Species Regulations */}
-              <SpeciesRegulations 
-                species={getRegulationsByLocation(selectedLocation)?.species || []} 
-                areaUrl={getRegulationsByLocation(selectedLocation)?.url}
-              />
+                  {/* Species Regulations */}
+                  <SpeciesRegulations
+                    species={getRegulationsByLocation(selectedLocation)?.species || []}
+                    areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+                  />
 
-              {/* Reports */}
-              <FishingReports />
-            </div>
-          </div>
+                  {/* Reports */}
+                  <FishingReports />
+                </div>
+              </div>
 
-          {/* Reports - Show at bottom on mobile */}
-          <div className="lg:hidden">
-            <FishingReports />
-          </div>
+              {/* Reports - Show at bottom on mobile */}
+              <div className="lg:hidden">
+                <FishingReports />
+              </div>
 
-          {/* Fishing Report Display */}
-          <div className="mt-6">
-            <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
-          </div>
+              {/* Fishing Report Display */}
+              <div className="mt-6">
+                <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -455,7 +481,7 @@ function HomePage() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<ModernLoadingState forecastDays={14} />}>
+    <Suspense fallback={null}>
       <HomePage />
     </Suspense>
   )
