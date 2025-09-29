@@ -23,6 +23,7 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
     score: any
     timestamp: number
     index: number
+    rawData?: any
   } | null>(null)
   
   // Check if mobile on mount and resize
@@ -215,7 +216,12 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
                 onClick={() => setSelectedScore({
                   score: bestTwoHourWindow.score,
                   timestamp: bestTwoHourWindow.startTime,
-                  index: -1
+                  index: -1,
+                  rawData: {
+                    temperature: bestTwoHourWindow.avgTemp,
+                    wind: bestTwoHourWindow.windSpeed,
+                    precipitation: bestTwoHourWindow.precipitation,
+                  }
                 })}
                 className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
               >
@@ -243,10 +249,19 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
                 const index = chartData.findIndex(d => d === e.activePayload[0].payload)
                 const scoreData = selectedForecast.minutelyScores[index]
                 if (scoreData && scoreData.scoreDetails) {
+                  // Get raw data for this time point
+                  const rawData = {
+                    temperature: scoreData.temp,
+                    wind: scoreData.windSpeed,
+                    precipitation: scoreData.precipitation,
+                    pressure: e.activePayload[0].payload.pressure,
+                    // Add more raw values as available
+                  }
                   setSelectedScore({
                     score: scoreData.scoreDetails,
                     timestamp: scoreData.timestamp,
-                    index
+                    index,
+                    rawData
                   })
                 }
               }
@@ -427,6 +442,7 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
         score={selectedScore?.score || null}
         timestamp={selectedScore?.timestamp}
         species={species}
+        rawData={selectedScore?.rawData}
       />
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import ScoreBreakdownSimple from './score-breakdown-simple'
+import ScoreBreakdownEnhanced from './score-breakdown-enhanced'
 import { FishingScore } from '../../utils/fishingCalculations'
 
 interface ScoreDetailsModalProps {
@@ -10,6 +10,7 @@ interface ScoreDetailsModalProps {
   score: FishingScore | null
   timestamp?: number
   species?: string | null
+  rawData?: any // Raw weather/tide data
   comparison?: {
     score: FishingScore
     timestamp: number
@@ -23,6 +24,7 @@ export default function ScoreDetailsModal({
   score,
   timestamp,
   species,
+  rawData,
   comparison
 }: ScoreDetailsModalProps) {
   // Close on escape key
@@ -57,11 +59,12 @@ export default function ScoreDetailsModal({
       <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-auto">
         <div className="space-y-4">
           {/* Main Score Breakdown */}
-          <ScoreBreakdownSimple
+          <ScoreBreakdownEnhanced
             score={score}
             timestamp={timestamp || Date.now() / 1000}
             species={species}
             onClose={onClose}
+            rawData={rawData}
           />
 
           {/* Comparison Score (if provided) */}
@@ -72,10 +75,11 @@ export default function ScoreDetailsModal({
                   vs. {comparison.label}
                 </span>
               </div>
-              <ScoreBreakdownSimple
+              <ScoreBreakdownEnhanced
                 score={comparison.score}
                 timestamp={comparison.timestamp}
                 species={species}
+                rawData={rawData}
               />
             </div>
           )}
