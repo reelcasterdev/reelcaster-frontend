@@ -1,26 +1,3 @@
-import { fishingLocations } from '../data/locations'
-
-interface iNaturalistObservation {
-  id: number
-  species_guess: string
-  observed_on_string: string
-  place_guess: string
-  description: string
-  user: {
-    login: string
-    name: string
-  }
-  photos: Array<{
-    url: string
-  }>
-  location: string
-  created_at: string
-  taxon?: {
-    preferred_common_name: string
-    name: string
-  }
-}
-
 interface FishingReport {
   id: string | number
   title: string
@@ -32,67 +9,8 @@ interface FishingReport {
   imageUrl?: string
 }
 
-// Convert iNaturalist observation to fishing report format
-function observationToReport(obs: iNaturalistObservation): FishingReport {
-  const speciesName = obs.taxon?.preferred_common_name || obs.species_guess || 'Unknown species'
-  const location = obs.place_guess || 'Unknown location'
-  const userName = obs.user.name || obs.user.login
-  
-  // Calculate time ago
-  const timeAgo = getTimeAgo(new Date(obs.created_at))
-  
-  return {
-    id: obs.id,
-    title: `${speciesName} observed in ${location}`,
-    source: `iNaturalist - ${userName}`,
-    time: timeAgo,
-    location: location,
-    species: speciesName,
-    description: obs.description || '',
-    imageUrl: obs.photos?.[0]?.url.replace('square', 'medium')
-  }
-}
-
-function getTimeAgo(date: Date): string {
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-  
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays < 7) return `${diffDays}d ago`
-  
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-// Get bounding box for a location
-function getLocationBounds(locationName: string) {
-  // Find location in our data
-  const location = fishingLocations.find(loc => loc.name === locationName)
-  
-  if (!location) {
-    // Default to Victoria area
-    return {
-      nelat: 48.6,
-      nelng: -123.2,
-      swlat: 48.3,
-      swlng: -123.6
-    }
-  }
-  
-  // Create a bounding box around the location (approximately 20km radius)
-  const latOffset = 0.18 // ~20km
-  const lngOffset = 0.25 // ~20km at this latitude
-  
-  return {
-    nelat: location.coordinates.lat + latOffset,
-    nelng: location.coordinates.lon + lngOffset,
-    swlat: location.coordinates.lat - latOffset,
-    swlng: location.coordinates.lon - lngOffset
-  }
-}
+// Removed unused iNaturalist functions since we're not fetching from that API anymore
+// These were: observationToReport, getTimeAgo, getLocationBounds
 
 export async function fetchFishingReports(
   locationName: string,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Info, MapPin, Fish, RefreshCw, ExternalLink } from 'lucide-react'
+import { Info, MapPin, Fish, RefreshCw } from 'lucide-react'
 import { fetchFishingReports } from '../../utils/fishingReportsApi'
 import { useSearchParams } from 'next/navigation'
 
@@ -129,6 +129,7 @@ export default function FishingReports() {
                     </div>
                     {report.imageUrl && (
                       <div className="flex-shrink-0 hidden sm:block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={report.imageUrl}
                           alt={report.species || 'Fish observation'}

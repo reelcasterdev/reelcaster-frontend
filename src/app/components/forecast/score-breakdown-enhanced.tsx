@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Info, X, TrendingUp, TrendingDown } from 'lucide-react'
+import { ChevronDown, ChevronUp, Info, X } from 'lucide-react'
 import { FishingScore } from '../../utils/fishingCalculations'
 
 interface EnhancedScoreBreakdownProps {
@@ -176,8 +176,8 @@ function FactorRow({ factorKey, score, weight, contribution, actualValue, expand
     return 'text-red-400'
   }
 
-  // Determine trend if we have historical data
-  const trend = null // Could be calculated if we have previous values
+  // Trend could be calculated if we have previous values
+  // const trend = null
 
   return (
     <div className="border border-slate-700/50 rounded-lg overflow-hidden">

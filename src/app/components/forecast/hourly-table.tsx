@@ -29,30 +29,30 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
   // Helper function to get wind direction arrow
   const getWindArrow = (direction: number) => {
     const arrows = [
-      <ArrowUp className="w-4 h-4" />,      // N
-      <ArrowUpRight className="w-4 h-4" />, // NE
-      <ArrowRight className="w-4 h-4" />,   // E
-      <ArrowDownRight className="w-4 h-4" />, // SE
-      <ArrowDown className="w-4 h-4" />,    // S
-      <ArrowDownLeft className="w-4 h-4" />, // SW
-      <ArrowLeft className="w-4 h-4" />,    // W
-      <ArrowUpLeft className="w-4 h-4" />   // NW
+      <ArrowUp key="N" className="w-4 h-4" />,      // N
+      <ArrowUpRight key="NE" className="w-4 h-4" />, // NE
+      <ArrowRight key="E" className="w-4 h-4" />,   // E
+      <ArrowDownRight key="SE" className="w-4 h-4" />, // SE
+      <ArrowDown key="S" className="w-4 h-4" />,    // S
+      <ArrowDownLeft key="SW" className="w-4 h-4" />, // SW
+      <ArrowLeft key="W" className="w-4 h-4" />,    // W
+      <ArrowUpLeft key="NW" className="w-4 h-4" />   // NW
     ]
     return arrows[Math.round(direction / 45) % 8]
   }
 
   // Helper to get tide height at specific time
   const getTideHeightAtTime = (timestamp: number) => {
-    if (!tideData || !tideData.predictions) return null
+    if (!tideData || !tideData.waterLevels || tideData.waterLevels.length === 0) return null
 
-    // Find the closest tide prediction
-    const closestPrediction = tideData.predictions.reduce((prev, curr) => {
-      const prevDiff = Math.abs(prev.time - timestamp)
-      const currDiff = Math.abs(curr.time - timestamp)
+    // Find the closest water level reading
+    const closestWaterLevel = tideData.waterLevels.reduce((prev, curr) => {
+      const prevDiff = Math.abs(prev.timestamp - timestamp)
+      const currDiff = Math.abs(curr.timestamp - timestamp)
       return currDiff < prevDiff ? curr : prev
     })
 
-    return closestPrediction
+    return closestWaterLevel
   }
 
   // Get hourly data for the table (every 3 hours for full day - 8 rows)
@@ -74,13 +74,10 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
         const windDir = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(data.windDirection / 45) % 8]
 
         // Get tide info for this time
-        const tidePrediction = getTideHeightAtTime(data.timestamp)
-        const tideHeight = tidePrediction ? tidePrediction.height.toFixed(1) : '--'
-        const tideRising = tidePrediction ?
-          (tidePrediction.time > data.timestamp ?
-            (tidePrediction.type === 'high') :
-            !(tidePrediction.type === 'high')
-          ) : undefined
+        const tideWaterLevel = getTideHeightAtTime(data.timestamp)
+        const tideHeight = tideWaterLevel ? tideWaterLevel.height.toFixed(1) : '--'
+        // Use the isRising property from tideData if available
+        const tideRising = tideData?.isRising
 
         return {
           time: displayHour,
@@ -98,14 +95,14 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
         }
       })
     : [
-        { time: '12:00 AM', score: 4, wind: '5 E', temp: '58°', precip: '0' },
-        { time: '3:00 AM', score: 6, wind: '6 E', temp: '56°', precip: '0' },
-        { time: '6:00 AM', score: 9, wind: '6 E', temp: '62°', precip: '0' },
-        { time: '9:00 AM', score: 10, wind: '8 E', temp: '68°', precip: '5' },
-        { time: '12:00 PM', score: 5, wind: '10 E', temp: '72°', precip: '10' },
-        { time: '3:00 PM', score: 6, wind: '12 E', temp: '74°', precip: '5' },
-        { time: '6:00 PM', score: 5, wind: '8 E', temp: '70°', precip: '0' },
-        { time: '9:00 PM', score: 7, wind: '6 E', temp: '65°', precip: '0' }
+        { time: '12:00 AM', timestamp: Date.now()/1000, score: 4, windSpeed: 5, windDir: 'E', windDirection: 90, temp: 58, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: '1.2', tideRising: true },
+        { time: '3:00 AM', timestamp: Date.now()/1000+10800, score: 6, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 56, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: '1.5', tideRising: true },
+        { time: '6:00 AM', timestamp: Date.now()/1000+21600, score: 9, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 62, precip: 0, weatherCode: 1, pressure: 1014, tideHeight: '1.8', tideRising: false },
+        { time: '9:00 AM', timestamp: Date.now()/1000+32400, score: 10, windSpeed: 8, windDir: 'E', windDirection: 90, temp: 68, precip: 5, weatherCode: 2, pressure: 1014, tideHeight: '1.5', tideRising: false },
+        { time: '12:00 PM', timestamp: Date.now()/1000+43200, score: 5, windSpeed: 10, windDir: 'E', windDirection: 90, temp: 72, precip: 10, weatherCode: 3, pressure: 1013, tideHeight: '1.2', tideRising: false },
+        { time: '3:00 PM', timestamp: Date.now()/1000+54000, score: 6, windSpeed: 12, windDir: 'E', windDirection: 90, temp: 74, precip: 5, weatherCode: 2, pressure: 1012, tideHeight: '1.0', tideRising: true },
+        { time: '6:00 PM', timestamp: Date.now()/1000+64800, score: 5, windSpeed: 8, windDir: 'E', windDirection: 90, temp: 70, precip: 0, weatherCode: 1, pressure: 1012, tideHeight: '1.3', tideRising: true },
+        { time: '9:00 PM', timestamp: Date.now()/1000+75600, score: 7, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 65, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: '1.6', tideRising: false }
       ]
 
   const getScoreColor = (score: number) => {

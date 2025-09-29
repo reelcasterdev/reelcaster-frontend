@@ -6,7 +6,7 @@ import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from './utils/openMeteo
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from './utils/fishingCalculations'
 import { fetchCHSTideData, CHSWaterData } from './utils/chsTideApi'
 import ForecastCacheService from './utils/forecastCacheService'
-import ModernLoadingState from './components/common/modern-loading-state'
+// import ModernLoadingState from './components/common/modern-loading-state'
 import ErrorState from './components/common/error-state'
 
 // Component imports
