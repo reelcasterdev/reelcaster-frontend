@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Compass, Fish, BookOpen, Calendar, Image, Menu, X, Clock } from 'lucide-react'
+import { MapPin, Fish, Menu, X, FileText, Calendar } from 'lucide-react'
 import { AuthButton } from '../auth/auth-button'
 
 interface NavItem {
@@ -21,31 +21,17 @@ export default function Sidebar() {
 
   const navItems: NavItem[] = [
     {
-      id: 'dashboard',
-      label: 'Dashboard',
+      id: 'reports',
+      label: 'Reports',
       href: '/',
-      icon: <MapPin className="w-5 h-5" />,
+      icon: <FileText className="w-5 h-5" />,
       isActive: true,
     },
     {
-      id: 'historical-reports',
-      label: 'Historical Reports',
-      href: '/historical-reports',
-      icon: <Clock className="w-5 h-5" />,
-      isActive: true,
-    },
-    {
-      id: 'my-spots',
-      label: 'My Spots',
+      id: 'favorite-spots',
+      label: 'Favorite Spots',
       href: '#',
       icon: <MapPin className="w-5 h-5" />,
-      isActive: false,
-    },
-    {
-      id: 'explore',
-      label: 'Explore',
-      href: '#',
-      icon: <Compass className="w-5 h-5" />,
       isActive: false,
     },
     {
@@ -56,24 +42,10 @@ export default function Sidebar() {
       isActive: false,
     },
     {
-      id: 'logbook',
-      label: 'Logbook',
-      href: '#',
-      icon: <BookOpen className="w-5 h-5" />,
-      isActive: false,
-    },
-    {
-      id: 'calendar',
-      label: 'Calendar',
+      id: '14-day-report',
+      label: '14 Day Report',
       href: '#',
       icon: <Calendar className="w-5 h-5" />,
-      isActive: false,
-    },
-    {
-      id: 'photo-gallery',
-      label: 'Photo Gallery',
-      href: '#',
-      icon: <Image className="w-5 h-5" />,
       isActive: false,
     },
   ]

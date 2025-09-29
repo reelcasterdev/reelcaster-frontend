@@ -35,10 +35,14 @@ export default function OverallScore({ forecasts, selectedDay = 0 }: OverallScor
           {dayScore}
           <span className="text-3xl text-slate-400 font-normal">/10</span>
         </div>
-        
-        <div className="text-lg text-slate-300 font-medium">
+
+        <div className="text-lg text-slate-300 font-medium mb-3">
           {getScoreLabel(dayScore)}
         </div>
+
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Takes into account tides, wind, weather, current and local intel
+        </p>
       </div>
     </div>
   )

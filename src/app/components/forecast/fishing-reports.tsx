@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Info, MapPin, Fish, RefreshCw, ExternalLink } from 'lucide-react'
+import { Info, MapPin, Fish, RefreshCw } from 'lucide-react'
 import { fetchFishingReports } from '../../utils/fishingReportsApi'
 import { useSearchParams } from 'next/navigation'
 
@@ -125,21 +125,11 @@ export default function FishingReports() {
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <span className="text-slate-400 text-xs font-medium">{report.source}</span>
                         <span className="text-slate-500 text-xs">{report.time}</span>
-                        {report.location && report.source.includes('iNaturalist') && (
-                          <a
-                            href={`https://www.inaturalist.org/observations/${report.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"
-                          >
-                            <span>View</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
                       </div>
                     </div>
                     {report.imageUrl && (
                       <div className="flex-shrink-0 hidden sm:block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={report.imageUrl}
                           alt={report.species || 'Fish observation'}
@@ -162,7 +152,7 @@ export default function FishingReports() {
             
             <div className="mt-4 pt-4 border-t border-slate-700">
               <p className="text-xs text-slate-500 text-center">
-                Data from iNaturalist & local sources
+                Data from local sources
               </p>
             </div>
           </div>
