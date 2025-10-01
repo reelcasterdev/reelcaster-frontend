@@ -21,6 +21,9 @@ export interface AreaRegulations {
   areaName: string
   url: string
   lastUpdated: string
+  lastVerified: string
+  nextReviewDate: string
+  dataSource: string
   species: SpeciesRegulation[]
   generalRules: string[]
   protectedAreas?: string[]

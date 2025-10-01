@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import RegulationsWarningBanner from './regulations-warning-banner'
 
 interface FishSpecies {
   id: string
@@ -20,9 +21,16 @@ interface FishSpecies {
 interface SpeciesRegulationsProps {
   species: FishSpecies[]
   areaUrl?: string
+  lastVerified?: string
+  nextReviewDate?: string
 }
 
-export default function SpeciesRegulations({ species, areaUrl }: SpeciesRegulationsProps) {
+export default function SpeciesRegulations({
+  species,
+  areaUrl,
+  lastVerified,
+  nextReviewDate
+}: SpeciesRegulationsProps) {
   const [expandedSpecies, setExpandedSpecies] = useState<string | null>(null)
   const [showAllSpecies, setShowAllSpecies] = useState(false)
 
@@ -63,6 +71,14 @@ export default function SpeciesRegulations({ species, areaUrl }: SpeciesRegulati
           </a>
         )}
       </div>
+
+      {lastVerified && nextReviewDate && areaUrl && (
+        <RegulationsWarningBanner
+          lastVerified={lastVerified}
+          nextReviewDate={nextReviewDate}
+          officialUrl={areaUrl}
+        />
+      )}
       
       <div className="space-y-2">
         {displayedSpecies.map((fish) => (

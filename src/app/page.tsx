@@ -369,6 +369,8 @@ function NewForecastContent() {
                     <SpeciesRegulations
                       species={getRegulationsByLocation(selectedLocation)?.species || []}
                       areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+                      lastVerified={getRegulationsByLocation(selectedLocation)?.lastVerified}
+                      nextReviewDate={getRegulationsByLocation(selectedLocation)?.nextReviewDate}
                     />
                   </div>
 
@@ -410,6 +412,8 @@ function NewForecastContent() {
                   <SpeciesRegulations
                     species={getRegulationsByLocation(selectedLocation)?.species || []}
                     areaUrl={getRegulationsByLocation(selectedLocation)?.url}
+                    lastVerified={getRegulationsByLocation(selectedLocation)?.lastVerified}
+                    nextReviewDate={getRegulationsByLocation(selectedLocation)?.nextReviewDate}
                   />
 
                   {/* Reports */}
