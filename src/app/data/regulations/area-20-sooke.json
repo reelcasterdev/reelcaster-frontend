@@ -2,20 +2,24 @@
   "areaId": "20",
   "areaName": "Sooke",
   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s20-eng.html",
-  "lastUpdated": "2025-07-31",
+  "lastUpdated": "2025-10-02",
+  "lastVerified": "2025-10-02",
+  "nextReviewDate": "2025-11-02",
+  "dataSource": "DFO Pacific Region",
   "species": [
     {
       "id": "chinook-salmon",
       "name": "Chinook Salmon",
       "scientificName": "Oncorhynchus tshawytscha",
-      "dailyLimit": "1",
+      "dailyLimit": "2",
       "annualLimit": "10",
       "minSize": "45cm",
-      "status": "Open",
+      "status": "Restricted",
       "gear": "Barbless hook and line",
       "season": "Year-round",
       "notes": [
-        "Combined hatchery and wild",
+        "Subareas 20-1 to 20-5: 2 daily limit",
+        "Subareas 20-6 and 20-7: 0 retention (closed)",
         "Must have salmon conservation stamp",
         "Must record retained catch immediately"
       ]
@@ -24,12 +28,12 @@
       "id": "coho-salmon",
       "name": "Coho Salmon",
       "scientificName": "Oncorhynchus kisutch",
-      "dailyLimit": "2",
+      "dailyLimit": "4",
       "minSize": "30cm",
       "status": "Open",
       "gear": "Barbless hook and line",
       "season": "June - October",
-      "notes": ["Combined hatchery and wild"]
+      "notes": ["Max 4 hatchery-marked, 1 wild-unmarked"]
     },
     {
       "id": "chum-salmon",
@@ -66,12 +70,12 @@
       "scientificName": "Ophiodon elongatus",
       "dailyLimit": "3",
       "minSize": "65cm",
-      "status": "Open",
+      "status": "Restricted",
       "gear": "Angling, spear fishing while diving",
-      "season": "Year-round",
+      "season": "Varies by subarea",
       "notes": [
-        "Areas 20-1 to 20-4: Daily limit 3",
-        "Areas 20-5 to 20-7: Daily limit 1"
+        "Subareas 20-1 to 20-4: Daily limit 3",
+        "Subareas 20-5 to 20-7: Closed (0 retention)"
       ]
     },
     {
@@ -84,7 +88,22 @@
       "status": "Open",
       "gear": "Angling, spear fishing while diving",
       "season": "Year-round",
-      "notes": ["Head-on measurement"]
+      "notes": ["Head-on measurement", "78cm maximum head-off"]
+    },
+    {
+      "id": "rockfish",
+      "name": "Rockfish",
+      "scientificName": "Sebastes spp.",
+      "dailyLimit": "3",
+      "status": "Restricted",
+      "gear": "Hook and line",
+      "season": "Varies by subarea",
+      "notes": [
+        "Subareas 20-1 to 20-4: Daily limit 3",
+        "Subareas 20-5 to 20-7: Closed (0 retention)",
+        "Yelloweye Rockfish: 0 (Non-Retention)",
+        "Must use descender device for released fish"
+      ]
     }
   ],
   "generalRules": [

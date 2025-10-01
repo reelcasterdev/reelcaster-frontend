@@ -2,23 +2,27 @@
   "areaId": "19",
   "areaName": "Victoria, Sidney",
   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s19-eng.html",
-  "lastUpdated": "2025-07-31",
+  "lastUpdated": "2025-10-02",
+  "lastVerified": "2025-10-02",
+  "nextReviewDate": "2025-11-02",
+  "dataSource": "DFO Pacific Region",
   "species": [
     {
       "id": "chinook-salmon",
       "name": "Chinook Salmon",
       "scientificName": "Oncorhynchus tshawytscha",
-      "dailyLimit": "0-1",
+      "dailyLimit": "2",
       "annualLimit": "10",
       "minSize": "45cm",
-      "maxSize": "62cm",
       "status": "Restricted",
       "gear": "Barbless hook and line",
       "season": "Varies by subarea",
       "notes": [
+        "Subareas 19-1 to 19-4: 2 daily limit, 45cm minimum",
+        "Subareas 19-5 and 19-6: 2 daily limit, 62cm minimum",
+        "Subareas 19-7 to 19-12: 0 retention (closed)",
         "Must have salmon conservation stamp",
-        "Must record retained catch immediately",
-        "Only hatchery-marked fish allowed in some areas"
+        "Must record retained catch immediately"
       ]
     },
     {
@@ -40,7 +44,7 @@
       "status": "Open",
       "gear": "Barbless hook and line",
       "season": "June - October",
-      "notes": ["Hatchery-marked only"]
+      "notes": ["Max 2 hatchery-marked, 1 wild-unmarked"]
     },
     {
       "id": "pink-salmon",
@@ -83,18 +87,19 @@
       "minSize": "65cm",
       "status": "Open",
       "gear": "Hook and line",
-      "season": "Year-round",
-      "notes": ["Minimum fillet size 53cm head-off"]
+      "season": "May 1 - September 30",
+      "notes": ["Minimum fillet size 53cm head-off", "Seasonal closure outside May-September in inside waters"]
     },
     {
       "id": "rockfish",
       "name": "Rockfish",
       "scientificName": "Sebastes spp.",
-      "dailyLimit": "1",
-      "status": "Open",
+      "dailyLimit": "0",
+      "status": "Closed",
       "gear": "Hook and line",
-      "season": "Year-round",
+      "season": "Closed",
       "notes": [
+        "Most rockfish species are closed in Area 19",
         "Yelloweye Rockfish: 0 (Non-Retention)",
         "Must use descender device for released fish"
       ]
@@ -108,7 +113,7 @@
       "status": "Open",
       "gear": "Hook and line",
       "season": "Year-round",
-      "notes": ["Hatchery-marked only"]
+      "notes": ["Max 2 hatchery-marked, 0 wild-unmarked"]
     },
     {
       "id": "dungeness-crab",
@@ -119,7 +124,7 @@
       "status": "Open",
       "gear": "Trap, ring net, diving",
       "season": "Year-round",
-      "notes": ["No female crabs"]
+      "notes": ["Combined with Red Rock Crab (4 total)", "No female crabs", "Daylight hours only for setting/hauling traps"]
     },
     {
       "id": "red-rock-crab",
@@ -130,7 +135,7 @@
       "status": "Open",
       "gear": "Trap, ring net, diving",
       "season": "Year-round",
-      "notes": ["No female crabs"]
+      "notes": ["Combined with Dungeness Crab (4 total)", "No female crabs", "Daylight hours only for setting/hauling traps"]
     }
   ],
   "generalRules": [
