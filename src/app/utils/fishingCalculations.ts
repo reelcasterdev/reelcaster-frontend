@@ -283,6 +283,17 @@ export interface FishingScore {
     currentDirection: number // NEW: Current direction factor
     species: number // Species-specific adjustment
   }
+  // Species-specific fields
+  isSafe?: boolean
+  safetyWarnings?: string[]
+  isInSeason?: boolean // New field to track if fishing is in legal season
+  speciesFactors?: {
+    [key: string]: {
+      value: number
+      weight: number
+      score: number
+    }
+  } // Raw species-specific factors with actual weights
 }
 
 export interface MinutelyForecast {
@@ -327,6 +338,10 @@ export const calculateOpenMeteoFishingScore = (
   if (speciesName) {
     const speciesResult = calculateSpeciesSpecificScore(speciesName, minuteData, tideData || undefined)
     if (speciesResult) {
+      // Check if out of season based on seasonality score
+      const seasonalityScore = speciesResult.factors.seasonality?.score || 0.5
+      const isInSeason = seasonalityScore > 0.1 // Consider out of season if score is very low
+
       // Convert species result to FishingScore format
       return {
         total: Math.min(Math.max(speciesResult.total, 0), 10),
@@ -346,8 +361,12 @@ export const calculateOpenMeteoFishingScore = (
           tide: (speciesResult.factors.tidalRange?.score || speciesResult.factors.slackTide?.score || 0.5) * 10,
           currentSpeed: speciesResult.factors.currentFlow?.score * 10 || 5,
           currentDirection: 5, // Not separately tracked
-          species: speciesResult.factors.seasonality?.score * 10 || 5,
-        }
+          species: seasonalityScore * 10,
+        },
+        isSafe: speciesResult.isSafe,
+        safetyWarnings: speciesResult.safetyWarnings,
+        isInSeason: isInSeason,
+        speciesFactors: speciesResult.factors // Pass through the raw species factors with actual weights
       }
     }
   }
