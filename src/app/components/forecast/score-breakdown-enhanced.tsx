@@ -159,7 +159,7 @@ interface FactorRowProps {
   config: any // Pass the config directly instead of looking it up
 }
 
-function FactorRow({ factorKey, score, weight, contribution, actualValue, expanded, onToggle, config }: FactorRowProps) {
+function FactorRow({ score, weight, contribution, actualValue, expanded, onToggle, config }: FactorRowProps) {
   if (!config) return null
 
   const getScoreColor = (score: number) => {
