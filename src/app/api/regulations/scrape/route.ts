@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 // Initialize Supabase client with service role for admin operations
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function getSupabaseClient() {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase configuration missing')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
 
 interface ScrapedRegulationData {
   chinook?: {
@@ -39,6 +45,8 @@ interface ScrapedRegulationData {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient()
+
     // Verify authentication (check for cron secret or admin auth)
     const authHeader = request.headers.get('authorization')
     const cronSecret = request.headers.get('x-cron-secret')
@@ -82,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         // Parse regulations from HTML
         // For now, we'll use a simplified approach with pattern matching
-        const scrapedData = parseRegulationsFromHTML(html, area.id)
+        const scrapedData = parseRegulationsFromHTML(html)
 
         // Get current regulations for comparison
         const { data: currentReg } = await supabase
@@ -259,6 +267,7 @@ function detectChanges(current: any, scraped: ScrapedRegulationData): string[] {
  */
 export async function GET() {
   try {
+    const supabase = getSupabaseClient()
     const { data } = await supabase
       .from('scraped_regulations')
       .select('*')

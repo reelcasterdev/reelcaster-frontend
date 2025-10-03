@@ -21,7 +21,8 @@ function getSeasonalWeight(date: Date, peakMonths: number[]): number {
   return Math.max(0.3, 1.0 - (minDistance * 0.15))
 }
 
-// Helper function to calculate slack tide score
+// Helper function to calculate slack tide score (currently unused but kept for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getSlackTideScore(tideData?: CHSWaterData): number {
   if (!tideData) return 0.5
 
@@ -928,7 +929,6 @@ export function calculateRockfishScore(
   let isSafe = true
 
   const date = new Date(weather.timestamp)
-  const hour = date.getHours()
   const month = date.getMonth() + 1
 
   // 1. CURRENT FLOW - SLACK TIDE CRITICAL (35% weight)
@@ -1115,7 +1115,7 @@ export function calculateCrabScore(
   // Crabs less reliant on bait scent when they can forage visually in moonlight
   const moonPhase = getMoonPhase(date)
   const moonIllum = getMoonIllumination(moonPhase)
-  let moonScore = 1.0 - (moonIllum / 100)  // Inverted: darker = better
+  const moonScore = 1.0 - (moonIllum / 100)  // Inverted: darker = better
 
   factors['moonPhase'] = { value: moonPhase, weight: 0.15, score: moonScore }
 

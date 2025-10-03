@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function getSupabaseClient() {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase configuration missing')
+  }
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
 
 /**
  * POST /api/regulations/approve/[id]
@@ -11,10 +17,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const supabase = getSupabaseClient()
+    const { id } = await params
 
     // Get the scraped regulation
     const { data: scraped, error: fetchError } = await supabase
@@ -112,10 +119,11 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const supabase = getSupabaseClient()
+    const { id } = await params
 
     const { error } = await supabase
       .from('scraped_regulations')
