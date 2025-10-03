@@ -105,17 +105,6 @@
       ]
     },
     {
-      "id": "trout",
-      "name": "Trout",
-      "scientificName": "Oncorhynchus mykiss",
-      "dailyLimit": "2",
-      "minSize": "30cm",
-      "status": "Open",
-      "gear": "Hook and line",
-      "season": "Year-round",
-      "notes": ["Max 2 hatchery-marked, 0 wild-unmarked"]
-    },
-    {
       "id": "dungeness-crab",
       "name": "Dungeness Crab",
       "scientificName": "Metacarcinus magister",

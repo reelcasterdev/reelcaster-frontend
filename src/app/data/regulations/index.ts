@@ -67,3 +67,43 @@ export function getAllRegulations(): Record<string, AreaRegulations> {
 }
 
 export { area19Regulations, area20Regulations }
+
+/**
+ * Fetch regulations from API or static JSON
+ * Set NEXT_PUBLIC_USE_REGULATIONS_API=true to use API
+ */
+export async function fetchRegulations(areaId?: string): Promise<AreaRegulations[]> {
+  const useApi = process.env.NEXT_PUBLIC_USE_REGULATIONS_API === 'true'
+
+  if (useApi) {
+    try {
+      const url = areaId
+        ? `/api/regulations?area_id=${areaId}`
+        : '/api/regulations'
+
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error('API fetch failed')
+      }
+
+      const data = await response.json()
+      return Array.isArray(data) ? data : [data]
+    } catch (error) {
+      console.warn('API fetch failed, falling back to static data:', error)
+      // Fall through to static data
+    }
+  }
+
+  // Return static data
+  const staticData = [
+    areaRegulations['19'],
+    areaRegulations['20'],
+  ].filter(Boolean)
+
+  if (areaId) {
+    return staticData.filter((r) => r.areaId === areaId)
+  }
+
+  return staticData
+}

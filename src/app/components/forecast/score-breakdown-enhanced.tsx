@@ -156,10 +156,10 @@ interface FactorRowProps {
   actualValue?: any
   expanded: boolean
   onToggle: () => void
+  config: any // Pass the config directly instead of looking it up
 }
 
-function FactorRow({ factorKey, score, weight, contribution, actualValue, expanded, onToggle }: FactorRowProps) {
-  const config = FACTOR_CONFIG[factorKey as keyof typeof FACTOR_CONFIG]
+function FactorRow({ factorKey, score, weight, contribution, actualValue, expanded, onToggle, config }: FactorRowProps) {
   if (!config) return null
 
   const getScoreColor = (score: number) => {
@@ -240,7 +240,7 @@ function FactorRow({ factorKey, score, weight, contribution, actualValue, expand
             {/* Scoring Ranges */}
             <div className="space-y-2">
               <div className="text-xs font-medium text-slate-400 mb-1">Scoring Ranges:</div>
-              {config.scoring?.map((range, index) => (
+              {config.scoring?.map((range: any, index: number) => (
                 <div
                   key={index}
                   className={`flex items-center justify-between text-xs p-2 rounded ${
@@ -299,21 +299,112 @@ export default function ScoreBreakdownEnhanced({
   }
 
   // Process and sort factors
-  const processedFactors = Object.entries(score.breakdown)
-    .map(([key, value]) => {
-      const config = FACTOR_CONFIG[key as keyof typeof FACTOR_CONFIG]
-      if (!config) return null
+  // If species-specific factors are available, use them with actual weights
+  const processedFactors = score.speciesFactors
+    ? Object.entries(score.speciesFactors)
+        .map(([key, factorData]) => {
+          // Map species factor keys to UI config keys and create custom configs
+          const configKeyMap: {[key: string]: string} = {
+            'lightTime': 'timeOfDay',
+            'tidalRange': 'tide',
+            'slackTide': 'tide',
+            'currentFlow': 'currentSpeed',
+            'seasonality': 'species',
+            'soakTime': 'currentSpeed',
+            'moonPhase': 'tide',
+            'waterTemp': 'waterTemperature',
+            'pressure': 'pressure',
+            'wind': 'wind',
+            'precipitation': 'precipitation',
+            'waveHeight': 'tide',
+            'temperature': 'temperature',
+          }
 
-      return {
-        key,
-        value,
-        config,
-        weight: config.weight,
-        contribution: (value * config.weight) / 100,
-        actualValue: rawData?.[key] // Get actual value from raw data if available
-      }
-    })
-    .filter(Boolean) as any[]
+          const configKey = configKeyMap[key] || key
+          const baseConfig = FACTOR_CONFIG[configKey as keyof typeof FACTOR_CONFIG]
+
+          // Create custom config with species-specific name and actual weight
+          const customNameMap: {[key: string]: string} = {
+            'lightTime': 'Light/Time of Day',
+            'tidalRange': 'Tidal Range',
+            'slackTide': 'Slack Tide',
+            'currentFlow': 'Current Flow',
+            'seasonality': 'Seasonality',
+            'soakTime': 'Soak Time',
+            'moonPhase': 'Moon Phase',
+            'waterTemp': 'Water Temperature',
+            'pressure': 'Barometric Pressure',
+            'wind': 'Wind Speed',
+            'precipitation': 'Precipitation',
+            'waveHeight': 'Wave Height',
+            'temperature': 'Air Temperature',
+          }
+
+          const iconMap: {[key: string]: string} = {
+            'lightTime': '🕐',
+            'tidalRange': '🌊',
+            'slackTide': '🌊',
+            'currentFlow': '💨',
+            'seasonality': '📅',
+            'soakTime': '⏱️',
+            'moonPhase': '🌙',
+            'waterTemp': '💧',
+            'pressure': '🌡️',
+            'wind': '💨',
+            'precipitation': '🌧️',
+            'waveHeight': '🌊',
+            'temperature': '🌡️',
+          }
+
+          const unitMap: {[key: string]: string} = {
+            'lightTime': 'hour',
+            'tidalRange': 'm',
+            'slackTide': 'knots',
+            'currentFlow': 'knots',
+            'seasonality': 'month',
+            'soakTime': 'knots',
+            'moonPhase': 'phase',
+            'waterTemp': '°C',
+            'pressure': 'hPa',
+            'wind': 'km/h',
+            'precipitation': 'mm/hr',
+            'waveHeight': 'm',
+            'temperature': '°C',
+          }
+
+          const finalConfig = {
+            name: customNameMap[key] || (key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')),
+            icon: iconMap[key] || '📊',
+            weight: Math.round(factorData.weight * 100),
+            unit: unitMap[key] || baseConfig?.unit || '',
+            scoring: baseConfig?.scoring || []
+          }
+
+          return {
+            key,
+            value: factorData.score * 10, // Convert 0-1 score to 0-10
+            config: finalConfig,
+            weight: Math.round(factorData.weight * 100), // Use actual weight from species algorithm
+            contribution: factorData.score * factorData.weight * 10, // Calculate actual contribution
+            actualValue: factorData.value // Use the actual measured value
+          }
+        })
+        .filter(Boolean) as any[]
+    : Object.entries(score.breakdown)
+        .map(([key, value]) => {
+          const config = FACTOR_CONFIG[key as keyof typeof FACTOR_CONFIG]
+          if (!config) return null
+
+          return {
+            key,
+            value,
+            config,
+            weight: config.weight,
+            contribution: (value * config.weight) / 100,
+            actualValue: rawData?.[key] // Get actual value from raw data if available
+          }
+        })
+        .filter(Boolean) as any[]
 
   const sortedFactors = processedFactors.sort((a, b) => b.contribution - a.contribution)
   const topFactors = sortedFactors.slice(0, 5)
@@ -435,6 +526,7 @@ export default function ScoreBreakdownEnhanced({
             actualValue={factor.actualValue}
             expanded={expandedFactors.has(factor.key)}
             onToggle={() => toggleFactor(factor.key)}
+            config={factor.config}
           />
         ))}
 

@@ -23,6 +23,7 @@ import { TideChart } from './components/forecast/tide-chart'
 import { TideStatusWidget } from './components/forecast/tide-status-widget'
 import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
+import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
@@ -276,6 +277,13 @@ function NewForecastContent() {
             isCachedData={isCachedData}
             isRefreshing={isRefreshing}
             cacheInfo={cacheInfo}
+          />
+
+          {/* Seasonal Status Banner - Show when species is out of season */}
+          <SeasonalStatusBanner
+            forecasts={forecastData}
+            species={species}
+            selectedDay={selectedDay}
           />
 
           {/* Show error if there is one */}
