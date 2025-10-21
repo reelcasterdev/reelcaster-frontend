@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, MapPin, Fish } from 'lucide-react'
+import { getRegulationsByLocation } from '@/app/data/regulations'
 
 interface FishingHotspot {
   name: string
@@ -22,7 +23,7 @@ interface FishSpecies {
   scientificName: string
   minSize: string
   dailyLimit: string
-  status: 'Open' | 'Closed' | 'Non Retention'
+  status: 'Open' | 'Closed' | 'Non Retention' | 'Restricted'
   gear: string
   season: string
   description: string
@@ -56,107 +57,26 @@ const fishingLocations: FishingLocation[] = [
   },
 ]
 
-const fishSpecies: FishSpecies[] = [
-  {
-    id: 'chinook-salmon',
-    name: 'Chinook Salmon',
-    scientificName: 'Oncorhynchus tshawytscha',
-    minSize: '62cm',
-    dailyLimit: '0',
-    status: 'Non Retention',
-    gear: 'Barbless hook and line',
-    season: 'Year-round (varies by area)',
-    description: 'King salmon, largest Pacific salmon species',
-  },
-  {
-    id: 'chum-salmon',
-    name: 'Chum Salmon',
-    scientificName: 'Oncorhynchus keta',
-    minSize: '30cm',
-    dailyLimit: '0',
-    status: 'Non Retention',
-    gear: 'Barbless hook and line',
-    season: 'September - December',
-    description: 'Dog salmon, spawning runs in fall',
-  },
-  {
-    id: 'coho-salmon',
-    name: 'Coho Salmon (hatchery and wild combined)',
-    scientificName: 'Oncorhynchus kisutch',
-    minSize: '30cm',
-    dailyLimit: '2',
-    status: 'Open',
-    gear: 'Barbless hook and line',
-    season: 'June - October',
-    description: 'Silver salmon, excellent fighting fish',
-  },
-  {
-    id: 'pink-salmon',
-    name: 'Pink Salmon',
-    scientificName: 'Oncorhynchus gorbuscha',
-    minSize: '30cm',
-    dailyLimit: '4',
-    status: 'Open',
-    gear: 'Barbless hook and line',
-    season: 'July - September (odd years)',
-    description: 'Humpy salmon, abundant in odd years',
-  },
-  {
-    id: 'sockeye-salmon',
-    name: 'Sockeye Salmon',
-    scientificName: 'Oncorhynchus nerka',
-    minSize: '30cm',
-    dailyLimit: '0',
-    status: 'Non Retention',
-    gear: 'Barbless hook and line',
-    season: 'June - August',
-    description: 'Red salmon, prized for eating quality',
-  },
-  {
-    id: 'halibut',
-    name: 'Halibut',
-    scientificName: 'Hippoglossus stenolepis',
-    minSize: '83cm',
-    dailyLimit: '1',
-    status: 'Open',
-    gear: 'Hook and line',
-    season: 'Year-round',
-    description: 'Large flatfish, excellent table fare',
-  },
-  {
-    id: 'lingcod',
-    name: 'Lingcod',
-    scientificName: 'Ophiodon elongatus',
-    minSize: '65cm',
-    dailyLimit: '1',
-    status: 'Open',
-    gear: 'Hook and line',
-    season: 'Year-round',
-    description: 'Large predatory fish, great eating',
-  },
-  {
-    id: 'rockfish',
-    name: 'Rockfish',
-    scientificName: 'Sebastes spp.',
-    minSize: 'Varies by species',
-    dailyLimit: '5 combined',
-    status: 'Open',
-    gear: 'Hook and line',
-    season: 'Year-round (some restrictions)',
-    description: 'Bottom dwelling fish, many species',
-  },
-  {
-    id: 'greenling',
-    name: 'Greenling',
-    scientificName: 'Hexagrammos spp.',
-    minSize: '23cm',
-    dailyLimit: '15',
-    status: 'Open',
-    gear: 'Hook and line',
-    season: 'Year-round',
-    description: 'Common nearshore fish, good eating',
-  },
-]
+// This will be populated based on the selected location
+const getFishSpeciesForLocation = (locationName: string): FishSpecies[] => {
+  const regulations = getRegulationsByLocation(locationName)
+
+  if (!regulations || !regulations.species) {
+    return []
+  }
+
+  return regulations.species.map(species => ({
+    id: species.id,
+    name: species.name,
+    scientificName: species.scientificName || 'N/A',
+    minSize: species.minSize || 'N/A',
+    dailyLimit: species.dailyLimit,
+    status: species.status as 'Open' | 'Closed' | 'Non Retention' | 'Restricted',
+    gear: species.gear,
+    season: species.season,
+    description: `${species.name} - ${species.scientificName || 'N/A'}`,
+  }))
+}
 
 interface CompactLocationSelectorProps {
   onLocationChange?: () => void
@@ -170,6 +90,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
   const [selectedLocation, setSelectedLocation] = useState<string>('')
   const [selectedHotspot, setSelectedHotspot] = useState<string>('')
   const [selectedSpecies, setSelectedSpecies] = useState<string>('')
+  const [fishSpecies, setFishSpecies] = useState<FishSpecies[]>([])
 
   // Dropdown states
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
@@ -202,6 +123,14 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
 
   const currentLocation = fishingLocations.find(loc => loc.id === selectedLocation)
   const currentSpecies = fishSpecies.find(species => species.id === selectedSpecies)
+
+  // Update fish species when location changes
+  useEffect(() => {
+    if (currentLocation) {
+      const species = getFishSpeciesForLocation(currentLocation.name)
+      setFishSpecies(species)
+    }
+  }, [currentLocation])
 
   const handleLocationChange = (locationId: string) => {
     setSelectedLocation(locationId)
@@ -270,6 +199,8 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
         return 'text-red-400'
       case 'Non Retention':
         return 'text-yellow-400'
+      case 'Restricted':
+        return 'text-orange-400'
       default:
         return 'text-gray-400'
     }
