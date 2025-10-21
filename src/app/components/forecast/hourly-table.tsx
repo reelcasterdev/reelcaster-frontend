@@ -2,6 +2,7 @@ import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { CHSWaterData } from '../../utils/chsTideApi'
 import { Cloud, CloudRain, CloudSnow, Sun, CloudDrizzle, Wind, ArrowUp, ArrowUpRight, ArrowRight, ArrowDownRight, ArrowDown, ArrowDownLeft, ArrowLeft, ArrowUpLeft, TrendingUp, TrendingDown } from 'lucide-react'
+import { ConvertibleValue } from '../common/convertible-value'
 
 interface HourlyTableProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -75,7 +76,7 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
 
         // Get tide info for this time
         const tideWaterLevel = getTideHeightAtTime(data.timestamp)
-        const tideHeight = tideWaterLevel ? tideWaterLevel.height.toFixed(1) : '--'
+        const tideHeight = tideWaterLevel ? tideWaterLevel.height : null
         // Use the isRising property from tideData if available
         const tideRising = tideData?.isRising
 
@@ -83,11 +84,12 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
           time: displayHour,
           timestamp: data.timestamp,
           score: Math.round(score?.score || 5),
-          windSpeed: Math.round(data.windSpeed),
+          windSpeed: data.windSpeed,
           windDir: windDir,
           windDirection: data.windDirection,
-          temp: Math.round(data.temp),
-          precip: Math.round(data.precipitation),
+          temp: data.temp,
+          precipProb: data.precipitationProbability,
+          precip: data.precipitation,
           weatherCode: data.weatherCode,
           pressure: Math.round(data.pressure),
           tideHeight: tideHeight,
@@ -95,14 +97,14 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
         }
       })
     : [
-        { time: '12:00 AM', timestamp: Date.now()/1000, score: 4, windSpeed: 5, windDir: 'E', windDirection: 90, temp: 58, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: '1.2', tideRising: true },
-        { time: '3:00 AM', timestamp: Date.now()/1000+10800, score: 6, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 56, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: '1.5', tideRising: true },
-        { time: '6:00 AM', timestamp: Date.now()/1000+21600, score: 9, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 62, precip: 0, weatherCode: 1, pressure: 1014, tideHeight: '1.8', tideRising: false },
-        { time: '9:00 AM', timestamp: Date.now()/1000+32400, score: 10, windSpeed: 8, windDir: 'E', windDirection: 90, temp: 68, precip: 5, weatherCode: 2, pressure: 1014, tideHeight: '1.5', tideRising: false },
-        { time: '12:00 PM', timestamp: Date.now()/1000+43200, score: 5, windSpeed: 10, windDir: 'E', windDirection: 90, temp: 72, precip: 10, weatherCode: 3, pressure: 1013, tideHeight: '1.2', tideRising: false },
-        { time: '3:00 PM', timestamp: Date.now()/1000+54000, score: 6, windSpeed: 12, windDir: 'E', windDirection: 90, temp: 74, precip: 5, weatherCode: 2, pressure: 1012, tideHeight: '1.0', tideRising: true },
-        { time: '6:00 PM', timestamp: Date.now()/1000+64800, score: 5, windSpeed: 8, windDir: 'E', windDirection: 90, temp: 70, precip: 0, weatherCode: 1, pressure: 1012, tideHeight: '1.3', tideRising: true },
-        { time: '9:00 PM', timestamp: Date.now()/1000+75600, score: 7, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 65, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: '1.6', tideRising: false }
+        { time: '12:00 AM', timestamp: Date.now()/1000, score: 4, windSpeed: 5, windDir: 'E', windDirection: 90, temp: 14, precipProb: 5, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: 1.2, tideRising: true },
+        { time: '3:00 AM', timestamp: Date.now()/1000+10800, score: 6, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 13, precipProb: 10, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: 1.5, tideRising: true },
+        { time: '6:00 AM', timestamp: Date.now()/1000+21600, score: 9, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 17, precipProb: 15, precip: 0, weatherCode: 1, pressure: 1014, tideHeight: 1.8, tideRising: false },
+        { time: '9:00 AM', timestamp: Date.now()/1000+32400, score: 10, windSpeed: 8, windDir: 'E', windDirection: 90, temp: 20, precipProb: 20, precip: 0.5, weatherCode: 2, pressure: 1014, tideHeight: 1.5, tideRising: false },
+        { time: '12:00 PM', timestamp: Date.now()/1000+43200, score: 5, windSpeed: 10, windDir: 'E', windDirection: 90, temp: 22, precipProb: 40, precip: 1.0, weatherCode: 3, pressure: 1013, tideHeight: 1.2, tideRising: false },
+        { time: '3:00 PM', timestamp: Date.now()/1000+54000, score: 6, windSpeed: 12, windDir: 'E', windDirection: 90, temp: 23, precipProb: 30, precip: 0.5, weatherCode: 2, pressure: 1012, tideHeight: 1.0, tideRising: true },
+        { time: '6:00 PM', timestamp: Date.now()/1000+64800, score: 5, windSpeed: 8, windDir: 'E', windDirection: 90, temp: 21, precipProb: 10, precip: 0, weatherCode: 1, pressure: 1012, tideHeight: 1.3, tideRising: true },
+        { time: '9:00 PM', timestamp: Date.now()/1000+75600, score: 7, windSpeed: 6, windDir: 'E', windDirection: 90, temp: 18, precipProb: 5, precip: 0, weatherCode: 0, pressure: 1013, tideHeight: 1.6, tideRising: false }
       ]
 
   const getScoreColor = (score: number) => {
@@ -197,8 +199,7 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
               {hourlyTableData.map((row, index) => (
                 <div key={index} className="flex-1 p-3 border-l border-slate-700">
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-slate-300 text-sm font-medium">{row.windSpeed}</span>
-                    <span className="text-slate-500 text-xs">km/h</span>
+                    <ConvertibleValue value={row.windSpeed} type="wind" sourceUnit="kph" className="text-slate-300 text-sm font-medium" />
                     {getWindArrow(row.windDirection)}
                     <span className="text-slate-500 text-xs">{row.windDir}</span>
                   </div>
@@ -217,8 +218,11 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
               {hourlyTableData.map((row, index) => (
                 <div key={index} className="flex-1 p-3 border-l border-slate-700">
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-slate-300 text-sm font-medium">{row.tideHeight}</span>
-                    <span className="text-slate-500 text-xs">m</span>
+                    {row.tideHeight !== null ? (
+                      <ConvertibleValue value={row.tideHeight} type="height" sourceUnit="m" className="text-slate-300 text-sm font-medium" />
+                    ) : (
+                      <span className="text-slate-500 text-sm">--</span>
+                    )}
                     {row.tideRising !== undefined && (
                       row.tideRising ?
                       <TrendingUp className="w-4 h-4 text-blue-400" /> :
@@ -238,8 +242,8 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
             </div>
             <div className="flex flex-1">
               {hourlyTableData.map((row, index) => (
-                <div key={index} className="flex-1 p-3 text-center text-slate-300 text-sm border-l border-slate-700">
-                  {row.temp}°C
+                <div key={index} className="flex-1 p-3 text-center border-l border-slate-700">
+                  <ConvertibleValue value={row.temp} type="temp" sourceUnit="C" className="text-slate-300 text-sm" />
                 </div>
               ))}
             </div>
@@ -254,9 +258,20 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
             <div className="flex flex-1">
               {hourlyTableData.map((row, index) => (
                 <div key={index} className="flex-1 p-3 text-center border-l border-slate-700">
-                  <span className={`text-sm ${row.precip > 50 ? 'text-blue-400 font-semibold' : 'text-slate-300'}`}>
-                    {row.precip}%
+                  <span className={`text-sm ${row.precipProb > 50 ? 'text-blue-400 font-semibold' : 'text-slate-300'}`}>
+                    {row.precipProb}%
                   </span>
+                  {row.precip > 0 && (
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      <ConvertibleValue
+                        value={row.precip}
+                        type="precip"
+                        sourceUnit="mm"
+                        precision={1}
+                        className="text-slate-500"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

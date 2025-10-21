@@ -2,11 +2,11 @@
 
 import React from 'react'
 import { CHSWaterData } from '@/app/utils/chsTideApi'
-import { 
-  Waves, 
-  TrendingUp, 
-  TrendingDown, 
-  Activity, 
+import {
+  Waves,
+  TrendingUp,
+  TrendingDown,
+  Activity,
   Droplets,
   Clock,
   Compass,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { ConvertibleValue } from '../common/convertible-value'
 
 interface TideStatusWidgetProps {
   tideData?: CHSWaterData | null
@@ -60,7 +61,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Waves className="h-4 w-4 text-slate-400" />
-            <span className="text-sm font-medium text-white">{(currentHeight * 3.28084).toFixed(1)}ft</span>
+            <ConvertibleValue value={currentHeight} type="height" sourceUnit="m" className="text-sm font-medium text-white" />
             {isRising ? (
               <TrendingUp className="h-3 w-3 text-green-400" />
             ) : (
@@ -96,7 +97,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
           <div>
             <div className="text-slate-400 text-sm mb-1">Current Height</div>
             <div className="flex items-center gap-2">
-              <span className="text-white text-2xl font-bold">{(currentHeight * 3.28084).toFixed(1)}ft</span>
+              <ConvertibleValue value={currentHeight} type="height" sourceUnit="m" className="text-white text-2xl font-bold" />
               {isRising ? (
                 <TrendingUp className="h-5 w-5 text-green-400" />
               ) : (
@@ -108,7 +109,8 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
             <div className="text-slate-400 text-sm mb-1">Change Rate</div>
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-slate-400" />
-              <span className="text-white text-xl font-semibold">{(changeRate * 3.28084).toFixed(2)}ft/hr</span>
+              <ConvertibleValue value={changeRate} type="height" sourceUnit="m" precision={2} className="text-white text-xl font-semibold" />
+              <span className="text-slate-400 text-sm">/hr</span>
             </div>
           </div>
         </div>
@@ -129,9 +131,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
               {format(new Date(nextTide.timestamp * 1000), 'HH:mm')}
             </span>
             {nextTide.height > 0 && (
-              <span className="text-sm text-slate-400">
-                {(nextTide.height * 3.28084).toFixed(1)}ft
-              </span>
+              <ConvertibleValue value={nextTide.height} type="height" sourceUnit="m" className="text-sm text-slate-400" />
             )}
           </div>
           <div className="mt-2">
@@ -155,7 +155,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
                 <Gauge className="h-4 w-4 text-slate-400" />
                 <p className="text-sm text-slate-400">Current Speed</p>
               </div>
-              <p className="text-white text-xl font-semibold">{currentSpeed.toFixed(1)} knots</p>
+              <ConvertibleValue value={currentSpeed} type="wind" sourceUnit="knots" precision={1} className="text-white text-xl font-semibold" />
             </div>
             {currentDirection !== undefined && (
               <div>
@@ -173,7 +173,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         <div className="grid grid-cols-2 gap-6">
           <div>
             <div className="text-slate-400 text-sm mb-1">Tidal Range</div>
-            <div className="text-white text-xl font-semibold">{(tidalRange * 3.28084).toFixed(1)}ft</div>
+            <ConvertibleValue value={tidalRange} type="height" sourceUnit="m" className="text-white text-xl font-semibold" />
           </div>
           {waterTemp !== undefined && (
             <div>
@@ -181,7 +181,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
                 <Droplets className="h-4 w-4 text-slate-400" />
                 <p className="text-sm text-slate-400">Water Temp</p>
               </div>
-              <p className="text-white text-xl font-semibold">{waterTemp.toFixed(1)}°C</p>
+              <ConvertibleValue value={waterTemp} type="temp" sourceUnit="C" precision={1} className="text-white text-xl font-semibold" />
             </div>
           )}
         </div>

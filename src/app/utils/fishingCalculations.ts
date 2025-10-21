@@ -976,6 +976,7 @@ export const generateOpenMeteoDailyForecasts = (
           dewPoint: segments.reduce((sum, seg) => sum + seg.dewPoint, 0) / segments.length,
           apparentTemp: segments.reduce((sum, seg) => sum + seg.apparentTemp, 0) / segments.length,
           precipitation: maxPrecipitation,
+          precipitationProbability: Math.max(...segments.map(seg => seg.precipitationProbability)),
           weatherCode: weatherCode,
           pressure: avgPressure,
           cloudCover: avgCloudCover,
