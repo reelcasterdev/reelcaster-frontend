@@ -1,0 +1,151 @@
+// Unit type definitions
+export type WindUnit = 'kph' | 'mph' | 'knots'
+export type TempUnit = 'C' | 'F'
+export type PrecipUnit = 'mm' | 'inches'
+export type HeightUnit = 'ft' | 'm'
+export type MetricType = 'wind' | 'temp' | 'precip' | 'height'
+
+// Unit cycle orders
+export const WIND_UNITS: WindUnit[] = ['kph', 'mph', 'knots']
+export const TEMP_UNITS: TempUnit[] = ['C', 'F']
+export const PRECIP_UNITS: PrecipUnit[] = ['mm', 'inches']
+export const HEIGHT_UNITS: HeightUnit[] = ['m', 'ft']
+
+// Get next unit in cycle
+export function getNextUnit(currentUnit: WindUnit | TempUnit | PrecipUnit | HeightUnit, type: MetricType): string {
+  let units: string[]
+  switch (type) {
+    case 'wind':
+      units = WIND_UNITS
+      break
+    case 'temp':
+      units = TEMP_UNITS
+      break
+    case 'precip':
+      units = PRECIP_UNITS
+      break
+    case 'height':
+      units = HEIGHT_UNITS
+      break
+    default:
+      return currentUnit
+  }
+
+  const currentIndex = units.indexOf(currentUnit)
+  const nextIndex = (currentIndex + 1) % units.length
+  return units[nextIndex]
+}
+
+// Wind conversion functions
+export function convertWind(value: number, from: WindUnit, to: WindUnit): number {
+  if (from === to) return value
+
+  // Convert to kph first (base unit)
+  let kph: number
+  switch (from) {
+    case 'kph':
+      kph = value
+      break
+    case 'mph':
+      kph = value * 1.60934
+      break
+    case 'knots':
+      kph = value * 1.852
+      break
+  }
+
+  // Convert from kph to target unit
+  switch (to) {
+    case 'kph':
+      return kph
+    case 'mph':
+      return kph / 1.60934
+    case 'knots':
+      return kph / 1.852
+  }
+}
+
+// Temperature conversion functions
+export function convertTemp(value: number, from: TempUnit, to: TempUnit): number {
+  if (from === to) return value
+
+  if (from === 'C' && to === 'F') {
+    return (value * 9/5) + 32
+  } else if (from === 'F' && to === 'C') {
+    return (value - 32) * 5/9
+  }
+
+  return value
+}
+
+// Precipitation conversion functions
+export function convertPrecip(value: number, from: PrecipUnit, to: PrecipUnit): number {
+  if (from === to) return value
+
+  if (from === 'mm' && to === 'inches') {
+    return value / 25.4
+  } else if (from === 'inches' && to === 'mm') {
+    return value * 25.4
+  }
+
+  return value
+}
+
+// Height conversion functions
+export function convertHeight(value: number, from: HeightUnit, to: HeightUnit): number {
+  if (from === to) return value
+
+  if (from === 'm' && to === 'ft') {
+    return value * 3.28084
+  } else if (from === 'ft' && to === 'm') {
+    return value / 3.28084
+  }
+
+  return value
+}
+
+// Format functions with unit labels
+export function formatWind(value: number, unit: WindUnit, precision: number = 0): string {
+  return `${value.toFixed(precision)} ${unit}`
+}
+
+export function formatTemp(value: number, unit: TempUnit, precision: number = 0): string {
+  return `${value.toFixed(precision)}°${unit}`
+}
+
+export function formatPrecip(value: number, unit: PrecipUnit, precision: number = 1): string {
+  const formatted = value.toFixed(precision)
+  return unit === 'inches' ? `${formatted} in` : `${formatted} mm`
+}
+
+export function formatHeight(value: number, unit: HeightUnit, precision: number = 1): string {
+  return `${value.toFixed(precision)} ${unit}`
+}
+
+// Main conversion and format function
+export function convertAndFormat(
+  value: number,
+  type: MetricType,
+  sourceUnit: WindUnit | TempUnit | PrecipUnit | HeightUnit,
+  targetUnit: WindUnit | TempUnit | PrecipUnit | HeightUnit,
+  precision?: number
+): string {
+  let convertedValue: number
+
+  switch (type) {
+    case 'wind':
+      convertedValue = convertWind(value, sourceUnit as WindUnit, targetUnit as WindUnit)
+      return formatWind(convertedValue, targetUnit as WindUnit, precision ?? 0)
+    case 'temp':
+      convertedValue = convertTemp(value, sourceUnit as TempUnit, targetUnit as TempUnit)
+      return formatTemp(convertedValue, targetUnit as TempUnit, precision ?? 0)
+    case 'precip':
+      convertedValue = convertPrecip(value, sourceUnit as PrecipUnit, targetUnit as PrecipUnit)
+      return formatPrecip(convertedValue, targetUnit as PrecipUnit, precision ?? 1)
+    case 'height':
+      convertedValue = convertHeight(value, sourceUnit as HeightUnit, targetUnit as HeightUnit)
+      return formatHeight(convertedValue, targetUnit as HeightUnit, precision ?? 1)
+    default:
+      return `${value}`
+  }
+}

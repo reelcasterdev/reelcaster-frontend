@@ -16,6 +16,7 @@ export interface OpenMeteoResponse {
     dew_point_2m: string
     apparent_temperature: string
     precipitation: string
+    precipitation_probability: string
     weather_code: string
     surface_pressure: string
     cloud_cover: string
@@ -34,6 +35,7 @@ export interface OpenMeteoResponse {
     dew_point_2m: number[]
     apparent_temperature: number[]
     precipitation: number[]
+    precipitation_probability: number[]
     weather_code: number[]
     surface_pressure: number[]
     cloud_cover: number[]
@@ -69,6 +71,7 @@ export interface OpenMeteo15MinData {
   dewPoint: number
   apparentTemp: number
   precipitation: number
+  precipitationProbability: number
   weatherCode: number
   pressure: number
   cloudCover: number
@@ -153,6 +156,7 @@ export const fetchOpenMeteoWeather = async (
         'dew_point_2m',
         'apparent_temperature',
         'precipitation',
+        'precipitation_probability',
         'weather_code',
         'surface_pressure',
         'cloud_cover',
@@ -191,6 +195,7 @@ export const fetchOpenMeteoWeather = async (
         dewPoint: rawData.minutely_15.dew_point_2m[index],
         apparentTemp: rawData.minutely_15.apparent_temperature[index],
         precipitation: rawData.minutely_15.precipitation[index],
+        precipitationProbability: rawData.minutely_15.precipitation_probability[index],
         weatherCode: rawData.minutely_15.weather_code[index],
         pressure: rawData.minutely_15.surface_pressure[index],
         cloudCover: rawData.minutely_15.cloud_cover[index],
@@ -290,6 +295,7 @@ export const fetchOpenMeteoHistoricalWeather = async (
           const timestamp = baseTimestamp + i * 15 * 60 // Add 15 minute intervals
           const timeStr = new Date(timestamp * 1000).toISOString()
 
+          const precip = rawData.hourly.precipitation[index] || 0
           minutely15Data.push({
             time: timeStr,
             timestamp: timestamp,
@@ -297,7 +303,8 @@ export const fetchOpenMeteoHistoricalWeather = async (
             humidity: rawData.hourly.relative_humidity_2m[index] || 0,
             dewPoint: rawData.hourly.dew_point_2m[index] || 0,
             apparentTemp: rawData.hourly.apparent_temperature[index] || 0,
-            precipitation: rawData.hourly.precipitation[index] || 0,
+            precipitation: precip,
+            precipitationProbability: precip > 0 ? 100 : 0, // Historical data - estimate from precipitation
             weatherCode: rawData.hourly.weather_code[index] || 0,
             pressure: rawData.hourly.surface_pressure[index] || 1013,
             cloudCover: rawData.hourly.cloud_cover[index] || 0,

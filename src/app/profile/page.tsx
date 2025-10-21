@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, ArrowLeft, Clock } from 'lucide-react'
+import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, ArrowLeft, Clock, Gauge } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -355,6 +355,129 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Unit Preferences */}
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="pb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                  <Gauge className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-white text-xl">Unit Preferences</CardTitle>
+                  <CardDescription className="text-slate-400 mt-1">
+                    Choose your preferred units for weather and environmental data
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Wind Unit */}
+                <div className="space-y-2">
+                  <Label htmlFor="wind-unit" className="text-white font-medium text-sm">
+                    Wind Speed
+                  </Label>
+                  <Select
+                    value={preferences.windUnit || 'kph'}
+                    onValueChange={value =>
+                      setPreferences(prev => ({ ...prev, windUnit: value as 'kph' | 'mph' | 'knots' }))
+                    }
+                  >
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-11 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kph">km/h</SelectItem>
+                      <SelectItem value="mph">mph</SelectItem>
+                      <SelectItem value="knots">knots</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">Wind and current speed</p>
+                </div>
+
+                {/* Temperature Unit */}
+                <div className="space-y-2">
+                  <Label htmlFor="temp-unit" className="text-white font-medium text-sm">
+                    Temperature
+                  </Label>
+                  <Select
+                    value={preferences.tempUnit || 'C'}
+                    onValueChange={value =>
+                      setPreferences(prev => ({ ...prev, tempUnit: value as 'C' | 'F' }))
+                    }
+                  >
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-11 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="C">Celsius (°C)</SelectItem>
+                      <SelectItem value="F">Fahrenheit (°F)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">Air and water temperature</p>
+                </div>
+
+                {/* Precipitation Unit */}
+                <div className="space-y-2">
+                  <Label htmlFor="precip-unit" className="text-white font-medium text-sm">
+                    Precipitation
+                  </Label>
+                  <Select
+                    value={preferences.precipUnit || 'mm'}
+                    onValueChange={value =>
+                      setPreferences(prev => ({ ...prev, precipUnit: value as 'mm' | 'inches' }))
+                    }
+                  >
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-11 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mm">Millimeters (mm)</SelectItem>
+                      <SelectItem value="inches">Inches (in)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">Rainfall and precipitation</p>
+                </div>
+
+                {/* Height Unit */}
+                <div className="space-y-2">
+                  <Label htmlFor="height-unit" className="text-white font-medium text-sm">
+                    Height / Depth
+                  </Label>
+                  <Select
+                    value={preferences.heightUnit || 'm'}
+                    onValueChange={value =>
+                      setPreferences(prev => ({ ...prev, heightUnit: value as 'ft' | 'm' }))
+                    }
+                  >
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white h-11 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="m">Meters (m)</SelectItem>
+                      <SelectItem value="ft">Feet (ft)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">Tide heights and wave heights</p>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-gradient-to-r from-slate-700/40 to-slate-600/40 rounded-xl border border-slate-600/50">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Gauge className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Quick Tip</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      You can also click on any value in the forecast to cycle through available units without visiting this page.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Notification Preferences */}
           <Card className="bg-slate-800 border-slate-700">

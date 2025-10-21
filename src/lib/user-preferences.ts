@@ -10,6 +10,11 @@ export interface UserPreferences {
   emailForecasts?: boolean
   notificationTime?: string // Format: "HH:MM" (24-hour format)
   timezone?: string
+  // Unit preferences
+  windUnit?: 'kph' | 'mph' | 'knots'
+  tempUnit?: 'C' | 'F'
+  precipUnit?: 'mm' | 'inches'
+  heightUnit?: 'ft' | 'm'
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -21,6 +26,11 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   emailForecasts: false,
   notificationTime: '06:00',
   timezone: 'America/Vancouver',
+  // Default to metric units
+  windUnit: 'kph',
+  tempUnit: 'C',
+  precipUnit: 'mm',
+  heightUnit: 'm',
 }
 
 export class UserPreferencesService {

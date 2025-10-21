@@ -1,6 +1,7 @@
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { CHSWaterData } from '../../utils/chsTideApi'
+import { ConvertibleValue } from '../common/convertible-value'
 
 interface WeatherConditionsProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -37,9 +38,10 @@ export default function WeatherConditions({ forecasts, openMeteoData, selectedDa
     ? ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(selectedWeather.windDirection / 45) % 8]
     : 'E'
 
-  const windSpeed = selectedWeather ? Math.round(selectedWeather.windSpeed) : 8
-  const temperature = selectedWeather ? Math.round(selectedWeather.temp) : 68
-  const precipitation = selectedWeather ? Math.round(selectedWeather.precipitation * 100) : 5
+  const windSpeed = selectedWeather ? selectedWeather.windSpeed : 10
+  const temperature = selectedWeather ? selectedWeather.temp : 20
+  const precipitationProbability = selectedWeather ? selectedWeather.precipitationProbability : 5
+  const precipitation = selectedWeather ? selectedWeather.precipitation : 0
   const waveHeight = 0.5 // Simplified - would need marine API
   const current = 0.2 // Simplified ocean current data
 
@@ -61,13 +63,14 @@ export default function WeatherConditions({ forecasts, openMeteoData, selectedDa
           <div>
             <div className="text-slate-400 text-sm mb-1">Wind</div>
             <div className="text-white text-2xl font-bold">
-              {windSpeed} <span className="text-base font-normal">mph {windDir}</span>
+              <ConvertibleValue value={windSpeed} type="wind" sourceUnit="kph" className="text-white" />{' '}
+              <span className="text-base font-normal">{windDir}</span>
             </div>
           </div>
           <div>
             <div className="text-slate-400 text-sm mb-1">Wave Height</div>
             <div className="text-white text-2xl font-bold">
-              {waveHeight} <span className="text-base font-normal">ft</span>
+              <ConvertibleValue value={waveHeight} type="height" sourceUnit="ft" className="text-white" />
             </div>
           </div>
         </div>
@@ -89,13 +92,19 @@ export default function WeatherConditions({ forecasts, openMeteoData, selectedDa
           <div>
             <div className="text-slate-400 text-sm mb-1">Temperature</div>
             <div className="text-white text-2xl font-bold">
-              {temperature}<span className="text-base font-normal">°F</span>
+              <ConvertibleValue value={temperature} type="temp" sourceUnit="C" className="text-white" />
             </div>
           </div>
           <div>
             <div className="text-slate-400 text-sm mb-1">Precipitation</div>
             <div className="text-white text-2xl font-bold">
-              {precipitation}<span className="text-base font-normal">%</span>
+              {precipitationProbability}
+              <span className="text-base font-normal">%</span>
+              {precipitation > 0 && (
+                <div className="text-sm font-normal text-slate-400 mt-1">
+                  <ConvertibleValue value={precipitation} type="precip" sourceUnit="mm" precision={1} className="text-slate-400" />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -105,7 +114,8 @@ export default function WeatherConditions({ forecasts, openMeteoData, selectedDa
           <div>
             <div className="text-slate-400 text-sm mb-1">Current</div>
             <div className="text-white text-xl font-semibold">
-              {current} <span className="text-sm font-normal">kts NW</span>
+              <ConvertibleValue value={current} type="wind" sourceUnit="knots" precision={1} className="text-white" />{' '}
+              <span className="text-sm font-normal">NW</span>
             </div>
           </div>
           <div>
