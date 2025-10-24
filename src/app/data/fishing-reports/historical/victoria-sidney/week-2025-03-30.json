@@ -4,8 +4,8 @@
     "reportId": "2025-02-23",
     "date": "2025-02-23",
     "weekEnding": "February 23, 2025",
-    "location": "Victoria",
-    "region": "Victoria, British Columbia"
+    "location": "Victoria, Sidney",
+    "region": "Vancouver Island, British Columbia"
   },
   "overallConditions": {
     "salmon": "FAIR",
@@ -13,6 +13,42 @@
     "crabbing": "GOOD"
   },
   "hotspotReports": {
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "FAIR",
+        "halibut": "Not specified",
+        "crabbing": "GOOD"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Active",
+          "size": "5-7 lbs, with some in the mid-teens",
+          "bestDepths": "close to the bottom",
+          "bestArea": "the Gap and by the Flats"
+        }
+      },
+      "topBaits": [
+        "AP Needlefish",
+        "Green/Glow Skinny Gs",
+        "Wee Gs",
+        "Coho Killers"
+      ],
+      "topLures": [],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "trolling",
+        "jigging"
+      ],
+      "notes": "A few nice springs being caught."
+    },
     "Waterfront": {
       "conditions": {
         "salmon": "VERY GOOD",
@@ -22,13 +58,13 @@
       "species": {
         "Chinook": {
           "status": "Active",
-          "size": "5-10 lbs with occasional larger ones in the teens",
+          "size": "5-10 lbs, occasional larger ones in the teens",
           "bestDepths": "Not specified",
-          "bestArea": "From Finlayson Point to Trial Island and near Albert Head"
+          "bestArea": "from Finlayson Point to Trial Island and near Albert Head"
         }
       },
       "topBaits": [
-        "6 inch herring"
+        "Six inch herring"
       ],
       "topLures": [
         "Apexes",
@@ -43,7 +79,7 @@
         "Blue/Silver Hot Spots"
       ],
       "baitDetails": {
-        "primary": "6 inch herring",
+        "primary": "Not specified",
         "teaserHeadColors": [
           "Chartreuse",
           "Bloody Nose",
@@ -71,49 +107,19 @@
       },
       "topBaits": [],
       "topLures": [],
-      "flashers": [],
-      "baitDetails": {
-        "primary": "Not specified",
-        "teaserHeadColors": []
-      },
-      "techniques": [],
-      "notes": "Salmon were scattered in the area. Many keeps but also undersized fish."
-    },
-    "Oak Bay": {
-      "conditions": {
-        "salmon": "FAIR",
-        "halibut": "Not specified",
-        "crabbing": "GOOD"
-      },
-      "species": {
-        "Chinook": {
-          "status": "Active",
-          "size": "5-7 lbs with some in the mid-teens",
-          "bestDepths": "Not specified",
-          "bestArea": "In the Gap and by the Flats"
-        }
-      },
-      "topBaits": [
-        "AP Needlefish",
-        "Green/Glow Skinny Gs",
-        "Wee Gs",
-        "Coho Killers"
-      ],
-      "topLures": [],
       "flashers": [
-        "Betsy",
-        "Bon Chovy",
-        "Green/Glow Hot Spots"
+        "Not specified"
       ],
       "baitDetails": {
         "primary": "Not specified",
-        "teaserHeadColors": []
+        "teaserHeadColors": [
+          "Not specified"
+        ]
       },
       "techniques": [
-        "trolling",
-        "jigging"
+        "Not specified"
       ],
-      "notes": "Best chinook fishing has been close to the bottom."
+      "notes": "Salmon were scattered in the area."
     },
     "Constance Bank": {
       "conditions": {
@@ -129,14 +135,24 @@
           "bestArea": "Not specified"
         }
       },
-      "topBaits": [],
-      "topLures": [],
-      "flashers": [],
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
       "baitDetails": {
         "primary": "Not specified",
-        "teaserHeadColors": []
+        "teaserHeadColors": [
+          "Not specified"
+        ]
       },
-      "techniques": [],
+      "techniques": [
+        "Not specified"
+      ],
       "notes": "Not specified"
     },
     "Ten Mile Point": {
@@ -153,14 +169,24 @@
           "bestArea": "Not specified"
         }
       },
-      "topBaits": [],
-      "topLures": [],
-      "flashers": [],
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
       "baitDetails": {
         "primary": "Not specified",
-        "teaserHeadColors": []
+        "teaserHeadColors": [
+          "Not specified"
+        ]
       },
-      "techniques": [],
+      "techniques": [
+        "Not specified"
+      ],
       "notes": "Not specified"
     }
   },
@@ -168,9 +194,7 @@
     "flashers": [
       "Bon Chovy",
       "Madi",
-      "Blue/Silver Hot Spots",
-      "Betsy",
-      "Green/Glow Hot Spots"
+      "Blue/Silver Hot Spots"
     ],
     "teaserHeadColors": [
       "Chartreuse",
@@ -178,22 +202,29 @@
       "Purple Haze"
     ],
     "spoons": [
+      "AP Needlefish",
+      "Green/Glow Skinny Gs",
+      "Wee Gs",
+      "Coho Killers"
+    ],
+    "jigs": [
+      "Not specified"
+    ],
+    "otherLures": [
+      "Apexes",
       "Krippled KC",
       "Skinny G's",
       "Wee G's",
-      "AP Tackleworks",
-      "AP Needlefish",
-      "Green/Glow Skinny Gs",
-      "Coho Killers"
+      "AP Tackleworks"
     ],
-    "jigs": [],
-    "otherLures": [],
     "bait": [
-      "6 inch herring",
-      "Anchovies"
+      "Six inch herring"
     ],
     "depths": "Not specified",
     "setupDetails": "Not specified"
   },
-  "fishingTips": []
+  "fishingTips": [
+    "Focus on areas with structure and depth changes",
+    "Use a variety of lures to find what works best"
+  ]
 }

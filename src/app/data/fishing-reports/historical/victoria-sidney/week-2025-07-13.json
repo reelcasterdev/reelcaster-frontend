@@ -4,7 +4,7 @@
     "reportId": "2025-07-13",
     "date": "2025-07-13",
     "weekEnding": "July 13, 2025",
-    "location": "Victoria, Sidney",
+    "location": "Victoria",
     "region": "Juan de Fuca Strait, British Columbia"
   },
   "overallConditions": {
@@ -20,21 +20,15 @@
         "crabbing": "SLOW"
       },
       "species": {
-        "coho": {
-          "status": "Not specified",
-          "size": "Not specified",
-          "bestDepths": "Not specified",
-          "bestArea": "Not specified"
-        },
-        "pinks": {
-          "status": "Not specified",
+        "salmon": {
+          "status": "SLOW",
           "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
         }
       },
       "topBaits": [
-        "Anchovies"
+        "Not specified"
       ],
       "topLures": [
         "Not specified"
@@ -43,16 +37,16 @@
         "Not specified"
       ],
       "baitDetails": {
-        "primary": "Anchovies",
+        "primary": "Not specified",
         "teaserHeadColors": [
           "Not specified"
         ]
       },
       "techniques": [
-        "Trolling",
-        "Jigging"
+        "trolling",
+        "jigging"
       ],
-      "notes": "Most anglers are trolling spoons and squirts, but jigging is doing best at times."
+      "notes": "The coho and pinks haven’t shown up here in any numbers."
     },
     "Waterfront": {
       "conditions": {
@@ -61,13 +55,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "coho": {
-          "status": "Not specified",
-          "size": "Not specified",
-          "bestDepths": "Not specified",
-          "bestArea": "Not specified"
-        },
-        "pinks": {
+        "salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -96,24 +84,12 @@
     },
     "Sidney": {
       "conditions": {
-        "salmon": "GOOD",
+        "salmon": "Not specified",
         "halibut": "Not specified",
-        "crabbing": "FAIR"
+        "crabbing": "Not specified"
       },
       "species": {
-        "chinook": {
-          "status": "Active",
-          "size": "Not specified",
-          "bestDepths": "Not specified",
-          "bestArea": "Not specified"
-        },
-        "coho": {
-          "status": "Not specified",
-          "size": "Not specified",
-          "bestDepths": "Not specified",
-          "bestArea": "Not specified"
-        },
-        "pinks": {
+        "salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -121,32 +97,24 @@
         }
       },
       "topBaits": [
-        "Anchovies"
+        "Not specified"
       ],
       "topLures": [
-        "Apexes",
-        "Krippled “KC”",
-        "Skinny G’s",
-        "Wee G’s",
-        "AP Tackleworks"
+        "Not specified"
       ],
       "flashers": [
-        "Bon Chovy",
-        "Madi",
-        "Moon Jelly Lemon Lime Hot Spots"
+        "Not specified"
       ],
       "baitDetails": {
-        "primary": "Anchovies",
+        "primary": "Not specified",
         "teaserHeadColors": [
-          "Chartreuse",
-          "Bloody Nose",
-          "Purple Haze"
+          "Not specified"
         ]
       },
       "techniques": [
-        "Catch and release"
+        "Not specified"
       ],
-      "notes": "Big springs close in near the harbour entrance."
+      "notes": "Not specified"
     },
     "Constance Bank": {
       "conditions": {
@@ -155,11 +123,11 @@
         "crabbing": "SLOW"
       },
       "species": {
-        "halibut": {
-          "status": "Active",
+        "salmon": {
+          "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
-          "bestArea": "Constance Bank"
+          "bestArea": "Not specified"
         }
       },
       "topBaits": [
@@ -189,13 +157,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "coho": {
-          "status": "Not specified",
-          "size": "Not specified",
-          "bestDepths": "Not specified",
-          "bestArea": "Not specified"
-        },
-        "pinks": {
+        "salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -236,9 +198,9 @@
     ],
     "spoons": [
       "Apexes",
-      "Krippled “KC”",
-      "Skinny G’s",
-      "Wee G’s",
+      "Krippled KC",
+      "Skinny G's",
+      "Wee G's",
       "AP Tackleworks"
     ],
     "jigs": [
@@ -254,7 +216,8 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Check for fin-clipped salmon for retention.",
-    "Use natural bait like anchovies for better results."
+    "Use anchovies as bait for salmon.",
+    "Popular colors for teaser heads include Chartreuse, Bloody Nose, and Purple Haze.",
+    "Spoons have been effective for salmon fishing."
   ]
 }

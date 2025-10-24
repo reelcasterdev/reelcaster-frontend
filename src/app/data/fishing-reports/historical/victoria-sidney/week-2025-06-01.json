@@ -5,7 +5,7 @@
     "date": "2025-04-27",
     "weekEnding": "April 27, 2025",
     "location": "Victoria, Sidney",
-    "region": "Juan de Fuca Strait, British Columbia"
+    "region": "British Columbia"
   },
   "overallConditions": {
     "salmon": "GOOD",
@@ -24,16 +24,17 @@
           "status": "SLOW",
           "size": "up to low teens",
           "bestDepths": "close to the bottom",
-          "bestArea": "Flats or in the Gap"
+          "bestArea": "Not specified"
         }
       },
       "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
         "AP Needlefish",
         "Green/Glow Skinny Gs",
         "Wee Gs",
-        "Coho Killers"
-      ],
-      "topLures": [
+        "Coho Killers",
         "Purple Haze",
         "Jellyfish squirts"
       ],
@@ -50,7 +51,7 @@
         "trolling",
         "jigging"
       ],
-      "notes": "Few reports of hatchery marked springs."
+      "notes": "Few reports of hatchery marked springs being caught."
     },
     "Waterfront": {
       "conditions": {
@@ -90,7 +91,7 @@
       "conditions": {
         "salmon": "SPOTTY",
         "halibut": "Not specified",
-        "crabbing": "GOOD"
+        "crabbing": "Not specified"
       },
       "species": {
         "Chinook": {
@@ -116,9 +117,9 @@
         ]
       },
       "techniques": [
-        "Not specified"
+        "searching for bait and fish"
       ],
-      "notes": "Prawning was the focus with limit catches reported."
+      "notes": "Limit catches were common for prawning."
     },
     "Constance Bank": {
       "conditions": {
@@ -160,7 +161,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Lots of bait present."
+      "notes": "Fishing was focused on halibut and salmon."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -212,14 +213,14 @@
       "AP Needlefish",
       "Green/Glow Skinny Gs",
       "Wee Gs",
-      "Coho Killers",
-      "Krippled 'KC'"
+      "Coho Killers"
     ],
     "jigs": [
       "Not specified"
     ],
     "otherLures": [
       "Apexes",
+      "Krippled 'KC'",
       "Skinny G's",
       "Wee G's",
       "AP Tackleworks"
@@ -231,7 +232,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Trolling spoons along the bottom in 80-120 feet has been effective for salmon.",
-    "Look for bait and fish to find success."
+    "Search for bait and fish for success.",
+    "Trolling spoons along the bottom in 80-120 feet has been effective for salmon."
   ]
 }

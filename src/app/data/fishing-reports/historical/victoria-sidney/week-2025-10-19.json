@@ -1,40 +1,37 @@
 {
   "reportMetadata": {
     "source": "Island Outfitters",
-    "reportId": "2025-05-11",
-    "date": "2025-05-11",
-    "weekEnding": "May 11, 2025",
-    "location": "Victoria, Sidney",
-    "region": "Vancouver Island, British Columbia"
+    "reportId": "Not specified",
+    "date": "2025-10-19",
+    "weekEnding": "October 19, 2025",
+    "location": "Victoria",
+    "region": "Victoria, British Columbia"
   },
   "overallConditions": {
-    "salmon": "GOOD",
-    "bottomFishing": "GOOD",
-    "crabbing": "FAIR"
+    "salmon": "Not specified",
+    "bottomFishing": "Not specified",
+    "crabbing": "Not specified"
   },
   "hotspotReports": {
     "Oak Bay": {
       "conditions": {
-        "salmon": "GOOD",
-        "halibut": "SLOWER",
+        "salmon": "Not specified",
+        "halibut": "Not specified",
         "crabbing": "Not specified"
       },
       "species": {
-        "salmon": {
-          "status": "Active",
-          "size": "Hatchery marked springs into the teens",
+        "speciesName": {
+          "status": "Not specified",
+          "size": "Not specified",
           "bestDepths": "Not specified",
-          "bestArea": "On the Flats"
+          "bestArea": "Not specified"
         }
       },
       "topBaits": [
         "Not specified"
       ],
       "topLures": [
-        "AP Needlefish",
-        "Herring Aid Skinny Gs",
-        "silver Wee Gs",
-        "Coho Killers"
+        "Not specified"
       ],
       "flashers": [
         "Not specified"
@@ -46,10 +43,9 @@
         ]
       },
       "techniques": [
-        "Trolling",
-        "Jigging"
+        "Not specified"
       ],
-      "notes": "Best chinook fishing has been on the tide change for fish holding close to the bottom."
+      "notes": "Not specified"
     },
     "Waterfront": {
       "conditions": {
@@ -58,7 +54,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "salmon": {
+        "speciesName": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -87,13 +83,13 @@
     },
     "Sidney": {
       "conditions": {
-        "salmon": "FAIR",
+        "salmon": "Not specified",
         "halibut": "Not specified",
-        "crabbing": "FAIR"
+        "crabbing": "Not specified"
       },
       "species": {
-        "salmon": {
-          "status": "Fair",
+        "speciesName": {
+          "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
@@ -121,45 +117,37 @@
     },
     "Constance Bank": {
       "conditions": {
-        "salmon": "GOOD",
+        "salmon": "Not specified",
         "halibut": "Not specified",
         "crabbing": "Not specified"
       },
       "species": {
-        "salmon": {
-          "status": "Active",
-          "size": "Most salmon were keepers in the 5 - 8 lb size range, some up to 19 lbs",
+        "speciesName": {
+          "status": "Not specified",
+          "size": "Not specified",
           "bestDepths": "Not specified",
-          "bestArea": "Constance Bank"
+          "bestArea": "Not specified"
         }
       },
       "topBaits": [
-        "Anchovies"
+        "Not specified"
       ],
       "topLures": [
-        "Apexes",
-        "Krippled KC",
-        "Skinny G's",
-        "Wee G's",
-        "AP Tackleworks"
+        "Not specified"
       ],
       "flashers": [
-        "Bon Chovy",
-        "Madi",
-        "Blue/Silver Hot Spots"
+        "Not specified"
       ],
       "baitDetails": {
-        "primary": "Anchovies",
+        "primary": "Not specified",
         "teaserHeadColors": [
-          "Chartreuse",
-          "Bloody Nose",
-          "Purple Haze"
+          "Not specified"
         ]
       },
       "techniques": [
         "Not specified"
       ],
-      "notes": "Fishing was GOOD for salmon."
+      "notes": "Not specified"
     },
     "Ten Mile Point": {
       "conditions": {
@@ -168,7 +156,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "salmon": {
+        "speciesName": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -198,25 +186,13 @@
   },
   "recommendedTackle": {
     "flashers": [
-      "Bon Chovy",
-      "Madi",
-      "Blue/Silver Hot Spots"
+      "Not specified"
     ],
     "teaserHeadColors": [
-      "Chartreuse",
-      "Bloody Nose",
-      "Purple Haze"
+      "Not specified"
     ],
     "spoons": [
-      "AP Needlefish",
-      "Herring Aid Skinny Gs",
-      "silver Wee Gs",
-      "Coho Killers",
-      "Apexes",
-      "Krippled KC",
-      "Skinny G's",
-      "Wee G's",
-      "AP Tackleworks"
+      "Not specified"
     ],
     "jigs": [
       "Not specified"
@@ -225,13 +201,12 @@
       "Not specified"
     ],
     "bait": [
-      "Anchovies"
+      "Not specified"
     ],
     "depths": "Not specified",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Trolling spoons along the bottom in 80-120 feet has been the best technique for salmon.",
-    "Be careful to fish in the area 19 waters and not within the closed area 20 waters."
+    "Not specified"
   ]
 }

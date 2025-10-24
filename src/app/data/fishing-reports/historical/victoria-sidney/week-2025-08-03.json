@@ -13,74 +13,6 @@
     "crabbing": "SPOTTY"
   },
   "hotspotReports": {
-    "Waterfront": {
-      "conditions": {
-        "salmon": "FAIR",
-        "halibut": "Not specified",
-        "crabbing": "Not specified"
-      },
-      "species": {
-        "Pink Salmon": {
-          "status": "Active",
-          "size": "2.5-5 lbs",
-          "bestDepths": "Not specified",
-          "bestArea": "Along the waterfront"
-        }
-      },
-      "topBaits": [
-        "Anchovies"
-      ],
-      "topLures": [
-        "Spoons"
-      ],
-      "flashers": [
-        "Not specified"
-      ],
-      "baitDetails": {
-        "primary": "Anchovies",
-        "teaserHeadColors": [
-          "Not specified"
-        ]
-      },
-      "techniques": [
-        "Not specified"
-      ],
-      "notes": "Pinks are starting to be caught along the waterfront."
-    },
-    "Sidney": {
-      "conditions": {
-        "salmon": "Not specified",
-        "halibut": "Not specified",
-        "crabbing": "Not specified"
-      },
-      "species": {
-        "Not specified": {
-          "status": "Not specified",
-          "size": "Not specified",
-          "bestDepths": "Not specified",
-          "bestArea": "Not specified"
-        }
-      },
-      "topBaits": [
-        "Not specified"
-      ],
-      "topLures": [
-        "Not specified"
-      ],
-      "flashers": [
-        "Not specified"
-      ],
-      "baitDetails": {
-        "primary": "Not specified",
-        "teaserHeadColors": [
-          "Not specified"
-        ]
-      },
-      "techniques": [
-        "Not specified"
-      ],
-      "notes": "Not specified"
-    },
     "Oak Bay": {
       "conditions": {
         "salmon": "Not specified",
@@ -114,6 +46,87 @@
         "Not specified"
       ],
       "notes": "Not specified"
+    },
+    "Waterfront": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Not specified": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Sidney": {
+      "conditions": {
+        "salmon": "EXCELLENT",
+        "halibut": "FAIR",
+        "crabbing": "SPOTTY"
+      },
+      "species": {
+        "Chinook": {
+          "status": "Active",
+          "size": "2.5-5 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        },
+        "Pink": {
+          "status": "Active",
+          "size": "2.5-6.5 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Anchovies"
+      ],
+      "topLures": [
+        "Peetz Hookum",
+        "Krippled KC",
+        "Skinny G's",
+        "Wee G's",
+        "AP Tackleworks"
+      ],
+      "flashers": [
+        "Betsy",
+        "Bon Chovy",
+        "Madi",
+        "Blue/Silver Hot Spots"
+      ],
+      "baitDetails": {
+        "primary": "Anchovies",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Chinook retention opened on August 1st."
     },
     "Constance Bank": {
       "conditions": {
@@ -186,13 +199,20 @@
   },
   "recommendedTackle": {
     "flashers": [
-      "Not specified"
+      "Betsy",
+      "Bon Chovy",
+      "Madi",
+      "Blue/Silver Hot Spots"
     ],
     "teaserHeadColors": [
       "Not specified"
     ],
     "spoons": [
-      "Not specified"
+      "Peetz Hookum",
+      "Krippled KC",
+      "Skinny G's",
+      "Wee G's",
+      "AP Tackleworks"
     ],
     "jigs": [
       "Not specified"
@@ -207,6 +227,6 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Not specified"
+    "Chinook retention opened on August 1st."
   ]
 }

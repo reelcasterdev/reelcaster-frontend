@@ -4,8 +4,8 @@
     "reportId": "2025-02-16",
     "date": "2025-02-16",
     "weekEnding": "February 16, 2025",
-    "location": "Victoria, Sidney",
-    "region": "British Columbia"
+    "location": "Victoria",
+    "region": "Victoria, British Columbia"
   },
   "overallConditions": {
     "salmon": "FAIR",
@@ -21,8 +21,8 @@
       },
       "species": {
         "Chinook": {
-          "status": "FAIR",
-          "size": "5-10 lbs, occasional larger in teens",
+          "status": "Active",
+          "size": "5-10 lbs with occasional larger ones in the teens",
           "bestDepths": "Not specified",
           "bestArea": "From Finlayson Point to Trial Island and near Albert Head"
         }
@@ -52,7 +52,7 @@
       "techniques": [
         "Trolling"
       ],
-      "notes": "Best fishing reported along the waterfront."
+      "notes": "Crabbing is FAIR."
     },
     "Constance Bank": {
       "conditions": {
@@ -62,7 +62,7 @@
       },
       "species": {
         "Chinook": {
-          "status": "Not specified",
+          "status": "Active",
           "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
@@ -96,8 +96,8 @@
       },
       "species": {
         "Chinook": {
-          "status": "FAIR",
-          "size": "5-7 lbs, occasional larger in mid-teens",
+          "status": "Active",
+          "size": "5-7 lbs with some in the mid-teens",
           "bestDepths": "Close to the bottom",
           "bestArea": "In the Gap and by the Flats"
         }
@@ -124,7 +124,7 @@
         "Trolling",
         "Jigging"
       ],
-      "notes": "Reports of a few nice springs being caught."
+      "notes": "Crabbing is GOOD."
     },
     "Sidney": {
       "conditions": {
@@ -134,7 +134,7 @@
       },
       "species": {
         "Chinook": {
-          "status": "FAIR",
+          "status": "Active",
           "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Moses Point, Coal Island, Sidney Channel, Powder Wharf, Saanichton Spit"
@@ -158,7 +158,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Salmon were scattered in the area."
+      "notes": "Crabbing is GOOD."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -228,7 +228,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Focus on areas where salmon are reported to be holding close to the bottom.",
-    "Use effective spoons and flashers that have been working well in recent reports."
+    "Focus on areas with structure and depth changes.",
+    "Use a variety of lures to see what the fish are responding to."
   ]
 }

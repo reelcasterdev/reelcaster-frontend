@@ -1,42 +1,42 @@
 {
   "reportMetadata": {
     "source": "Island Outfitters",
-    "reportId": "2025-07-20",
-    "date": "2025-07-20",
-    "weekEnding": "July 20, 2025",
+    "reportId": "2025-07-13",
+    "date": "2025-07-13",
+    "weekEnding": "July 13, 2025",
     "location": "Sooke",
-    "region": "Juan de Fuca Strait, British Columbia"
+    "region": "Juan de Fuca Strait"
   },
   "overallConditions": {
-    "salmon": "EXCELLENT",
+    "salmon": "GOOD",
     "bottomFishing": "SLOW",
-    "crabbing": "SPOTTY"
+    "crabbing": "SLOW"
   },
   "hotspotReports": {
     "East Sooke": {
       "conditions": {
-        "salmon": "EXCELLENT",
+        "salmon": "GOOD",
         "halibut": "SLOW",
         "crabbing": "SLOW"
       },
       "species": {
-        "Pink Salmon": {
+        "chinook": {
           "status": "Active",
-          "size": "4-6.5 lbs",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Secretary Island, Otter Point, Muir Creek"
+        },
+        "coho": {
+          "status": "Active",
+          "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
         },
-        "Coho Salmon": {
+        "pink": {
           "status": "Active",
-          "size": "Up to 8 lbs",
+          "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
-        },
-        "Chinook Salmon": {
-          "status": "Good",
-          "size": "Up to 20 lbs",
-          "bestDepths": "Not specified",
-          "bestArea": "Becher Bay triangle"
         }
       },
       "topBaits": [
@@ -49,47 +49,40 @@
         "Wee G's",
         "AP Tackleworks"
       ],
-      "flashers": [
-        "Betsy",
-        "Bon Chovy",
-        "Madi",
-        "Blue/Silver Hot Spots"
-      ],
+      "flashers": [],
       "baitDetails": {
         "primary": "Anchovies",
-        "teaserHeadColors": [
-          "Not specified"
-        ]
+        "teaserHeadColors": []
       },
       "techniques": [
-        "Jigging"
+        "Catch and release"
       ],
-      "notes": "Most anglers are getting limits on pink salmon."
+      "notes": "More coho than pinks being caught, but largest numbers of fish caught have been chinooks."
     },
     "Becher Bay": {
       "conditions": {
-        "salmon": "EXCELLENT",
+        "salmon": "GOOD",
         "halibut": "SLOW",
         "crabbing": "SLOW"
       },
       "species": {
-        "Pink Salmon": {
+        "chinook": {
           "status": "Active",
-          "size": "4-6.5 lbs",
+          "size": "up to 18 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "Inside the bay, off Beechey Head, and the Trap Shack"
+        },
+        "coho": {
+          "status": "Active",
+          "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
         },
-        "Coho Salmon": {
+        "pink": {
           "status": "Active",
-          "size": "Up to 8 lbs",
+          "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
-        },
-        "Chinook Salmon": {
-          "status": "Active",
-          "size": "Up to 20 lbs",
-          "bestDepths": "Not specified",
-          "bestArea": "Becher Bay triangle"
         }
       },
       "topBaits": [
@@ -110,36 +103,34 @@
       ],
       "baitDetails": {
         "primary": "Anchovies",
-        "teaserHeadColors": [
-          "Not specified"
-        ]
+        "teaserHeadColors": []
       },
       "techniques": [
         "Jigging"
       ],
-      "notes": "Anglers caught fin-clipped springs up to 20 lbs."
+      "notes": "Chinook fishing was GOOD in the Becher Bay triangle open area."
     },
     "Pedder Bay": {
       "conditions": {
-        "salmon": "EXCELLENT",
-        "halibut": "SLOW",
+        "salmon": "PRETTY GOOD",
+        "halibut": "Not specified",
         "crabbing": "SLOW"
       },
       "species": {
-        "Pink Salmon": {
+        "chinook": {
           "status": "Active",
-          "size": "4-6.5 lbs",
+          "size": "Not specified",
           "bestDepths": "Not specified",
-          "bestArea": "Whirl Bay"
+          "bestArea": "Whirl Bay, Juan de Fuca Strait"
         },
-        "Coho Salmon": {
+        "coho": {
           "status": "Active",
-          "size": "Up to 8 lbs",
+          "size": "up to 8½ lbs",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
         },
-        "Chinook Salmon": {
-          "status": "Good",
+        "pink": {
+          "status": "Active",
           "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
@@ -152,7 +143,7 @@
         "AP Tackleworks",
         "Skinny G's",
         "Northern King",
-        "Peetz Hookum",
+        "PEETZ Hookum",
         "Krippled KC"
       ],
       "flashers": [
@@ -180,7 +171,19 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Not specified": {
+        "chinook": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        },
+        "coho": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        },
+        "pink": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -198,9 +201,7 @@
       ],
       "baitDetails": {
         "primary": "Not specified",
-        "teaserHeadColors": [
-          "Not specified"
-        ]
+        "teaserHeadColors": []
       },
       "techniques": [
         "Not specified"
@@ -232,17 +233,12 @@
     "jigs": [
       "Not specified"
     ],
-    "otherLures": [
-      "Not specified"
-    ],
+    "otherLures": [],
     "bait": [
       "Anchovies"
     ],
     "depths": "Not specified",
     "setupDetails": "Not specified"
   },
-  "fishingTips": [
-    "Anglers are getting limits on pink salmon.",
-    "Best action has been on the flood tides."
-  ]
+  "fishingTips": []
 }

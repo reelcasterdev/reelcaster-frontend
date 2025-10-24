@@ -5,7 +5,7 @@
     "date": "2025-04-20",
     "weekEnding": "April 20, 2025",
     "location": "Victoria, Sidney",
-    "region": "Juan de Fuca Strait"
+    "region": "Juan de Fuca Strait, British Columbia"
   },
   "overallConditions": {
     "salmon": "FAIR",
@@ -23,8 +23,8 @@
         "Chinook": {
           "status": "FAIR",
           "size": "up to 14 lbs",
-          "bestDepths": "close to the bottom",
-          "bestArea": "Flats"
+          "bestDepths": "Not specified",
+          "bestArea": "on the Flats"
         }
       },
       "topBaits": [
@@ -38,7 +38,8 @@
       ],
       "flashers": [
         "Bon Chovy",
-        "Green/Glow Hot Spots"
+        "Madi",
+        "Blue/Silver Hot Spots"
       ],
       "baitDetails": {
         "primary": "Anchovies",
@@ -50,7 +51,7 @@
         "trolling",
         "jigging"
       ],
-      "notes": "Reports of hatchery marked springs being caught."
+      "notes": "Most anglers have been trolling spoons and squirts, but jigging is also getting a few."
     },
     "Waterfront": {
       "conditions": {
@@ -118,7 +119,7 @@
       "techniques": [
         "searching for bait"
       ],
-      "notes": "Reports of limit catches in prawning."
+      "notes": "Chinook fishing was SPOTTY for springs this past week."
     },
     "Constance Bank": {
       "conditions": {
@@ -158,9 +159,9 @@
         ]
       },
       "techniques": [
-        "trolling"
+        "Not specified"
       ],
-      "notes": "Best fishing was at Constance Bank."
+      "notes": "The best fishing was at Constance Bank."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -200,7 +201,8 @@
   "recommendedTackle": {
     "flashers": [
       "Bon Chovy",
-      "Green/Glow Hot Spots"
+      "Madi",
+      "Blue/Silver Hot Spots"
     ],
     "teaserHeadColors": [
       "Chartreuse",
@@ -212,8 +214,8 @@
       "Green/Glow Skinny Gs",
       "Wee Gs",
       "Coho Killers",
-      "Apexes",
-      "Krippled KC"
+      "Krippled KC",
+      "Apexes"
     ],
     "jigs": [
       "Not specified"
@@ -229,7 +231,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Trolling spoons along the bottom in 80-120 feet has been effective for salmon.",
-    "Prawning is best with traps left to soak overnight."
+    "Check for updates on fishing regulations before going out.",
+    "Use overnight soaking for prawning to increase catch."
   ]
 }

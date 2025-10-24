@@ -51,7 +51,7 @@
         "trolling",
         "jigging"
       ],
-      "notes": "Effective spoons this past week were the AP Needlefish, Green/Glow Skinny Gs, Wee Gs, and Coho Killers."
+      "notes": "Hatchery marked springs have been reported."
     },
     "Waterfront": {
       "conditions": {
@@ -119,7 +119,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Prawning has been the focus of most boats this past week. Reports of limit catches were common, especially for traps left to soak overnight."
+      "notes": "Prawning has been the focus, with limit catches reported."
     },
     "Constance Bank": {
       "conditions": {
@@ -153,7 +153,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Not specified"
+      "notes": "Halibut fishing was focused here."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -205,27 +205,28 @@
       "AP Needlefish",
       "Green/Glow Skinny Gs",
       "Wee Gs",
-      "Coho Killers",
-      "Peetz Hookum",
-      "Krippled 'KC'",
-      "Skinny G's",
-      "Wee G's",
-      "AP Tackleworks"
+      "Coho Killers"
     ],
     "jigs": [
       "Not specified"
     ],
     "otherLures": [
-      "Not specified"
+      "Apexes",
+      "Krippled 'KC'",
+      "Skinny G's",
+      "Wee G's",
+      "AP Tackleworks"
     ],
     "bait": [
-      "Anchovies"
+      "Anchovies",
+      "Six inch herring"
     ],
-    "depths": "80-120 feet for halibut; near the bottom for salmon",
+    "depths": "80-120 feet for halibut",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Check for changes in regulations before going out.",
-    "Ensure you have your fishing license before your next trip."
+    "Prawning is best with traps left to soak overnight.",
+    "Be cautious of closed areas while fishing for salmon.",
+    "Check for updates on fishing regulations before heading out."
   ]
 }

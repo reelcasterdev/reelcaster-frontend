@@ -4,8 +4,8 @@
     "reportId": "2025-05-04",
     "date": "2025-05-04",
     "weekEnding": "May 4, 2025",
-    "location": "Victoria, Sidney",
-    "region": "British Columbia"
+    "location": "Victoria",
+    "region": "Vancouver Island, British Columbia"
   },
   "overallConditions": {
     "salmon": "GOOD",
@@ -17,7 +17,7 @@
       "conditions": {
         "salmon": "SPOTTY",
         "halibut": "FAIR",
-        "crabbing": "FAIR"
+        "crabbing": "Not specified"
       },
       "species": {
         "salmon": {
@@ -26,11 +26,17 @@
           "bestDepths": "close to the bottom",
           "bestArea": "Flats or in the Gap"
         },
-        "halibut": {
-          "status": "FAIR",
+        "lingcod": {
+          "status": "GOOD",
           "size": "Not specified",
           "bestDepths": "Not specified",
-          "bestArea": "southeast of Discovery Island"
+          "bestArea": "Not specified"
+        },
+        "rockfish": {
+          "status": "GOOD",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
         }
       },
       "topBaits": [
@@ -55,7 +61,7 @@
         "trolling",
         "jigging"
       ],
-      "notes": "Few reports of hatchery marked springs."
+      "notes": "Few reports of hatchery marked springs being caught."
     },
     "Waterfront": {
       "conditions": {
@@ -134,7 +140,7 @@
       "species": {
         "salmon": {
           "status": "GOOD",
-          "size": "4 - 14 lbs",
+          "size": "4 - 8 lbs",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
         }
@@ -163,10 +169,9 @@
         ]
       },
       "techniques": [
-        "trolling",
-        "jigging"
+        "Not specified"
       ],
-      "notes": "Most salmon were keepers."
+      "notes": "Fishing was GOOD for salmon."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -219,15 +224,14 @@
       "Green/Glow Skinny Gs",
       "Wee Gs",
       "Coho Killers",
+      "Apexes",
       "Krippled 'KC'"
     ],
     "jigs": [
       "Not specified"
     ],
     "otherLures": [
-      "Apexes",
-      "Skinny G's",
-      "AP Tackleworks"
+      "Not specified"
     ],
     "bait": [
       "six inch herring"
@@ -236,6 +240,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Trolling spoons along the bottom in 80-120 feet has been effective for salmon."
+    "Trolling spoons along the bottom in 80-120 feet has been the best technique for salmon.",
+    "Anglers fishing for salmon have to be careful that they are fishing in the area 19 waters and not within the closed area 20 waters."
   ]
 }

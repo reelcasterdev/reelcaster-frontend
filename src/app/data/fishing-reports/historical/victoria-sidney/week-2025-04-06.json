@@ -5,7 +5,7 @@
     "date": "2025-03-02",
     "weekEnding": "March 2, 2025",
     "location": "Victoria, Sidney",
-    "region": "Juan de Fuca Strait, British Columbia"
+    "region": "British Columbia"
   },
   "overallConditions": {
     "salmon": "SLOW",
@@ -24,7 +24,7 @@
           "status": "SLOW",
           "size": "5-7 lbs",
           "bestDepths": "Not specified",
-          "bestArea": "Not specified"
+          "bestArea": "In the Gap and by the Flats"
         }
       },
       "topBaits": [
@@ -66,7 +66,7 @@
         }
       },
       "topBaits": [
-        "6 inch herring"
+        "six inch herring"
       ],
       "topLures": [
         "Apexes",
@@ -81,7 +81,7 @@
         "Blue/Silver Hot Spots"
       ],
       "baitDetails": {
-        "primary": "6 inch herring",
+        "primary": "six inch herring",
         "teaserHeadColors": [
           "Chartreuse",
           "Bloody Nose",
@@ -104,7 +104,7 @@
           "status": "FAIR",
           "size": "Not specified",
           "bestDepths": "Not specified",
-          "bestArea": "Moses Point, Coal Island, Sidney Channel, Powder Wharf, Saanichton Spit"
+          "bestArea": "Moses Point, Coal Island, Sidney Channel, the Powder Wharf, and Saanichton Spit"
         }
       },
       "topBaits": [
@@ -134,7 +134,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Chinook": {
+        "Not specified": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -168,7 +168,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Chinook": {
+        "Not specified": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -220,17 +220,16 @@
       "Apexes",
       "Krippled KC",
       "Skinny G's",
-      "Wee G's",
       "AP Tackleworks"
     ],
     "bait": [
-      "6 inch herring"
+      "six inch herring"
     ],
     "depths": "Not specified",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Be sure to get your new fishing license before your next trip.",
-    "Review the regulations before going out to avoid trouble."
+    "Be aware of the daily limit for Chinook Salmon.",
+    "Check fishing regulations before heading out."
   ]
 }
