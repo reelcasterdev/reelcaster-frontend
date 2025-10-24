@@ -31,11 +31,7 @@
         "anchovies"
       ],
       "topLures": [
-        "Peetz Hookum",
-        "Krippled 'KC'",
-        "Skinny G's",
-        "Wee G's",
-        "AP Tackleworks"
+        "Not specified"
       ],
       "flashers": [
         "Not specified"
@@ -47,9 +43,9 @@
         ]
       },
       "techniques": [
-        "trolling"
+        "Not specified"
       ],
-      "notes": "Salmon fishing was good in Oak Bay."
+      "notes": "Fishing was good in this area."
     },
     "Waterfront": {
       "conditions": {
@@ -83,7 +79,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Salmon fishing was slow off the Victoria waterfront."
+      "notes": "Fishing was slow off the Victoria waterfront."
     },
     "Sidney": {
       "conditions": {
@@ -117,7 +113,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Salmon fishing was spotty in Sidney."
+      "notes": "Fishing was spotty in this area."
     },
     "Constance Bank": {
       "conditions": {
@@ -134,30 +130,24 @@
         }
       },
       "topBaits": [
-        "anchovies"
+        "Not specified"
       ],
       "topLures": [
-        "AP Tackleworks",
-        "Skinny G's",
-        "Krippled 'KC'"
+        "Not specified"
       ],
       "flashers": [
-        "Betsy",
-        "Bon Chovy",
-        "Green/Glow Hot Spots"
+        "Not specified"
       ],
       "baitDetails": {
-        "primary": "anchovies",
+        "primary": "Not specified",
         "teaserHeadColors": [
-          "Chartreuse",
-          "Bloody Nose",
-          "Purple Haze"
+          "Not specified"
         ]
       },
       "techniques": [
-        "trolling"
+        "Not specified"
       ],
-      "notes": "Salmon fishing was good at Constance Bank."
+      "notes": "Fishing was good at Constance Bank."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -196,21 +186,13 @@
   },
   "recommendedTackle": {
     "flashers": [
-      "Betsy",
-      "Bon Chovy",
-      "Green/Glow Hot Spots"
+      "Not specified"
     ],
     "teaserHeadColors": [
-      "Chartreuse",
-      "Bloody Nose",
-      "Purple Haze"
+      "Not specified"
     ],
     "spoons": [
-      "Peetz Hookum",
-      "Krippled 'KC'",
-      "Skinny G's",
-      "Wee G's",
-      "AP Tackleworks"
+      "Not specified"
     ],
     "jigs": [
       "Not specified"
@@ -221,10 +203,10 @@
     "bait": [
       "anchovies"
     ],
-    "depths": "80-120 feet for salmon",
+    "depths": "Not specified",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Trolling spoons along the bottom is effective for salmon."
+    "Check local regulations for catch limits and recording requirements."
   ]
 }

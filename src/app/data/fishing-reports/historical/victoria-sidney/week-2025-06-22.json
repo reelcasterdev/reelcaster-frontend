@@ -16,11 +16,11 @@
     "Oak Bay": {
       "conditions": {
         "salmon": "GOOD",
-        "halibut": "SLOWER",
+        "halibut": "Not specified",
         "crabbing": "Not specified"
       },
       "species": {
-        "Chinook Salmon": {
+        "salmon": {
           "status": "Active",
           "size": "up to 20 lbs",
           "bestDepths": "Not specified",
@@ -28,7 +28,7 @@
         }
       },
       "topBaits": [
-        "Anchovies"
+        "Not specified"
       ],
       "topLures": [
         "AP Needlefish",
@@ -40,14 +40,14 @@
         "Not specified"
       ],
       "baitDetails": {
-        "primary": "Anchovies",
+        "primary": "Not specified",
         "teaserHeadColors": [
           "Not specified"
         ]
       },
       "techniques": [
-        "Trolling",
-        "Jigging"
+        "trolling",
+        "jigging"
       ],
       "notes": "Best chinook fishing has been on the tide change for fish holding close to the bottom."
     },
@@ -58,7 +58,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Not specified": {
+        "salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -87,13 +87,13 @@
     },
     "Sidney": {
       "conditions": {
-        "salmon": "FAIR",
+        "salmon": "Not specified",
         "halibut": "Not specified",
-        "crabbing": "FAIR"
+        "crabbing": "Not specified"
       },
       "species": {
-        "Chinook Salmon": {
-          "status": "Active",
+        "salmon": {
+          "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
@@ -126,7 +126,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Chinook Salmon": {
+        "salmon": {
           "status": "Active",
           "size": "up to 19 lbs",
           "bestDepths": "Not specified",
@@ -157,9 +157,9 @@
         ]
       },
       "techniques": [
-        "Trolling"
+        "trolling"
       ],
-      "notes": "Salmon fishing was GOOD at Constance Bank for good size springs."
+      "notes": "Salmon fishing was good for good size springs."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -168,7 +168,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Not specified": {
+        "salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -212,7 +212,6 @@
       "Herring Aid Skinny Gs",
       "silver Wee Gs",
       "Coho Killers",
-      "Apexes",
       "Krippled KC",
       "Skinny G's",
       "Wee G's",
@@ -222,15 +221,16 @@
       "Not specified"
     ],
     "otherLures": [
-      "Not specified"
+      "Apexes"
     ],
     "bait": [
       "Anchovies"
     ],
-    "depths": "Not specified",
+    "depths": "80-120 feet for salmon",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Trolling spoons along the bottom in 80-120 feet has been the best technique for salmon."
+    "Trolling spoons along the bottom is effective for salmon.",
+    "Be cautious of closed areas while fishing for salmon."
   ]
 }

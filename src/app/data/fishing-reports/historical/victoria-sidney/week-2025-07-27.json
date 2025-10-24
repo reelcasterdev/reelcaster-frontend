@@ -5,7 +5,7 @@
     "date": "2025-07-27",
     "weekEnding": "July 27, 2025",
     "location": "Victoria, Sidney",
-    "region": "Juan de Fuca Strait"
+    "region": "Juan de Fuca Strait, British Columbia"
   },
   "overallConditions": {
     "salmon": "EXCELLENT",
@@ -112,7 +112,7 @@
       ],
       "topLures": [
         "Peetz Hookum",
-        "Krippled KC",
+        "Krippled 'KC'",
         "Skinny G's",
         "Wee G's",
         "AP Tackleworks"
@@ -130,9 +130,10 @@
         ]
       },
       "techniques": [
-        "Not specified"
+        "Trolling",
+        "Jigging"
       ],
-      "notes": "Retention opportunities for Chinook salmon are specific to certain areas."
+      "notes": "Retention opportunities for Chinook salmon are in effect."
     },
     "Constance Bank": {
       "conditions": {
@@ -215,7 +216,7 @@
     ],
     "spoons": [
       "Peetz Hookum",
-      "Krippled KC",
+      "Krippled 'KC'",
       "Skinny G's",
       "Wee G's",
       "AP Tackleworks"
@@ -233,7 +234,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Record Chinook salmon length on your licence.",
-    "Check for specific retention opportunities in your area."
+    "Target pink salmon in Juan de Fuca Strait for limits.",
+    "Record Chinook salmon length on your licence."
   ]
 }

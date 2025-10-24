@@ -5,7 +5,7 @@
     "date": "2025-08-03",
     "weekEnding": "August 3, 2025",
     "location": "Sooke",
-    "region": "Sooke, British Columbia"
+    "region": "Vancouver Island, British Columbia"
   },
   "overallConditions": {
     "salmon": "EXCELLENT",
@@ -44,7 +44,7 @@
       ],
       "topLures": [
         "Peetz Hookum",
-        "Krippled KC",
+        "Krippled 'KC'",
         "Skinny G's",
         "Wee G's",
         "AP Tackleworks"
@@ -64,7 +64,7 @@
       "techniques": [
         "Jigging"
       ],
-      "notes": "Salmon fishing was slower for pinks this past week."
+      "notes": "Salmon fishing has been excellent with retention open for Chinooks."
     },
     "Becher Bay": {
       "conditions": {
@@ -97,7 +97,7 @@
       ],
       "topLures": [
         "Peetz Hookum",
-        "Krippled KC",
+        "Krippled 'KC'",
         "Skinny G's",
         "Wee G's",
         "AP Tackleworks"
@@ -117,7 +117,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Chinooks are now open for retention."
+      "notes": "Chinooks are open for retention and being caught throughout the area."
     },
     "Pedder Bay": {
       "conditions": {
@@ -128,7 +128,7 @@
       "species": {
         "Chinook": {
           "status": "Active",
-          "size": "small to keeper size",
+          "size": "Not specified",
           "bestDepths": "Not specified",
           "bestArea": "Not specified"
         },
@@ -153,7 +153,7 @@
         "Skinny G's",
         "Northern King",
         "PEETZ Hookum",
-        "Krippled KC"
+        "Krippled 'KC'"
       ],
       "flashers": [
         "Betsy",
@@ -171,7 +171,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Best action has been on the flood tides."
+      "notes": "Best action on flood tides, with halibut fishing being fair."
     },
     "Church Rock": {
       "conditions": {
@@ -235,7 +235,7 @@
     ],
     "spoons": [
       "Peetz Hookum",
-      "Krippled KC",
+      "Krippled 'KC'",
       "Skinny G's",
       "Wee G's",
       "AP Tackleworks",
@@ -254,8 +254,8 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Target areas with known productive spots like Secretary Island and Possession Point.",
-    "Check for hatchery markings on coho.",
-    "Monitor tidal changes for better fishing action."
+    "Target pinks for limits, especially in East Sooke.",
+    "Use anchovies as the primary bait.",
+    "Jigging can be effective in certain areas."
   ]
 }

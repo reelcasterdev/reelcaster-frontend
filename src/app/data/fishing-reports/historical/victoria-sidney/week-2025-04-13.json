@@ -1,7 +1,7 @@
 {
   "reportMetadata": {
     "source": "Island Outfitters",
-    "reportId": "2025-03-09",
+    "reportId": "20250309",
     "date": "2025-03-09",
     "weekEnding": "March 9, 2025",
     "location": "Victoria, Sidney",
@@ -24,17 +24,17 @@
           "status": "Active",
           "size": "5-12 lbs",
           "bestDepths": "Not specified",
-          "bestArea": "The Gap and by the Flats"
+          "bestArea": "Gap and by the Flats"
         }
       },
       "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
         "AP Needlefish",
         "Green/Glow Skinny Gs",
         "Wee Gs",
         "Coho Killers"
-      ],
-      "topLures": [
-        "Not specified"
       ],
       "flashers": [
         "Not specified"
@@ -49,7 +49,7 @@
         "trolling",
         "jigging"
       ],
-      "notes": "Most springs were feeders from 5-7 lbs in size."
+      "notes": "Most springs were feeders."
     },
     "Waterfront": {
       "conditions": {
@@ -59,7 +59,7 @@
       },
       "species": {
         "Chinook": {
-          "status": "Not specified",
+          "status": "Active",
           "size": "5-10 lbs",
           "bestDepths": "Not specified",
           "bestArea": "Flag Pole"
@@ -91,7 +91,7 @@
       "techniques": [
         "trolling"
       ],
-      "notes": "There have been a few keepers in the 5-10 lb size range and the occasional larger one."
+      "notes": "A few keepers were caught."
     },
     "Sidney": {
       "conditions": {
@@ -125,7 +125,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Salmon were scattered in the area. Many of the salmon keepers but most are undersized."
+      "notes": "Salmon were scattered in the area."
     },
     "Constance Bank": {
       "conditions": {
@@ -211,15 +211,17 @@
       "AP Needlefish",
       "Green/Glow Skinny Gs",
       "Wee Gs",
-      "Coho Killers",
-      "Apexes",
-      "Krippled 'KC'"
+      "Coho Killers"
     ],
     "jigs": [
       "Not specified"
     ],
     "otherLures": [
-      "Not specified"
+      "Apexes",
+      "Krippled 'KC'",
+      "Skinny G's",
+      "Wee G's",
+      "AP Tackleworks"
     ],
     "bait": [
       "6 inch herring"
@@ -228,7 +230,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Check fishing licenses before going out.",
-    "Review regulations regularly to avoid issues."
+    "Check for updates on fishing regulations before heading out.",
+    "Ensure you have a valid fishing license."
   ]
 }

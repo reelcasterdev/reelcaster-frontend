@@ -5,19 +5,19 @@
     "date": "2025-07-27",
     "weekEnding": "July 27, 2025",
     "location": "Sooke",
-    "region": "Juan de Fuca Strait"
+    "region": "Sooke, British Columbia"
   },
   "overallConditions": {
     "salmon": "EXCELLENT",
-    "bottomFishing": "FAIR",
+    "bottomFishing": "SLOW",
     "crabbing": "SPOTTY"
   },
   "hotspotReports": {
     "East Sooke": {
       "conditions": {
         "salmon": "EXCELLENT",
-        "halibut": "SLOW",
-        "crabbing": "SPOTTY"
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
       },
       "species": {
         "Pink Salmon": {
@@ -43,11 +43,7 @@
         "Anchovies"
       ],
       "topLures": [
-        "Peetz Hookum",
-        "Krippled 'KC'",
-        "Skinny G's",
-        "Wee G's",
-        "AP Tackleworks"
+        "Not specified"
       ],
       "flashers": [
         "Not specified"
@@ -61,7 +57,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Almost all anglers are getting limits."
+      "notes": "Most anglers are getting limits."
     },
     "Becher Bay": {
       "conditions": {
@@ -76,6 +72,12 @@
           "bestDepths": "Not specified",
           "bestArea": "Becher Bay triangle"
         },
+        "Coho Salmon": {
+          "status": "Active",
+          "size": "Up to 8 lbs",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        },
         "Chinook Salmon": {
           "status": "Active",
           "size": "Up to 20 lbs",
@@ -88,7 +90,7 @@
       ],
       "topLures": [
         "Peetz Hookum",
-        "Krippled 'KC'",
+        "Krippled KC",
         "Skinny G's",
         "Wee G's",
         "AP Tackleworks"
@@ -108,13 +110,13 @@
       "techniques": [
         "Jigging"
       ],
-      "notes": "Anglers fishing catch and release from Creyke Point to the Trap Shack were catching lots of springs."
+      "notes": "Anglers caught fin-clipped springs up to 20 lbs."
     },
     "Pedder Bay": {
       "conditions": {
         "salmon": "EXCELLENT",
         "halibut": "Not specified",
-        "crabbing": "SLOW"
+        "crabbing": "Not specified"
       },
       "species": {
         "Pink Salmon": {
@@ -144,12 +146,12 @@
         "Skinny G's",
         "Northern King",
         "PEETZ Hookum",
-        "Krippled 'KC'"
+        "Krippled KC"
       ],
       "flashers": [
         "Betsy",
         "Bon Chovy",
-        "Green/Glow Hot Spots"
+        "Green/Glow Hot"
       ],
       "baitDetails": {
         "primary": "Anchovies",
@@ -171,7 +173,19 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Not specified": {
+        "Pink Salmon": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        },
+        "Coho Salmon": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        },
+        "Chinook Salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -205,7 +219,7 @@
       "Bon Chovy",
       "Madi",
       "Blue/Silver Hot Spots",
-      "Green/Glow Hot Spots"
+      "Green/Glow Hot"
     ],
     "teaserHeadColors": [
       "Chartreuse",
@@ -214,7 +228,7 @@
     ],
     "spoons": [
       "Peetz Hookum",
-      "Krippled 'KC'",
+      "Krippled KC",
       "Skinny G's",
       "Wee G's",
       "AP Tackleworks",
@@ -233,8 +247,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Target pink salmon as they are currently abundant.",
-    "Use fin-clipped Chinooks for retention in specified areas.",
-    "Check local regulations for crabbing and salmon retention limits."
+    "Most anglers are getting limits.",
+    "Best action has been on the flood tides."
   ]
 }

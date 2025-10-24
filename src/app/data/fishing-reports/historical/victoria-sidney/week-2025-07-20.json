@@ -5,7 +5,7 @@
     "date": "2025-07-20",
     "weekEnding": "July 20, 2025",
     "location": "Victoria, Sidney",
-    "region": "Juan de Fuca Strait"
+    "region": "Juan de Fuca Strait, British Columbia"
   },
   "overallConditions": {
     "salmon": "EXCELLENT",
@@ -13,40 +13,6 @@
     "crabbing": "SPOTTY"
   },
   "hotspotReports": {
-    "Oak Bay": {
-      "conditions": {
-        "salmon": "Not specified",
-        "halibut": "Not specified",
-        "crabbing": "Not specified"
-      },
-      "species": {
-        "Not specified": {
-          "status": "Not specified",
-          "size": "Not specified",
-          "bestDepths": "Not specified",
-          "bestArea": "Not specified"
-        }
-      },
-      "topBaits": [
-        "Not specified"
-      ],
-      "topLures": [
-        "Not specified"
-      ],
-      "flashers": [
-        "Not specified"
-      ],
-      "baitDetails": {
-        "primary": "Not specified",
-        "teaserHeadColors": [
-          "Not specified"
-        ]
-      },
-      "techniques": [
-        "Not specified"
-      ],
-      "notes": "Not specified"
-    },
     "Waterfront": {
       "conditions": {
         "salmon": "FAIR",
@@ -54,11 +20,17 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Chinook": {
-          "status": "Catch and release",
+        "Pink Salmon": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Between the yellow marker buoy and Constance Bank"
+        },
+        "Chinook Salmon": {
+          "status": "Active",
           "size": "Mid-teens",
           "bestDepths": "Not specified",
-          "bestArea": "Between yellow marker buoy and Constance Bank"
+          "bestArea": "Along the waterfront"
         }
       },
       "topBaits": [
@@ -72,8 +44,7 @@
         "AP Tackleworks"
       ],
       "flashers": [
-        "Bon Chovy",
-        "Madi"
+        "Not specified"
       ],
       "baitDetails": {
         "primary": "Anchovies",
@@ -86,7 +57,7 @@
       "techniques": [
         "Catch and release"
       ],
-      "notes": "Large numbers of pinks have not arrived yet."
+      "notes": "Large numbers of pinks have not arrived yet, expected soon."
     },
     "Sidney": {
       "conditions": {
@@ -95,7 +66,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Not specified": {
+        "Pink Salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -129,7 +100,41 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Not specified": {
+        "Pink Salmon": {
+          "status": "Not specified",
+          "size": "Not specified",
+          "bestDepths": "Not specified",
+          "bestArea": "Not specified"
+        }
+      },
+      "topBaits": [
+        "Not specified"
+      ],
+      "topLures": [
+        "Not specified"
+      ],
+      "flashers": [
+        "Not specified"
+      ],
+      "baitDetails": {
+        "primary": "Not specified",
+        "teaserHeadColors": [
+          "Not specified"
+        ]
+      },
+      "techniques": [
+        "Not specified"
+      ],
+      "notes": "Not specified"
+    },
+    "Oak Bay": {
+      "conditions": {
+        "salmon": "Not specified",
+        "halibut": "Not specified",
+        "crabbing": "Not specified"
+      },
+      "species": {
+        "Pink Salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -163,7 +168,7 @@
         "crabbing": "Not specified"
       },
       "species": {
-        "Not specified": {
+        "Pink Salmon": {
           "status": "Not specified",
           "size": "Not specified",
           "bestDepths": "Not specified",
@@ -193,8 +198,7 @@
   },
   "recommendedTackle": {
     "flashers": [
-      "Bon Chovy",
-      "Madi"
+      "Not specified"
     ],
     "teaserHeadColors": [
       "Chartreuse",
@@ -221,6 +225,7 @@
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Be patient as large numbers of pinks are expected to arrive soon."
+    "Use catch and release techniques for Chinook salmon.",
+    "Monitor for the arrival of larger pink salmon."
   ]
 }

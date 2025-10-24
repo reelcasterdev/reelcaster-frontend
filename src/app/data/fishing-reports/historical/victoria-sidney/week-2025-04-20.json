@@ -23,33 +23,33 @@
         "Chinook": {
           "status": "Slow",
           "size": "5-12 lbs",
-          "bestDepths": "Close to the bottom",
-          "bestArea": "In the Gap and by the Flats"
+          "bestDepths": "Not specified",
+          "bestArea": "Gap and by the Flats"
         }
       },
       "topBaits": [
-        "Anchovies"
-      ],
-      "topLures": [
         "AP Needlefish",
         "Green/Glow Skinny Gs",
         "Wee Gs",
         "Coho Killers"
       ],
+      "topLures": [
+        "Not specified"
+      ],
       "flashers": [
         "Not specified"
       ],
       "baitDetails": {
-        "primary": "Anchovies",
+        "primary": "Not specified",
         "teaserHeadColors": [
           "Not specified"
         ]
       },
       "techniques": [
-        "Trolling",
-        "Jigging"
+        "trolling",
+        "jigging"
       ],
-      "notes": "Most springs were feeders from 5-7 lbs in size."
+      "notes": "Most anglers have been trolling spoons, but anglers jigging are also getting a few."
     },
     "Waterfront": {
       "conditions": {
@@ -66,11 +66,11 @@
         }
       },
       "topBaits": [
-        "Six inch herring"
+        "6 inch herring"
       ],
       "topLures": [
         "Apexes",
-        "Krippled KC",
+        "Krippled 'KC'",
         "Skinny G's",
         "Wee G's",
         "AP Tackleworks"
@@ -81,7 +81,7 @@
         "Blue/Silver Hot Spots"
       ],
       "baitDetails": {
-        "primary": "Six inch herring",
+        "primary": "6 inch herring",
         "teaserHeadColors": [
           "Chartreuse",
           "Bloody Nose",
@@ -89,9 +89,9 @@
         ]
       },
       "techniques": [
-        "Not specified"
+        "trolling"
       ],
-      "notes": "There have been a few keepers in the 5-10 lb size range and the occasional larger one."
+      "notes": "There have been a few keepers in the size range."
     },
     "Sidney": {
       "conditions": {
@@ -125,7 +125,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Salmon were scattered in the area. Many of the salmon keepers but most are undersized."
+      "notes": "Salmon were scattered in the area."
     },
     "Constance Bank": {
       "conditions": {
@@ -212,26 +212,23 @@
       "Green/Glow Skinny Gs",
       "Wee Gs",
       "Coho Killers",
-      "Krippled KC"
+      "Apexes",
+      "Krippled 'KC'"
     ],
     "jigs": [
       "Not specified"
     ],
     "otherLures": [
-      "Apexes",
-      "Skinny G's",
-      "Wee G's",
-      "AP Tackleworks"
+      "Not specified"
     ],
     "bait": [
-      "Anchovies",
-      "Six inch herring"
+      "6 inch herring"
     ],
     "depths": "Not specified",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Be sure to get your new fishing license before your next trip.",
-    "Review regulations before going out."
+    "Check for changes in fishing regulations before going out.",
+    "Ensure you have the correct fishing license before your trip."
   ]
 }

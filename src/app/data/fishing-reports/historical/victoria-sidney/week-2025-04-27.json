@@ -5,7 +5,7 @@
     "date": "2025-03-23",
     "weekEnding": "March 23, 2025",
     "location": "Victoria, Sidney",
-    "region": "Juan de Fuca Strait"
+    "region": "Juan de Fuca Strait, British Columbia"
   },
   "overallConditions": {
     "salmon": "SLOW",
@@ -21,9 +21,9 @@
       },
       "species": {
         "Chinook": {
-          "status": "SLOW",
+          "status": "Slow",
           "size": "5-12 lbs",
-          "bestDepths": "Not specified",
+          "bestDepths": "Close to the bottom",
           "bestArea": "The Gap and by the Flats"
         }
       },
@@ -49,7 +49,7 @@
         "Trolling",
         "Jigging"
       ],
-      "notes": "Most anglers have been trolling spoons, but anglers jigging are also getting a few."
+      "notes": "Most anglers have been trolling spoons, but jigging is also producing some catches."
     },
     "Waterfront": {
       "conditions": {
@@ -93,10 +93,10 @@
       },
       "species": {
         "Chinook": {
-          "status": "SLOW",
-          "size": "Undersized to larger",
+          "status": "Slow",
+          "size": "Undersized with some larger ones",
           "bestDepths": "Not specified",
-          "bestArea": "Sidney Spit and Channel, Powder Wharf, Saanichton Spit"
+          "bestArea": "Sidney Spit, Channel, Powder Wharf, Saanichton Spit"
         }
       },
       "topBaits": [
@@ -117,7 +117,7 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Many of the salmon keepers but most are undersized."
+      "notes": "Many salmon keepers but most are undersized."
     },
     "Constance Bank": {
       "conditions": {
@@ -190,31 +190,38 @@
   },
   "recommendedTackle": {
     "flashers": [
-      "Not specified"
+      "Bon Chovy",
+      "Madi",
+      "Blue/Silver Hot Spots"
     ],
     "teaserHeadColors": [
-      "Not specified"
+      "Chartreuse",
+      "Bloody Nose",
+      "Purple Haze"
     ],
     "spoons": [
       "AP Needlefish",
       "Green/Glow Skinny Gs",
       "Wee Gs",
-      "Coho Killers"
+      "Coho Killers",
+      "Krippled KC"
     ],
     "jigs": [
       "Not specified"
     ],
     "otherLures": [
-      "Not specified"
+      "Apexes"
     ],
     "bait": [
+      "Six inch herring",
       "Anchovies"
     ],
-    "depths": "Not specified",
+    "depths": "Close to the bottom",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Check fishing licenses before your next trip.",
-    "Review regulations before going out."
+    "Check local regulations before fishing.",
+    "Ensure your fishing license is up to date.",
+    "Use effective lures and baits based on recent catches."
   ]
 }

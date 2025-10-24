@@ -4,7 +4,7 @@
     "reportId": "2025-04-06",
     "date": "2025-04-06",
     "weekEnding": "April 6, 2025",
-    "location": "Victoria, Sidney",
+    "location": "Victoria",
     "region": "British Columbia"
   },
   "overallConditions": {
@@ -21,10 +21,10 @@
       },
       "species": {
         "Chinook": {
-          "status": "Not specified",
+          "status": "Active",
           "size": "up to 12 lbs",
-          "bestDepths": "close to the bottom",
-          "bestArea": "Not specified"
+          "bestDepths": "Not specified",
+          "bestArea": "on the Flats"
         }
       },
       "topBaits": [
@@ -49,7 +49,7 @@
         "trolling",
         "jigging"
       ],
-      "notes": "Hatchery marked springs being caught in on the Flats."
+      "notes": "Most anglers have been trolling spoons, but anglers jigging are also getting a few."
     },
     "Waterfront": {
       "conditions": {
@@ -117,17 +117,17 @@
       "techniques": [
         "Not specified"
       ],
-      "notes": "Opening of the prawn season in Saanich Inlet was the biggest event."
+      "notes": "The opening of the prawn season in Saanich Inlet was the biggest event of the past week."
     },
     "Constance Bank": {
       "conditions": {
         "salmon": "FAIR",
         "halibut": "GOOD",
-        "crabbing": "Not specified"
+        "crabbing": "FAIR"
       },
       "species": {
         "Chinook": {
-          "status": "Not specified",
+          "status": "Active",
           "size": "3-12 lbs",
           "bestDepths": "Not specified",
           "bestArea": "near the harbour and near Ross Bay"
@@ -138,7 +138,7 @@
       ],
       "topLures": [
         "Apexes",
-        "Krippled 'KC'",
+        "Krippled KC",
         "Skinny G's",
         "Wee G's",
         "AP Tackleworks"
@@ -157,9 +157,9 @@
         ]
       },
       "techniques": [
-        "Not specified"
+        "trolling"
       ],
-      "notes": "Large herring are still holding in the area."
+      "notes": "Most salmon were keepers in the 3-7 lb size range but some around 12 lbs were taken."
     },
     "Ten Mile Point": {
       "conditions": {
@@ -212,8 +212,7 @@
       "Green/Glow Skinny Gs",
       "Wee Gs",
       "Coho Killers",
-      "Peetz Hookum",
-      "Krippled 'KC'",
+      "Krippled KC",
       "Skinny G's",
       "Wee G's",
       "AP Tackleworks"
@@ -225,13 +224,14 @@
       "Apexes"
     ],
     "bait": [
-      "six inch herring"
+      "six inch herring",
+      "Not specified"
     ],
     "depths": "Not specified",
     "setupDetails": "Not specified"
   },
   "fishingTips": [
-    "Check for updates on fishing regulations before heading out.",
-    "Ensure your fishing license is up to date."
+    "Be sure to get your new fishing license before your next trip.",
+    "Check for changes in fishing regulations before going out."
   ]
 }
