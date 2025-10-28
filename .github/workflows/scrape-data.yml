@@ -27,100 +27,39 @@ on:
 jobs:
   scrape-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Create .env.local file
-        run: |
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.local
-          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.local
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.local
-          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.local
-          echo "CRON_SECRET=${{ secrets.CRON_SECRET }}" >> .env.local
-
       - name: Scrape DFO Regulations
         id: scrape_regulations
         if: ${{ github.event.inputs.scrape_regulations != 'false' }}
         run: |
-          echo "🎣 Scraping DFO Regulations..."
-          pnpm tsx scripts/scrape-dfo-regulations.ts || echo "scrape_failed=true" >> $GITHUB_OUTPUT
+          echo "🎣 Calling DFO Regulations API endpoint..."
+
+          # Call the production API endpoint
+          curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --show-error \
+            --max-time 300 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
         continue-on-error: true
 
       - name: Scrape Fishing Reports
         id: scrape_reports
         if: ${{ github.event.inputs.scrape_reports != 'false' }}
         run: |
-          echo "🐟 Scraping Fishing Reports..."
-          DAYS=${{ github.event.inputs.days_to_check || '7' }}
+          echo "🐟 Calling Fishing Reports API endpoint..."
+          DAYS=${{ github.event.inputs.days_to_check || '14' }}
 
-          # Get latest report info (you may need to update this)
-          LATEST_ID=$(date +%s | awk '{print int($1/604800) + 300}') # Estimate based on timestamp
-          LATEST_DATE=$(date -u +%Y-%m-%d)
-
-          pnpm tsx scripts/scrape-historical-reports.ts \
-            --id=$LATEST_ID \
-            --date=$LATEST_DATE \
-            --days=$DAYS || echo "scrape_failed=true" >> $GITHUB_OUTPUT
+          # Call the production API endpoint
+          curl -X POST "${{ secrets.APP_URL }}/api/fishing-reports/scrape?days=$DAYS" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --show-error \
+            --max-time 600 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
         continue-on-error: true
-
-      - name: Check for changes
-        id: check_changes
-        run: |
-          git add -A
-          if git diff --staged --quiet; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No changes detected"
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Changes detected"
-          fi
-
-      - name: Commit and push changes
-        if: steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
-          # Create detailed commit message
-          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-
-          COMMIT_MSG="🤖 Auto-scrape: Update fishing data ($TIMESTAMP)"
-
-          if [ -d "scraped-data" ]; then
-            COMMIT_MSG="$COMMIT_MSG
-
-DFO Regulations: Updated $(ls scraped-data/dfo-*.json 2>/dev/null | wc -l) area(s)"
-          fi
-
-          if [ -d "src/app/data/fishing-reports/historical" ]; then
-            NEW_REPORTS=$(find src/app/data/fishing-reports/historical -name "*.json" -mmin -30 | wc -l)
-            if [ $NEW_REPORTS -gt 0 ]; then
-              COMMIT_MSG="$COMMIT_MSG
-Fishing Reports: Added $NEW_REPORTS new report(s)"
-            fi
-          fi
-
-          git commit -m "$COMMIT_MSG"
-          git push
 
       - name: Create summary
         if: always()
@@ -128,14 +67,15 @@ Fishing Reports: Added $NEW_REPORTS new report(s)"
           echo "# 🎣 Daily Scraping Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "**Method:** Direct API calls to production" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # DFO Regulations
           if [ "${{ steps.scrape_regulations.outcome }}" == "success" ]; then
-            SPECIES_COUNT=$(find scraped-data -name "dfo-*.json" -exec jq '.species | length' {} \; 2>/dev/null | head -1 || echo "0")
             echo "### ✅ DFO Regulations" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
-            echo "- Species extracted: $SPECIES_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/regulations/scrape" >> $GITHUB_STEP_SUMMARY
+            echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ DFO Regulations" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
@@ -146,19 +86,11 @@ Fishing Reports: Added $NEW_REPORTS new report(s)"
           if [ "${{ steps.scrape_reports.outcome }}" == "success" ]; then
             echo "### ✅ Fishing Reports" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/fishing-reports/scrape" >> $GITHUB_STEP_SUMMARY
+            echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ Fishing Reports" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Changes
-          if [ "${{ steps.check_changes.outputs.has_changes }}" == "true" ]; then
-            echo "### 📝 Changes Committed" >> $GITHUB_STEP_SUMMARY
-            echo "New data has been committed to the repository" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ℹ️ No Changes" >> $GITHUB_STEP_SUMMARY
-            echo "No new data found" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Notify on failure
