@@ -49,7 +49,7 @@ export async function parseArea(
   url: string,
   options: ParseOptions = {}
 ): Promise<AreaRegulations> {
-  const { useOpenAI = false, validateWithAI = true } = options
+  const { useOpenAI = false, validateWithAI: shouldValidateWithAI = true } = options
 
   // If explicitly requested to use OpenAI, skip Cheerio
   if (useOpenAI) {
@@ -64,7 +64,7 @@ export async function parseArea(
 
   if (cheerioSuccessful) {
     // Validate with OpenAI if requested and API key available
-    if (validateWithAI && process.env.OPENAI_API_KEY) {
+    if (shouldValidateWithAI && process.env.OPENAI_API_KEY) {
       try {
         await validateWithAI(cheerioData)
       } catch (error) {
