@@ -1,4 +1,5 @@
 import { FishingReportData } from '../types/fishing-report'
+import { createClient } from '@supabase/supabase-js'
 
 export interface HistoricalReport {
   date: string
@@ -11,7 +12,21 @@ export interface GroupedReports {
 }
 
 /**
- * Loads all historical fishing reports and groups them by location
+ * Get Supabase client for reading fishing reports
+ */
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase configuration missing')
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey)
+}
+
+/**
+ * Loads all historical fishing reports from Supabase and groups them by location
  */
 export async function loadHistoricalReports(): Promise<GroupedReports> {
   const reports: GroupedReports = {
@@ -19,46 +34,49 @@ export async function loadHistoricalReports(): Promise<GroupedReports> {
     'Sooke, Port Renfrew': []
   }
 
-  // Define the locations and their directory names
-  const locations = [
-    { name: 'Victoria, Sidney', dir: 'victoria-sidney' },
-    { name: 'Sooke, Port Renfrew', dir: 'sooke-port-renfrew' }
-  ]
+  try {
+    const supabase = getSupabaseClient()
 
-  // Generate list of weeks (past 20 weeks)
-  const weeks: string[] = []
-  const baseDate = new Date('2025-08-03')
-  
-  for (let i = 0; i < 20; i++) {
-    const date = new Date(baseDate)
-    date.setDate(date.getDate() - (i * 7))
-    weeks.push(date.toISOString().split('T')[0])
-  }
+    // Fetch all active fishing reports from Supabase
+    const { data: fishingReports, error } = await supabase
+      .from('fishing_reports')
+      .select('location, week_ending, report_data')
+      .eq('is_active', true)
+      .order('week_ending', { ascending: false })
+      .limit(100) // Get last 100 reports total
 
-  // Load reports for each location
-  for (const location of locations) {
-    const locationReports: HistoricalReport[] = []
-    
-    for (const week of weeks) {
-      try {
-        const reportModule = await import(
-          `@/app/data/fishing-reports/historical/${location.dir}/week-${week}.json`
-        )
-        
-        locationReports.push({
-          date: week,
-          weekEnding: reportModule.default.reportMetadata.weekEnding,
-          data: reportModule.default
-        })
-      } catch {
-        console.warn(`Report not found for ${location.name} week ${week}`)
-      }
+    if (error) {
+      console.error('Error loading fishing reports from Supabase:', error)
+      return reports
     }
-    
-    // Sort by date (newest first)
-    locationReports.sort((a, b) => b.date.localeCompare(a.date))
-    reports[location.name] = locationReports
-  }
 
-  return reports
+    if (!fishingReports || fishingReports.length === 0) {
+      console.warn('No fishing reports found in Supabase')
+      return reports
+    }
+
+    // Group reports by location
+    for (const report of fishingReports) {
+      if (!reports[report.location]) {
+        reports[report.location] = []
+      }
+
+      reports[report.location].push({
+        date: report.week_ending,
+        weekEnding: report.report_data.reportMetadata?.weekEnding || report.week_ending,
+        data: report.report_data as FishingReportData
+      })
+    }
+
+    // Sort each location's reports by date (newest first)
+    for (const location in reports) {
+      reports[location].sort((a, b) => b.date.localeCompare(a.date))
+    }
+
+    console.log(`Loaded ${fishingReports.length} fishing reports from Supabase`)
+    return reports
+  } catch (error) {
+    console.error('Failed to load fishing reports:', error)
+    return reports
+  }
 }
