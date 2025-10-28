@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/auth-context'
+import { useAnalytics } from '@/hooks/use-analytics'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Fish, Mail, CheckCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -24,6 +25,7 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
+  const { trackEvent } = useAnalytics()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,7 +41,17 @@ export function AuthDialog({ open, onOpenChange, defaultMode = 'signin' }: AuthD
       } else {
         if (mode === 'signup') {
           setSuccess(true)
+          // Track signup event
+          trackEvent('Sign Up', {
+            method: 'email',
+            timestamp: new Date().toISOString(),
+          })
         } else {
+          // Track signin event
+          trackEvent('Sign In', {
+            method: 'email',
+            timestamp: new Date().toISOString(),
+          })
           onOpenChange(false)
           setEmail('')
           setPassword('')

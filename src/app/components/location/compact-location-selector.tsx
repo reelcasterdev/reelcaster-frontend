@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, MapPin, Fish } from 'lucide-react'
 import { getRegulationsByLocation } from '@/app/data/regulations'
+import { useAnalytics } from '@/hooks/use-analytics'
 
 interface FishingHotspot {
   name: string
@@ -85,6 +86,7 @@ interface CompactLocationSelectorProps {
 export default function CompactLocationSelector({ onLocationChange }: CompactLocationSelectorProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { trackEvent } = useAnalytics()
 
   // Get initial values from URL
   const [selectedLocation, setSelectedLocation] = useState<string>('')
@@ -119,7 +121,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
         }
       }
     }
-  }, [searchParams])
+  }, [searchParams, fishSpecies])
 
   const currentLocation = fishingLocations.find(loc => loc.id === selectedLocation)
   const currentSpecies = fishSpecies.find(species => species.id === selectedSpecies)
@@ -133,6 +135,15 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
   }, [currentLocation])
 
   const handleLocationChange = (locationId: string) => {
+    const location = fishingLocations.find(loc => loc.id === locationId)
+    if (location) {
+      trackEvent('Location Selected', {
+        location: location.name,
+        region: 'British Columbia',
+        coordinates: location.coordinates,
+        timestamp: new Date().toISOString(),
+      })
+    }
     setSelectedLocation(locationId)
     setSelectedHotspot('')
     setSelectedSpecies('')
@@ -140,11 +151,29 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
   }
 
   const handleHotspotChange = (hotspot: string) => {
+    if (currentLocation) {
+      const hotspotData = currentLocation.hotspots.find(h => h.name === hotspot)
+      trackEvent('Hotspot Selected', {
+        location: currentLocation.name,
+        hotspot: hotspot,
+        coordinates: hotspotData?.coordinates,
+        timestamp: new Date().toISOString(),
+      })
+    }
     setSelectedHotspot(hotspot)
     setShowHotspotDropdown(false)
   }
 
   const handleSpeciesChange = (speciesId: string) => {
+    const species = fishSpecies.find(s => s.id === speciesId)
+    if (currentLocation) {
+      trackEvent('Species Selected', {
+        location: currentLocation.name,
+        hotspot: selectedHotspot,
+        species: species?.name || 'All Species',
+        timestamp: new Date().toISOString(),
+      })
+    }
     setSelectedSpecies(speciesId)
     setShowSpeciesDropdown(false)
   }

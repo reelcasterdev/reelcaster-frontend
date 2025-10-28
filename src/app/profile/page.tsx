@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, ArrowLeft, Clock, Gauge } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,6 +11,7 @@ import { Alert } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/contexts/auth-context'
+import { useAnalytics } from '@/hooks/use-analytics'
 import { UserPreferences, UserPreferencesService } from '@/lib/user-preferences'
 import Sidebar from '../components/common/sidebar'
 
@@ -65,11 +66,14 @@ const fishSpecies = [
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth()
+  const { trackEvent } = useAnalytics()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [preferences, setPreferences] = useState<UserPreferences>({})
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const originalPreferences = useRef<UserPreferences>({})
+  const hasTrackedView = useRef(false)
 
   // Load user preferences on mount
   useEffect(() => {
@@ -77,6 +81,15 @@ export default function ProfilePage() {
       try {
         const userPrefs = await UserPreferencesService.getUserPreferences()
         setPreferences(userPrefs)
+        originalPreferences.current = userPrefs
+
+        // Track profile viewed
+        if (!hasTrackedView.current) {
+          trackEvent('Profile Viewed', {
+            timestamp: new Date().toISOString(),
+          })
+          hasTrackedView.current = true
+        }
       } catch (error) {
         console.error('Error loading preferences:', error)
       } finally {
@@ -89,7 +102,7 @@ export default function ProfilePage() {
     } else {
       router.push('/')
     }
-  }, [user, router])
+  }, [user, router, trackEvent])
 
   const handleSavePreferences = async () => {
     setSaving(true)
@@ -100,6 +113,37 @@ export default function ProfilePage() {
 
       if (result.success) {
         setMessage({ type: 'success', text: 'Preferences saved successfully!' })
+
+        // Track which fields changed
+        const changedFields: string[] = []
+        const original = originalPreferences.current
+
+        if (preferences.favoriteLocation !== original.favoriteLocation) changedFields.push('favoriteLocation')
+        if (preferences.favoriteHotspot !== original.favoriteHotspot) changedFields.push('favoriteHotspot')
+        if (preferences.favoriteSpecies !== original.favoriteSpecies) changedFields.push('favoriteSpecies')
+        if (preferences.windUnit !== original.windUnit) changedFields.push('windUnit')
+        if (preferences.tempUnit !== original.tempUnit) changedFields.push('tempUnit')
+        if (preferences.precipUnit !== original.precipUnit) changedFields.push('precipUnit')
+        if (preferences.heightUnit !== original.heightUnit) changedFields.push('heightUnit')
+        if (preferences.notificationsEnabled !== original.notificationsEnabled) changedFields.push('notificationsEnabled')
+        if (preferences.emailForecasts !== original.emailForecasts) changedFields.push('emailForecasts')
+        if (preferences.notificationTime !== original.notificationTime) changedFields.push('notificationTime')
+
+        trackEvent('Preferences Saved', {
+          changedFields,
+          favoriteLocation: preferences.favoriteLocation,
+          favoriteHotspot: preferences.favoriteHotspot,
+          favoriteSpecies: preferences.favoriteSpecies,
+          windUnit: preferences.windUnit,
+          tempUnit: preferences.tempUnit,
+          precipUnit: preferences.precipUnit,
+          heightUnit: preferences.heightUnit,
+          notificationsEnabled: preferences.notificationsEnabled,
+          timestamp: new Date().toISOString(),
+        })
+
+        // Update original preferences
+        originalPreferences.current = preferences
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to save preferences' })
       }

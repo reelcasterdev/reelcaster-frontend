@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { UserPreferencesService } from '@/lib/user-preferences'
 import { WindUnit, TempUnit, PrecipUnit, HeightUnit, MetricType, getNextUnit } from '@/app/utils/unit-conversions'
 import { useAuth } from './auth-context'
+import { useMixpanel } from './mixpanel-context'
 
 interface UnitPreferencesContextType {
   windUnit: WindUnit
@@ -18,6 +19,7 @@ const UnitPreferencesContext = createContext<UnitPreferencesContextType | undefi
 
 export function UnitPreferencesProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
+  const { trackEvent } = useMixpanel()
   const [windUnit, setWindUnit] = useState<WindUnit>('kph')
   const [tempUnit, setTempUnit] = useState<TempUnit>('C')
   const [precipUnit, setPrecipUnit] = useState<PrecipUnit>('mm')
@@ -69,6 +71,14 @@ export function UnitPreferencesProvider({ children }: { children: React.ReactNod
 
     const nextUnit = getNextUnit(currentUnit as any, type)
 
+    // Track unit cycled event
+    trackEvent('Unit Cycled', {
+      metricType: type,
+      oldUnit: currentUnit,
+      newUnit: nextUnit,
+      timestamp: new Date().toISOString(),
+    })
+
     // Update local state immediately for responsiveness
     setUnit(nextUnit)
 
@@ -77,7 +87,7 @@ export function UnitPreferencesProvider({ children }: { children: React.ReactNod
     updatePayload[`${type === 'wind' ? 'wind' : type === 'temp' ? 'temp' : type === 'precip' ? 'precip' : 'height'}Unit`] = nextUnit
 
     await UserPreferencesService.updateUserPreferences(updatePayload)
-  }, [windUnit, tempUnit, precipUnit, heightUnit])
+  }, [windUnit, tempUnit, precipUnit, heightUnit, trackEvent])
 
   const value = {
     windUnit,

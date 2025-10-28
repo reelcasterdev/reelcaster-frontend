@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from './utils/openMeteoApi'
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from './utils/fishingCalculations'
 import { fetchCHSTideData, CHSWaterData } from './utils/chsTideApi'
 import ForecastCacheService from './utils/forecastCacheService'
+import { useAnalytics } from '@/hooks/use-analytics'
 // import ModernLoadingState from './components/common/modern-loading-state'
 import ErrorState from './components/common/error-state'
 
@@ -74,6 +75,9 @@ const fishingLocations: FishingLocation[] = [
 
 function NewForecastContent() {
   const searchParams = useSearchParams()
+  const { trackEvent } = useAnalytics()
+  const pageLoadStartTime = useRef<number>(Date.now())
+  const hasTrackedPageView = useRef<boolean>(false)
 
   // Default to Victoria Waterfront if no parameters provided
   const location = searchParams.get('location') || 'Victoria, Sidney'
@@ -92,7 +96,7 @@ function NewForecastContent() {
   // Single source of truth for tide data - using CHS API
   const [tideData, setTideData] = useState<CHSWaterData | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
-  
+
   // Cache-related state
   const [isCachedData, setIsCachedData] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -190,6 +194,27 @@ function NewForecastContent() {
         })
         setLoading(false)
 
+        // Track cache hit event
+        const cacheAge = cacheResult.createdAt
+          ? (Date.now() - new Date(cacheResult.createdAt).getTime()) / (1000 * 60 * 60) // hours
+          : 0
+        trackEvent('Cache Hit', {
+          location: selectedLocation,
+          cacheAge,
+          timestamp: new Date().toISOString(),
+        })
+
+        // Track forecast loaded event (from cache)
+        const loadTime = Date.now() - pageLoadStartTime.current
+        trackEvent('Forecast Loaded', {
+          location: selectedLocation,
+          hotspot: selectedHotspot,
+          species: species || undefined,
+          cached: true,
+          loadTime,
+          timestamp: new Date().toISOString(),
+        })
+
         // Start background refresh
         setIsRefreshing(true)
         try {
@@ -212,6 +237,14 @@ function NewForecastContent() {
             setTideData(freshData.tideData)
             setIsCachedData(false) // Now showing fresh data
             setCacheInfo({}) // Clear cache info since we have fresh data
+
+            // Track forecast refreshed event
+            trackEvent('Forecast Refreshed', {
+              location: selectedLocation,
+              hotspot: selectedHotspot,
+              species: species || undefined,
+              timestamp: new Date().toISOString(),
+            })
           }
         } catch (refreshError) {
           console.error('Background refresh failed:', refreshError)
@@ -224,10 +257,21 @@ function NewForecastContent() {
         const freshData = await fetchFreshForecastData()
         if (freshData) {
           setForecasts(freshData.forecasts)
-          setOpenMeteoData(freshData.openMeteoData)  
+          setOpenMeteoData(freshData.openMeteoData)
           setTideData(freshData.tideData)
           setIsCachedData(false)
           setCacheInfo({})
+
+          // Track forecast loaded event (fresh data)
+          const loadTime = Date.now() - pageLoadStartTime.current
+          trackEvent('Forecast Loaded', {
+            location: selectedLocation,
+            hotspot: selectedHotspot,
+            species: species || undefined,
+            cached: false,
+            loadTime,
+            timestamp: new Date().toISOString(),
+          })
 
           // Store in cache for future requests
           await ForecastCacheService.storeForecastCache(
@@ -247,11 +291,26 @@ function NewForecastContent() {
     } finally {
       setLoading(false)
     }
-  }, [coordinates, species, selectedLocation, selectedHotspot, fetchFreshForecastData])
+  }, [coordinates, species, selectedLocation, selectedHotspot, fetchFreshForecastData, trackEvent])
 
   useEffect(() => {
     fetchForecastData()
   }, [fetchForecastData])
+
+  // Track page view once when page loads and data is ready
+  useEffect(() => {
+    if (!loading && !hasTrackedPageView.current && forecasts.length > 0) {
+      const pageLoadTime = Date.now() - pageLoadStartTime.current
+      trackEvent('Forecast Page Viewed', {
+        location: selectedLocation,
+        hotspot: selectedHotspot,
+        species: species || undefined,
+        pageLoadTime,
+        timestamp: new Date().toISOString(),
+      })
+      hasTrackedPageView.current = true
+    }
+  }, [loading, forecasts, selectedLocation, selectedHotspot, species, trackEvent])
 
 
   // Handle invalid coordinates
