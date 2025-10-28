@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/auth-context'
+import { MixpanelProvider } from '@/contexts/mixpanel-context'
 import { UnitPreferencesProvider } from '@/contexts/unit-preferences-context'
 
 const geistSans = Geist({
@@ -31,7 +32,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          <UnitPreferencesProvider>{children}</UnitPreferencesProvider>
+          <MixpanelProvider>
+            <UnitPreferencesProvider>{children}</UnitPreferencesProvider>
+          </MixpanelProvider>
         </AuthProvider>
       </body>
     </html>

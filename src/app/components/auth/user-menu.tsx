@@ -10,11 +10,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/contexts/auth-context'
+import { useAnalytics } from '@/hooks/use-analytics'
 import { useRouter } from 'next/navigation'
 
 export function UserMenu() {
   const { user, signOut } = useAuth()
+  const { trackEvent } = useAnalytics()
   const router = useRouter()
+
+  const handleSignOut = async () => {
+    trackEvent('Sign Out', {
+      timestamp: new Date().toISOString(),
+    })
+    await signOut()
+  }
 
   if (!user) return null
 
@@ -38,7 +47,7 @@ export function UserMenu() {
           <Settings className="mr-2 h-4 w-4" />
           Profile Settings
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
           Sign out
         </DropdownMenuItem>
