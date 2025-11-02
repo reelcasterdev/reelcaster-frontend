@@ -122,7 +122,7 @@ async function updateRegulationsInDatabase(supabase: any, areaId: string, regula
 /**
  * POST /api/regulations/scrape
  * Scrape DFO websites and directly update regulations in database
- * Protected endpoint - requires CRON_SECRET
+ * PUBLIC - No authentication required
  *
  * Query params:
  *   - area_id: Specific area to scrape (optional, defaults to all configured areas)
@@ -130,12 +130,6 @@ async function updateRegulationsInDatabase(supabase: any, areaId: string, regula
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseClient()
-
-    // Verify authentication
-    const cronSecret = request.headers.get('x-cron-secret')
-    if (cronSecret !== process.env.CRON_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     // Get query parameters
     const { searchParams } = new URL(request.url)

@@ -203,11 +203,14 @@ ReelCaster uses two automated scraping systems to keep data fresh:
 
 ### 1. Fishing Reports Scraper
 
-- **Source**: FishingVictoria.com weekly reports
-- **Parser**: OpenAI (GPT-4o-mini) for unstructured text
-- **Frequency**: Daily check (reports are weekly)
+- **Source**: FishingVictoria.com weekly reports (published Sundays)
+- **Parser**: Hybrid Cheerio+OpenAI approach (Cheerio extracts sections, AI parses natural language)
+- **Cost Optimization**: ~25-40% token reduction via pre-extraction with Cheerio
+- **Alternatives**: Claude Haiku (80% cheaper), Groq Llama (95% cheaper), pure Cheerio (impossible - unstructured text)
+- **Frequency**: Daily check at 2 AM UTC (reports published Sundays)
+- **Smart Logic**: Checks Sunday dates specifically, stops after finding latest report per location
 - **Storage**: `fishing_reports` table (JSONB)
-- **API**: `/api/fishing-reports/scrape?days=14`
+- **API**: `/api/fishing-reports/scrape?weeks=4` (PUBLIC - no auth required)
 
 ### 2. Regulations Scraper
 
@@ -243,3 +246,4 @@ Always act like senior engineer and create smaller and reusable components. Make
 
 - for the docs always keep the names in file-name format.
 - No need to create new document everytime we change something. We just need to update the CLAUDE.md with anything important regarding the system. and existing docs shouuld be updated if the changes were related.
+- use supabase mcp when trying to access anything in supabase.
