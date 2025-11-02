@@ -78,7 +78,7 @@ function parseStatus(statusText: string): 'Open' | 'Closed' | 'Non Retention' | 
 
   if (text.includes('closed') || text === '0') {
     return 'Closed'
-  } else if (text.includes('non-retention') || text.includes('no retention')) {
+  } else if (text.includes('non retention') || text.includes('non-retention')) {
     return 'Non Retention'
   } else if (text.includes('restricted') || text.includes('varies')) {
     return 'Restricted'

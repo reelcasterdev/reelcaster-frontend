@@ -99,7 +99,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
   const [showHotspotDropdown, setShowHotspotDropdown] = useState(false)
   const [showSpeciesDropdown, setShowSpeciesDropdown] = useState(false)
 
-  // Initialize from URL params
+  // Initialize from URL params (only on mount or when URL changes)
   useEffect(() => {
     const location = searchParams.get('location')
     const hotspot = searchParams.get('hotspot')
@@ -112,16 +112,13 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
         if (hotspot) {
           setSelectedHotspot(hotspot)
         }
+        // Store species ID for later initialization after species are loaded
         if (species) {
-          // Try to find by ID first, then by name for backwards compatibility
-          const speciesData = fishSpecies.find(s => s.id === species || s.name === species)
-          if (speciesData) {
-            setSelectedSpecies(speciesData.id)
-          }
+          setSelectedSpecies(species)
         }
       }
     }
-  }, [searchParams, fishSpecies])
+  }, [searchParams])
 
   const currentLocation = fishingLocations.find(loc => loc.id === selectedLocation)
   const currentSpecies = fishSpecies.find(species => species.id === selectedSpecies)
@@ -179,16 +176,21 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
   }
 
   const updateUrl = useCallback(() => {
-    if (currentLocation && selectedHotspot) {
-      const selectedHotspotData = currentLocation.hotspots.find(h => h.name === selectedHotspot)
+    if (currentLocation) {
+      const selectedHotspotData = selectedHotspot
+        ? currentLocation.hotspots.find(h => h.name === selectedHotspot)
+        : null
       const coordinates = selectedHotspotData?.coordinates || currentLocation.coordinates
 
       const params = new URLSearchParams({
         location: currentLocation.name,
-        hotspot: selectedHotspot,
         lat: coordinates.lat.toString(),
         lon: coordinates.lon.toString(),
       })
+
+      if (selectedHotspot) {
+        params.set('hotspot', selectedHotspot)
+      }
 
       if (currentSpecies) {
         params.set('species', currentSpecies.id)
@@ -201,7 +203,7 @@ export default function CompactLocationSelector({ onLocationChange }: CompactLoc
 
   // Update URL when selections change
   useEffect(() => {
-    if (currentLocation && selectedHotspot) {
+    if (currentLocation) {
       updateUrl()
     }
   }, [selectedLocation, selectedHotspot, selectedSpecies, currentLocation, updateUrl])

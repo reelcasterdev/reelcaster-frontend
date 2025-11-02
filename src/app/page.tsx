@@ -86,9 +86,9 @@ function NewForecastContent() {
   const lat = parseFloat(searchParams.get('lat') || '48.4284')
   const lon = parseFloat(searchParams.get('lon') || '-123.3656')
 
-  // State variables
-  const [selectedLocation] = useState<string>(location)
-  const [selectedHotspot] = useState<string>(hotspot)
+  // Use search params directly instead of state (so they update when URL changes)
+  const selectedLocation = location
+  const selectedHotspot = hotspot
   const [openMeteoData, setOpenMeteoData] = useState<ProcessedOpenMeteoData | null>(null)
   const [forecasts, setForecasts] = useState<OpenMeteoDailyForecast[]>([])
   const [loading, setLoading] = useState(true)
