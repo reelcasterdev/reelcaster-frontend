@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { parseArea, detectChanges } from '@/app/utils/dfoParser'
+import { scrapeDFOPage, parseDFOHtmlWithCheerio } from '@/app/utils/dfoScraperV2'
+import type { AreaRegulations } from '@/app/services/regulations'
 
 // Initialize Supabase client with service role for admin operations
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -14,151 +15,224 @@ function getSupabaseClient() {
 }
 
 /**
+ * Update regulations in the database (directly, no approval flow)
+ */
+async function updateRegulationsInDatabase(supabase: any, areaId: string, regulations: AreaRegulations) {
+  // Check if the area exists
+  const { data: existingReg, error: fetchError } = await supabase
+    .from('fishing_regulations')
+    .select('id')
+    .eq('area_id', areaId)
+    .single()
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    throw fetchError
+  }
+
+  let regulationId: string
+
+  if (existingReg) {
+    // Update existing regulation
+    const { data, error } = await supabase
+      .from('fishing_regulations')
+      .update({
+        last_updated: regulations.lastUpdated,
+        last_verified: regulations.lastVerified,
+        next_review_date: regulations.nextReviewDate,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingReg.id)
+      .select('id')
+      .single()
+
+    if (error) throw error
+    regulationId = data.id
+
+    // Delete existing data to replace with new
+    await supabase.from('species_regulations').delete().eq('regulation_id', regulationId)
+    await supabase.from('regulation_general_rules').delete().eq('regulation_id', regulationId)
+    await supabase.from('regulation_protected_areas').delete().eq('regulation_id', regulationId)
+  } else {
+    // Insert new regulation
+    const { data, error } = await supabase
+      .from('fishing_regulations')
+      .insert({
+        area_id: areaId,
+        area_name: regulations.areaName,
+        official_url: regulations.url,
+        last_updated: regulations.lastUpdated,
+        last_verified: regulations.lastVerified,
+        next_review_date: regulations.nextReviewDate,
+        data_source: regulations.dataSource,
+        is_active: true
+      })
+      .select('id')
+      .single()
+
+    if (error) throw error
+    regulationId = data.id
+  }
+
+  // Insert species regulations
+  if (regulations.species && regulations.species.length > 0) {
+    const speciesData = regulations.species.map((species: any) => ({
+      regulation_id: regulationId,
+      species_id: species.id,
+      species_name: species.name,
+      scientific_name: species.scientificName || null,
+      daily_limit: species.dailyLimit,
+      annual_limit: species.annualLimit || null,
+      min_size: species.minSize || null,
+      max_size: species.maxSize || null,
+      status: species.status,
+      gear: species.gear,
+      season: species.season,
+      notes: species.notes || []
+    }))
+
+    await supabase.from('species_regulations').insert(speciesData)
+  }
+
+  // Insert general rules
+  if (regulations.generalRules && regulations.generalRules.length > 0) {
+    const rulesData = regulations.generalRules.map((rule: string, index: number) => ({
+      regulation_id: regulationId,
+      rule_text: rule,
+      sort_order: index
+    }))
+
+    await supabase.from('regulation_general_rules').insert(rulesData)
+  }
+
+  // Insert protected areas
+  if (regulations.protectedAreas && regulations.protectedAreas.length > 0) {
+    const areasData = regulations.protectedAreas.map((area: string) => ({
+      regulation_id: regulationId,
+      area_name: area
+    }))
+
+    await supabase.from('regulation_protected_areas').insert(areasData)
+  }
+}
+
+/**
  * POST /api/regulations/scrape
- * Scrape DFO websites and store results for review
- * Protected endpoint - requires authentication
+ * Scrape DFO websites and directly update regulations in database
+ * Protected endpoint - requires CRON_SECRET
+ *
+ * Query params:
+ *   - area_id: Specific area to scrape (optional, defaults to all configured areas)
  */
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseClient()
 
-    // Verify authentication (check for cron secret or admin auth)
-    const authHeader = request.headers.get('authorization')
+    // Verify authentication
     const cronSecret = request.headers.get('x-cron-secret')
+    if (cronSecret !== process.env.CRON_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    if (cronSecret !== process.env.CRON_SECRET && !authHeader) {
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const specificAreaId = searchParams.get('area_id')
+
+    // Configure areas to scrape
+    const allAreas = [
+      { id: '19', name: 'Victoria, Sidney' },
+      { id: '20', name: 'Sooke, Port Renfrew' },
+    ]
+
+    // Filter to specific area if requested
+    const areasToScrape = specificAreaId
+      ? allAreas.filter(a => a.id === specificAreaId)
+      : allAreas
+
+    if (areasToScrape.length === 0) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { error: `Area ${specificAreaId} not found` },
+        { status: 404 }
       )
     }
 
-    const areas = [
-      {
-        id: '19',
-        name: 'Victoria, Sidney',
-        url: 'https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s19-eng.html',
-      },
-      {
-        id: '20',
-        name: 'Sooke',
-        url: 'https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s20-eng.html',
-      },
-    ]
+    console.log(`🎣 Scraping ${areasToScrape.length} area(s)...`)
 
     const results = []
+    let successCount = 0
+    let errorCount = 0
 
-    for (const area of areas) {
+    for (const area of areasToScrape) {
       try {
-        // Fetch the DFO page content
-        const response = await fetch(area.url, {
-          headers: {
-            'User-Agent': 'ReelCaster/1.0 (Fishing Regulation Monitor)',
-          },
-        })
+        console.log(`\n📍 Scraping area ${area.id} (${area.name})...`)
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ${area.url}: ${response.status}`)
+        // Scrape and parse with Cheerio
+        const scrapedData = await scrapeDFOPage(area.id)
+        const parsedData = parseDFOHtmlWithCheerio(scrapedData)
+
+        console.log(`   ✅ Parsed ${parsedData.regulations.species.length} species`)
+
+        // Log parse errors if any
+        if (parsedData.parseErrors.length > 0) {
+          console.warn(`   ⚠️  Parse errors:`, parsedData.parseErrors)
         }
 
-        const html = await response.text()
+        // Directly update database
+        await updateRegulationsInDatabase(supabase, area.id, parsedData.regulations)
 
-        // Parse regulations using shared parser utility
-        const scrapedData = await parseArea(html, area.id, area.name, area.url, {
-          validateWithAI: true,
-        })
+        console.log(`   ✅ Database updated`)
 
-        // Get current regulations for comparison
-        const { data: currentReg } = await supabase
-          .from('fishing_regulations')
-          .select('*, species:species_regulations(*)')
-          .eq('area_id', area.id)
-          .eq('is_active', true)
-          .single()
-
-        // Detect changes
-        const changes = detectChanges(currentReg, scrapedData)
-
-        // Store scraped data for review
-        const { data: scraped } = await supabase
-          .from('scraped_regulations')
-          .insert({
-            area_id: area.id,
-            scraped_data: scrapedData,
-            changes_detected: changes,
-            approval_status: changes.length > 0 ? 'pending' : 'approved',
-          })
-          .select()
-          .single()
-
+        successCount++
         results.push({
           area: area.name,
+          areaId: area.id,
           success: true,
-          changesDetected: changes.length,
-          changes,
-          scrapedId: scraped?.id,
+          speciesCount: parsedData.regulations.species.length,
+          rulesCount: parsedData.regulations.generalRules.length,
+          protectedAreasCount: parsedData.regulations.protectedAreas?.length || 0,
         })
 
-        // If no changes and auto-approve is enabled, approve immediately
-        if (changes.length === 0 && process.env.AUTO_APPROVE_NO_CHANGES === 'true') {
-          await supabase
-            .from('scraped_regulations')
-            .update({ approval_status: 'approved' })
-            .eq('id', scraped?.id)
+        // Delay between areas to be respectful
+        if (areasToScrape.length > 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000))
         }
 
       } catch (err) {
-        const error = err as Error
+        errorCount++
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+        console.error(`   ❌ Error scraping area ${area.id}:`, errorMessage)
+
         results.push({
           area: area.name,
+          areaId: area.id,
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        })
-
-        // Log error to scraped_regulations
-        await supabase.from('scraped_regulations').insert({
-          area_id: area.id,
-          scraped_data: {},
-          error_message: error instanceof Error ? error.message : 'Unknown error',
-          approval_status: 'rejected',
+          error: errorMessage,
         })
       }
     }
 
+    console.log(`\n✅ Scraping complete: ${successCount} success, ${errorCount} errors`)
+
     return NextResponse.json({
       success: true,
+      summary: {
+        successCount,
+        errorCount,
+        totalAreas: areasToScrape.length,
+      },
       results,
       scrapedAt: new Date().toISOString(),
     })
 
   } catch (error) {
-    console.error('Scraping error:', error)
+    console.error('❌ Fatal scraping error:', error)
     return NextResponse.json(
-      { error: 'Scraping failed', details: error instanceof Error ? error.message : 'Unknown' },
+      {
+        success: false,
+        error: 'Scraping failed',
+        details: error instanceof Error ? error.message : 'Unknown'
+      },
       { status: 500 }
     )
   }
 }
 
-/**
- * GET /api/regulations/scrape
- * Get pending scraped regulations for review
- */
-export async function GET() {
-  try {
-    const supabase = getSupabaseClient()
-    const { data } = await supabase
-      .from('scraped_regulations')
-      .select('*')
-      .eq('approval_status', 'pending')
-      .order('scrape_timestamp', { ascending: false })
-      .limit(20)
-
-    return NextResponse.json({ scraped: data })
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to fetch scraped regulations' },
-      { status: 500 }
-    )
-  }
-}

@@ -28,7 +28,7 @@ import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
-import { getRegulationsByLocation } from './data/regulations'
+import { useLocationRegulations } from '@/hooks/use-regulations'
 
 // Real fishing location and species data
 interface FishingHotspot {
@@ -104,6 +104,9 @@ function NewForecastContent() {
   
   // Use auth forecast hook to manage data based on authentication
   const { forecastData, shouldBlurAfterDay } = useAuthForecast(forecasts)
+
+  // Fetch regulations dynamically
+  const { regulations: dynamicRegulations, loading: regulationsLoading } = useLocationRegulations(selectedLocation)
 
   // Coordinate validation
   const hasValidCoordinates = lat !== 0 && lon !== 0
@@ -434,10 +437,10 @@ function NewForecastContent() {
                   {/* Species Regulations - Show here on mobile, hide on desktop */}
                   <div className="lg:hidden">
                     <SpeciesRegulations
-                      species={getRegulationsByLocation(selectedLocation)?.species || []}
-                      areaUrl={getRegulationsByLocation(selectedLocation)?.url}
-                      lastVerified={getRegulationsByLocation(selectedLocation)?.lastVerified}
-                      nextReviewDate={getRegulationsByLocation(selectedLocation)?.nextReviewDate}
+                      species={dynamicRegulations?.species || []}
+                      areaUrl={dynamicRegulations?.url}
+                      lastVerified={dynamicRegulations?.lastVerified}
+                      nextReviewDate={dynamicRegulations?.nextReviewDate}
                     />
                   </div>
 
@@ -477,10 +480,10 @@ function NewForecastContent() {
 
                   {/* Species Regulations */}
                   <SpeciesRegulations
-                    species={getRegulationsByLocation(selectedLocation)?.species || []}
-                    areaUrl={getRegulationsByLocation(selectedLocation)?.url}
-                    lastVerified={getRegulationsByLocation(selectedLocation)?.lastVerified}
-                    nextReviewDate={getRegulationsByLocation(selectedLocation)?.nextReviewDate}
+                    species={dynamicRegulations?.species || []}
+                    areaUrl={dynamicRegulations?.url}
+                    lastVerified={dynamicRegulations?.lastVerified}
+                    nextReviewDate={dynamicRegulations?.nextReviewDate}
                   />
 
                   {/* Reports */}

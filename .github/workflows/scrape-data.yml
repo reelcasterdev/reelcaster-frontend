@@ -30,14 +30,29 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Scrape DFO Regulations
-        id: scrape_regulations
+      - name: Scrape DFO Regulations - Area 19 (Victoria, Sidney)
+        id: scrape_regulations_area19
         if: ${{ github.event.inputs.scrape_regulations != 'false' }}
         run: |
-          echo "🎣 Calling DFO Regulations API endpoint..."
+          echo "🎣 Scraping DFO Regulations for Area 19 (Victoria, Sidney)..."
 
-          # Call the production API endpoint
-          curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape" \
+          # Call the production API endpoint for area 19
+          curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape?area_id=19" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --show-error \
+            --max-time 300 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Scrape DFO Regulations - Area 20 (Sooke, Port Renfrew)
+        id: scrape_regulations_area20
+        if: ${{ github.event.inputs.scrape_regulations != 'false' }}
+        run: |
+          echo "🎣 Scraping DFO Regulations for Area 20 (Sooke, Port Renfrew)..."
+
+          # Call the production API endpoint for area 20
+          curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape?area_id=20" \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
             --fail \
@@ -70,14 +85,26 @@ jobs:
           echo "**Method:** Direct API calls to production" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # DFO Regulations
-          if [ "${{ steps.scrape_regulations.outcome }}" == "success" ]; then
-            echo "### ✅ DFO Regulations" >> $GITHUB_STEP_SUMMARY
+          # DFO Regulations - Area 19
+          if [ "${{ steps.scrape_regulations_area19.outcome }}" == "success" ]; then
+            echo "### ✅ DFO Regulations - Area 19 (Victoria, Sidney)" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
-            echo "- Endpoint: /api/regulations/scrape" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/regulations/scrape?area_id=19" >> $GITHUB_STEP_SUMMARY
             echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
           else
-            echo "### ❌ DFO Regulations" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ DFO Regulations - Area 19 (Victoria, Sidney)" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # DFO Regulations - Area 20
+          if [ "${{ steps.scrape_regulations_area20.outcome }}" == "success" ]; then
+            echo "### ✅ DFO Regulations - Area 20 (Sooke, Port Renfrew)" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/regulations/scrape?area_id=20" >> $GITHUB_STEP_SUMMARY
+            echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ DFO Regulations - Area 20 (Sooke, Port Renfrew)" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
