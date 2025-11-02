@@ -1,11 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import {
-  AreaRegulations,
-  SpeciesRegulation,
-  regulationsService
-} from '@/app/services/regulations'
+import { AreaRegulations, regulationsService } from '@/app/services/regulations'
 
 interface UseRegulationsOptions {
   areaId?: string
@@ -100,10 +96,10 @@ export function useLocationRegulations(locationName: string | null) {
  */
 export function getRegulationsByLocationClient(
   locationName: string,
-  regulations: AreaRegulations[]
+  regulations: AreaRegulations[],
 ): AreaRegulations | null {
   // First try exact match on areaName
-  const exactMatch = regulations.find((r) => r.areaName === locationName)
+  const exactMatch = regulations.find(r => r.areaName === locationName)
   if (exactMatch) return exactMatch
 
   // If no exact match, could implement fuzzy matching or other logic here

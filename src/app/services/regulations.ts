@@ -25,13 +25,15 @@ export interface AreaRegulations {
   lastVerified: string
   nextReviewDate: string
   dataSource: string
+  pageModifiedDate?: string
+  mostRecentUpdateDate?: string
   species: SpeciesRegulation[]
   generalRules: string[]
   protectedAreas?: string[]
 }
 
 class RegulationsService {
-  private cache: Map<string, { data: AreaRegulations | null; timestamp: number }> = new Map()
+  private cache: Map<string, { data: AreaRegulations | AreaRegulations[] | null; timestamp: number }> = new Map()
   private cacheTimeout = 60 * 60 * 1000 // 1 hour cache
   private apiUrl: string
 
@@ -52,7 +54,7 @@ class RegulationsService {
 
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       console.log(`Returning cached regulations for ${locationName}`)
-      return cached.data
+      return !Array.isArray(cached.data) ? cached.data : null
     }
 
     try {
@@ -81,7 +83,7 @@ class RegulationsService {
       console.error(`Error fetching regulations for ${locationName}:`, error)
 
       // Try to return cached data even if expired
-      if (cached) {
+      if (cached && !Array.isArray(cached.data)) {
         console.log(`Returning stale cached data for ${locationName} due to error`)
         return cached.data
       }
@@ -102,7 +104,7 @@ class RegulationsService {
 
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       console.log(`Returning cached regulations for area ${areaId}`)
-      return cached.data
+      return !Array.isArray(cached.data) ? cached.data : null
     }
 
     try {
@@ -126,7 +128,7 @@ class RegulationsService {
       console.error(`Error fetching regulations for area ${areaId}:`, error)
 
       // Try to return cached data even if expired
-      if (cached) {
+      if (cached && !Array.isArray(cached.data)) {
         console.log(`Returning stale cached data for area ${areaId} due to error`)
         return cached.data
       }
@@ -145,7 +147,7 @@ class RegulationsService {
 
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       console.log('Returning cached all regulations')
-      return cached.data as AreaRegulations[]
+      return Array.isArray(cached.data) ? cached.data : []
     }
 
     try {
@@ -159,7 +161,7 @@ class RegulationsService {
 
       // Cache the result
       this.cache.set(cacheKey, {
-        data: regulations as any,
+        data: regulations,
         timestamp: Date.now()
       })
 
@@ -168,9 +170,9 @@ class RegulationsService {
       console.error('Error fetching all regulations:', error)
 
       // Try to return cached data even if expired
-      if (cached) {
+      if (cached && Array.isArray(cached.data)) {
         console.log('Returning stale cached data for all regulations due to error')
-        return cached.data as AreaRegulations[]
+        return cached.data
       }
 
       return []

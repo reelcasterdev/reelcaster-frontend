@@ -106,7 +106,7 @@ function NewForecastContent() {
   const { forecastData, shouldBlurAfterDay } = useAuthForecast(forecasts)
 
   // Fetch regulations dynamically
-  const { regulations: dynamicRegulations, loading: regulationsLoading } = useLocationRegulations(selectedLocation)
+  const { regulations: dynamicRegulations } = useLocationRegulations(selectedLocation)
 
   // Coordinate validation
   const hasValidCoordinates = lat !== 0 && lon !== 0

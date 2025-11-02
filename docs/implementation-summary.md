@@ -74,7 +74,7 @@ Successfully refactored and simplified the regulations scraping system based on 
 ### Phase 4: Documentation
 
 **✅ Comprehensive Documentation**
-- **Created**: `docs/SCRAPING_SYSTEM.md` (75+ sections)
+- **Created**: `docs/scraping-system.md` (75+ sections)
   - Overview of both scraping systems
   - Side-by-side comparison
   - Architecture decisions
@@ -128,8 +128,8 @@ export async function GET(request: NextRequest) {
 ## Files Changed
 
 ### Created
-- `docs/SCRAPING_SYSTEM.md` - Comprehensive unified documentation
-- `docs/IMPLEMENTATION_SUMMARY.md` - This file
+- `docs/scraping-system.md` - Comprehensive unified documentation
+- `docs/implementation-summary.md` - This file
 - `supabase/migrations/20251102_drop_approval_tables.sql` - Drop approval tables
 - `docs/archive/` - Directory for old docs
 - ~~`scripts/test-cheerio-parsing.ts`~~ (temporary, removed)
@@ -317,7 +317,7 @@ console.log('❌ Failed')
 
 ## Documentation Quality
 
-### `docs/SCRAPING_SYSTEM.md` Includes:
+### `docs/scraping-system.md` Includes:
 
 - ✅ Clear overview of both systems
 - ✅ Architecture diagrams (text-based)
@@ -370,7 +370,7 @@ console.log('❌ Failed')
 | Focus on 2 areas | ✅ Done | Areas 19 & 20 configured |
 | System flexibility | ✅ Confirmed | Fully dynamic, easy to add areas |
 | Separate GitHub Actions calls | ✅ Done | 1 call per area |
-| Unified documentation | ✅ Done | SCRAPING_SYSTEM.md |
+| Unified documentation | ✅ Done | scraping-system.md |
 | Pattern consistency | ✅ Done | Both scrapers follow same patterns |
 
 ---

@@ -39,6 +39,8 @@ async function updateRegulationsInDatabase(supabase: any, areaId: string, regula
         last_updated: regulations.lastUpdated,
         last_verified: regulations.lastVerified,
         next_review_date: regulations.nextReviewDate,
+        page_modified_date: regulations.pageModifiedDate || null,
+        most_recent_update_date: regulations.mostRecentUpdateDate || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', existingReg.id)
@@ -63,6 +65,8 @@ async function updateRegulationsInDatabase(supabase: any, areaId: string, regula
         last_updated: regulations.lastUpdated,
         last_verified: regulations.lastVerified,
         next_review_date: regulations.nextReviewDate,
+        page_modified_date: regulations.pageModifiedDate || null,
+        most_recent_update_date: regulations.mostRecentUpdateDate || null,
         data_source: regulations.dataSource,
         is_active: true
       })

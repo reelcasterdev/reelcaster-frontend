@@ -216,6 +216,7 @@ Schema: Normalized relational tables
   - `supabase/migrations/20251003_seed_current_regulations.sql`
   - `supabase/migrations/20251031_add_more_fishing_areas.sql`
   - `supabase/migrations/20251102_drop_approval_tables.sql`
+  - `supabase/migrations/20251102_add_regulation_timestamps.sql`
 
 ### How It Works
 
@@ -225,16 +226,28 @@ Schema: Normalized relational tables
    const html = await fetch(url).text()
    ```
 
-2. **Parse with Cheerio**
+2. **Extract Multiple Timestamps**
+   - **Page Modified Date**: From `<meta name="dcterms.modified">` tag
+   - **Section Updates**: All "Last updated: YYYY-MM-DD" dates in content
+   - **Most Recent Update**: Latest date found across all sections
+
+   Example for Area 19:
+   ```
+   Page modified: 2025-07-03 (official page update)
+   Most recent update: 2025-11-01 (latest section change)
+   Section updates found: 19 different dates
+   ```
+
+3. **Parse with Cheerio**
    - Find species tables
    - Extract regulations data
    - Parse min/max sizes, limits, status
    - Extract general rules and protected areas
 
-3. **Directly Update Database**
+4. **Directly Update Database**
    - Check if area exists
    - Delete old species/rules/protected areas
-   - Insert new data
+   - Insert new data with accurate timestamps
    - No approval workflow needed
 
 ### Database Schema
@@ -246,9 +259,11 @@ CREATE TABLE fishing_regulations (
   area_id text NOT NULL,
   area_name text NOT NULL,
   official_url text NOT NULL,
-  last_updated timestamptz,
-  last_verified timestamptz,
+  last_updated timestamptz,              -- Most recent update date (from section or page)
+  last_verified timestamptz,             -- When we last scraped
   next_review_date timestamptz,
+  page_modified_date date,               -- DFO official page modified (meta tag)
+  most_recent_update_date date,          -- Latest section update found
   data_source text,
   is_active boolean DEFAULT true
 );
@@ -315,7 +330,9 @@ curl -X POST "https://your-app.com/api/regulations/scrape" \
       "success": true,
       "speciesCount": 127,
       "rulesCount": 42,
-      "protectedAreasCount": 4
+      "protectedAreasCount": 4,
+      "pageModifiedDate": "2025-07-03",
+      "mostRecentUpdateDate": "2025-11-01"
     }
   ],
   "scrapedAt": "2025-11-02T00:00:00.000Z"
@@ -343,6 +360,38 @@ Area 20: 138 species extracted (✅ PASS)
 Threshold: >= 10 species required
 Conclusion: OpenAI not needed for regulations
 ```
+
+### Timestamp Tracking Strategy
+
+DFO pages are updated **incrementally** - different sections at different times. We track three timestamps:
+
+**1. `page_modified_date`** (from `<meta name="dcterms.modified">`)
+- DFO's official page modification date
+- Example: `2025-07-03`
+- When the page structure last changed
+
+**2. `most_recent_update_date`** (from content)
+- Latest "Last updated: YYYY-MM-DD" found in any section
+- Example: `2025-11-01` (could be different for biotoxin, salmon, crab sections)
+- The actual most recent regulation change
+
+**3. `last_verified`** (our scrape timestamp)
+- When we last scraped and verified the data
+- Example: `2025-11-02T15:32:43Z`
+- Helps identify stale data
+
+**Why This Matters:**
+- ❌ Old approach: Used single `last_updated` date - inaccurate
+- ✅ New approach: Track all three dates - users see real update times
+
+**Example from Area 19:**
+```
+Page modified: 2025-07-03 (structure unchanged since July)
+Most recent update: 2025-11-01 (biotoxin data updated yesterday)
+Last verified: 2025-11-02 (we scraped today)
+```
+
+Users see **November 1st** as the regulation date - accurate!
 
 ---
 

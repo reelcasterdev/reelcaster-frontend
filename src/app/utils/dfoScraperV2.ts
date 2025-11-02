@@ -90,7 +90,7 @@ function parseStatus(statusText: string): 'Open' | 'Closed' | 'Non Retention' | 
 /**
  * Extract species regulations from a table
  */
-function extractSpeciesFromTable($: cheerio.CheerioAPI, table: cheerio.Element): SpeciesRegulation[] {
+function extractSpeciesFromTable($: cheerio.CheerioAPI, table: any): SpeciesRegulation[] {
   const species: SpeciesRegulation[] = []
   const rows = $(table).find('tbody tr')
 
@@ -140,7 +140,7 @@ function extractSpeciesFromTable($: cheerio.CheerioAPI, table: cheerio.Element):
 /**
  * Extract restrictions and notes from text sections
  */
-function extractRestrictions($: cheerio.CheerioAPI, section: cheerio.Element): string[] {
+function extractRestrictions($: cheerio.CheerioAPI, section: any): string[] {
   const restrictions: string[] = []
 
   $(section).find('ul li').each((_, li) => {
@@ -154,6 +154,42 @@ function extractRestrictions($: cheerio.CheerioAPI, section: cheerio.Element): s
 }
 
 /**
+ * Extract the official DFO page modified date from meta tag
+ */
+function extractPageModifiedDate($: cheerio.CheerioAPI): string | null {
+  const metaModified = $('meta[name="dcterms.modified"]').attr('content')
+  return metaModified || null
+}
+
+/**
+ * Extract all "Last updated:" dates from the page content
+ */
+function extractAllUpdateDates($: cheerio.CheerioAPI): string[] {
+  const dates: string[] = []
+
+  // Find all <p class="small">Last updated: YYYY-MM-DD</p> elements
+  $('p.small').each((_, el) => {
+    const text = $(el).text().trim()
+    const match = text.match(/Last updated:\s*(\d{4}-\d{2}-\d{2})/)
+    if (match && match[1]) {
+      dates.push(match[1])
+    }
+  })
+
+  return dates
+}
+
+/**
+ * Get the most recent date from an array of date strings
+ */
+function getMostRecentDate(dates: string[]): string | null {
+  if (dates.length === 0) return null
+
+  // Sort dates descending and return the first (most recent)
+  return dates.sort((a, b) => b.localeCompare(a))[0]
+}
+
+/**
  * Parse HTML content using Cheerio
  */
 export function parseDFOHtmlWithCheerio(scrapedData: ScrapedData, currentData?: AreaRegulations): ParsedRegulation {
@@ -163,15 +199,26 @@ export function parseDFOHtmlWithCheerio(scrapedData: ScrapedData, currentData?: 
   try {
     const $ = cheerio.load(scrapedData.rawHtml)
 
+    // Extract dates from the page
+    const pageModifiedDate = extractPageModifiedDate($)
+    const sectionUpdateDates = extractAllUpdateDates($)
+    const mostRecentUpdateDate = getMostRecentDate(sectionUpdateDates)
+
+    console.log(`   📅 Page modified date: ${pageModifiedDate || 'not found'}`)
+    console.log(`   📅 Section updates found: ${sectionUpdateDates.length}`)
+    console.log(`   📅 Most recent update: ${mostRecentUpdateDate || 'not found'}`)
+
     // Initialize regulations object
     const regulations: AreaRegulations = {
       areaId: scrapedData.areaId,
       areaName: scrapedData.areaName,
       url: scrapedData.url,
-      lastUpdated: scrapedData.scrapedAt,
+      lastUpdated: mostRecentUpdateDate || pageModifiedDate || scrapedData.scrapedAt,
       lastVerified: scrapedData.scrapedAt,
       nextReviewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
       dataSource: 'DFO Pacific Region',
+      pageModifiedDate: pageModifiedDate || undefined,
+      mostRecentUpdateDate: mostRecentUpdateDate || undefined,
       species: [],
       generalRules: [],
       protectedAreas: []
