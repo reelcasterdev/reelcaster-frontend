@@ -18,10 +18,10 @@ on:
         required: false
         default: 'true'
         type: boolean
-      days_to_check:
-        description: 'Days to check for reports'
+      weeks_to_check:
+        description: 'Weeks to check for reports (checks weekly intervals)'
         required: false
-        default: '7'
+        default: '4'
         type: string
 
 jobs:
@@ -30,15 +30,28 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Scrape DFO Regulations
-        id: scrape_regulations
+      - name: Scrape DFO Regulations - Area 19 (Victoria, Sidney)
+        id: scrape_regulations_area19
         if: ${{ github.event.inputs.scrape_regulations != 'false' }}
         run: |
-          echo "🎣 Calling DFO Regulations API endpoint..."
+          echo "🎣 Scraping DFO Regulations for Area 19 (Victoria, Sidney)..."
 
-          # Call the production API endpoint
-          curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape" \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+          # Call the production API endpoint for area 19 (public, no auth)
+          curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape?area_id=19" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --show-error \
+            --max-time 300 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Scrape DFO Regulations - Area 20 (Sooke, Port Renfrew)
+        id: scrape_regulations_area20
+        if: ${{ github.event.inputs.scrape_regulations != 'false' }}
+        run: |
+          echo "🎣 Scraping DFO Regulations for Area 20 (Sooke, Port Renfrew)..."
+
+          # Call the production API endpoint for area 20 (public, no auth)
+          curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape?area_id=20" \
             -H "Content-Type: application/json" \
             --fail \
             --show-error \
@@ -50,11 +63,11 @@ jobs:
         if: ${{ github.event.inputs.scrape_reports != 'false' }}
         run: |
           echo "🐟 Calling Fishing Reports API endpoint..."
-          DAYS=${{ github.event.inputs.days_to_check || '14' }}
+          WEEKS=${{ github.event.inputs.weeks_to_check || '4' }}
 
-          # Call the production API endpoint
-          curl -X POST "${{ secrets.APP_URL }}/api/fishing-reports/scrape?days=$DAYS" \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+          # Call the production API endpoint (public, no auth required)
+          # Optimized to check Sundays only and stop after finding first report per location
+          curl -X POST "${{ secrets.APP_URL }}/api/fishing-reports/scrape?weeks=$WEEKS" \
             -H "Content-Type: application/json" \
             --fail \
             --show-error \
@@ -70,14 +83,26 @@ jobs:
           echo "**Method:** Direct API calls to production" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # DFO Regulations
-          if [ "${{ steps.scrape_regulations.outcome }}" == "success" ]; then
-            echo "### ✅ DFO Regulations" >> $GITHUB_STEP_SUMMARY
+          # DFO Regulations - Area 19
+          if [ "${{ steps.scrape_regulations_area19.outcome }}" == "success" ]; then
+            echo "### ✅ DFO Regulations - Area 19 (Victoria, Sidney)" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
-            echo "- Endpoint: /api/regulations/scrape" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/regulations/scrape?area_id=19" >> $GITHUB_STEP_SUMMARY
             echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
           else
-            echo "### ❌ DFO Regulations" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ DFO Regulations - Area 19 (Victoria, Sidney)" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # DFO Regulations - Area 20
+          if [ "${{ steps.scrape_regulations_area20.outcome }}" == "success" ]; then
+            echo "### ✅ DFO Regulations - Area 20 (Sooke, Port Renfrew)" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/regulations/scrape?area_id=20" >> $GITHUB_STEP_SUMMARY
+            echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ DFO Regulations - Area 20 (Sooke, Port Renfrew)" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY

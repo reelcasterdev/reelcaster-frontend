@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
       lastVerified: reg.last_verified,
       nextReviewDate: reg.next_review_date,
       dataSource: reg.data_source,
+      pageModifiedDate: reg.page_modified_date,
+      mostRecentUpdateDate: reg.most_recent_update_date,
       species: reg.species.map((s: any) => ({
         id: s.species_id,
         name: s.species_name,

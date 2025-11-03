@@ -103,25 +103,30 @@ When creating new components:
 Based on current usage analysis, these components are actively used:
 
 **Auth Components:**
+
 - `auth-button.tsx` - Authentication button with user menu
 - `auth-dialog.tsx` - Login/signup dialog
 - `forecast-section-overlay.tsx` - Auth overlay for forecast sections
 - `user-menu.tsx` - User profile menu
 
 **Charts:**
+
 - `shadcn-minutely-bar-chart.tsx` - Minutely data visualization
 - `weather-data-chart.tsx` - Weather data charts
 
 **Common:**
+
 - `sidebar.tsx` - Main navigation sidebar
 - `modern-loading-state.tsx` - Loading state component
 - `error-state.tsx` - Error display component
 
 **Demo:**
+
 - `fishing-forecast.tsx` - Demo forecast component
 - `open-meteo-demo.tsx` - Weather API demo
 
 **Forecast (Main UI):**
+
 - `new-forecast-header.tsx` - Forecast page header
 - `day-outlook.tsx` - Daily forecast overview
 - `overall-score.tsx` - Fishing score summary
@@ -132,6 +137,7 @@ Based on current usage analysis, these components are actively used:
 - `fishing-reports.tsx` - Recent fishing reports
 
 **Location:**
+
 - `compact-location-selector.tsx` - Location picker component
 
 ### API Integration
@@ -191,9 +197,53 @@ The following are not currently set up but may be beneficial:
 - Testing framework
 - CI/CD pipeline configuration
 
+## Automated Scraping System
+
+ReelCaster uses two automated scraping systems to keep data fresh:
+
+### 1. Fishing Reports Scraper
+
+- **Source**: FishingVictoria.com weekly reports (published Sundays)
+- **Parser**: Hybrid Cheerio+OpenAI approach (Cheerio extracts sections, AI parses natural language)
+- **Cost Optimization**: ~25-40% token reduction via pre-extraction with Cheerio
+- **Alternatives**: Claude Haiku (80% cheaper), Groq Llama (95% cheaper), pure Cheerio (impossible - unstructured text)
+- **Frequency**: Daily check at 2 AM UTC (reports published Sundays)
+- **Smart Logic**: Checks Sunday dates specifically, stops after finding latest report per location
+- **Storage**: `fishing_reports` table (JSONB)
+- **API**: `/api/fishing-reports/scrape?weeks=4` (PUBLIC - no auth required)
+
+### 2. Regulations Scraper
+
+- **Source**: DFO Pacific Region fishing regulations
+- **Parser**: Cheerio (HTML parsing) - NO OpenAI needed
+- **Areas**: 19 (Victoria, Sidney), 20 (Sooke, Port Renfrew)
+- **Storage**: `fishing_regulations` + related tables (normalized)
+- **API**: `/api/regulations/scrape?area_id=19`
+
+### Key Files
+
+- **API Endpoints**: `src/app/api/fishing-reports/scrape/` and `src/app/api/regulations/scrape/`
+- **Scrapers**: `src/app/utils/scrape-fishing-report.ts` and `src/app/utils/dfoScraperV2.ts`
+- **Manual Scripts**: `scripts/scrape-historical-reports.ts` and `scripts/scrape-and-update-regulations.ts`
+- **GitHub Actions**: `.github/workflows/scrape-data.yml` (runs daily at 2 AM UTC)
+- **Documentation**: `docs/scraping-system.md` (comprehensive guide)
+
+### Adding New Areas/Locations
+
+The system is fully dynamic - just add data to the database and the frontend automatically displays it.
+
+**For Fishing Reports**: Update locations array in `/api/fishing-reports/scrape/route.ts`
+**For Regulations**: Add to `AREA_NAMES` in `src/app/utils/dfoScraperV2.ts`, run scraper
+
+See `docs/scraping-system.md` for detailed instructions.
+
 ## Development Guidelines
 
 When implementing a large new feature always create a detailed step by step plan as a task list. Ask me any clarifying question and then start implementation.
 Always act like senior engineer and create smaller and reusable components. Make sure to use the existing components and utilities in the project.
 
 **Important:** Many components in the codebase are legacy or unused. Refer to the "Active Components" section above to understand which components are currently in use before building upon existing functionality.
+
+- for the docs always keep the names in file-name format.
+- No need to create new document everytime we change something. We just need to update the CLAUDE.md with anything important regarding the system. and existing docs shouuld be updated if the changes were related.
+- use supabase mcp when trying to access anything in supabase.

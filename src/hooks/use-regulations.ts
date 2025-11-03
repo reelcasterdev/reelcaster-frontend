@@ -1,15 +1,15 @@
+'use client'
+
 import { useState, useEffect } from 'react'
-import { AreaRegulations } from '@/app/data/regulations'
-import area19Regulations from '@/app/data/regulations/area-19-victoria-sidney.json'
-import area20Regulations from '@/app/data/regulations/area-20-sooke.json'
+import { AreaRegulations, regulationsService } from '@/app/services/regulations'
 
 interface UseRegulationsOptions {
   areaId?: string
-  enableApi?: boolean // Toggle between API and static JSON
+  enableApi?: boolean // Default to true now for dynamic data
 }
 
 export function useRegulations(options: UseRegulationsOptions = {}) {
-  const { areaId, enableApi = false } = options
+  const { areaId, enableApi = true } = options // Changed default to true
   const [regulations, setRegulations] = useState<AreaRegulations[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -21,48 +21,27 @@ export function useRegulations(options: UseRegulationsOptions = {}) {
         setError(null)
 
         if (enableApi) {
-          // Fetch from API
-          const url = areaId
-            ? `/api/regulations?area_id=${areaId}`
-            : '/api/regulations'
-
-          const response = await fetch(url)
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch regulations from API')
-          }
-
-          const data = await response.json()
-          setRegulations(Array.isArray(data) ? data : [data])
-        } else {
-          // Use static JSON files as fallback
-          const staticData: AreaRegulations[] = [
-            area19Regulations as AreaRegulations,
-            area20Regulations as AreaRegulations,
-          ]
+          // Fetch from API (now the default)
+          let data: AreaRegulations[]
 
           if (areaId) {
-            const filtered = staticData.filter((r) => r.areaId === areaId)
-            setRegulations(filtered)
+            const areaReg = await regulationsService.getRegulationsByAreaId(areaId)
+            data = areaReg ? [areaReg] : []
           } else {
-            setRegulations(staticData)
+            data = await regulationsService.getAllRegulations()
           }
+
+          setRegulations(data)
+        } else {
+          // Fallback to empty array if API is disabled and no static files
+          // This allows for dynamic loading without hardcoded dependencies
+          console.warn('API disabled and no static fallback configured')
+          setRegulations([])
         }
       } catch (err) {
         console.error('Error fetching regulations:', err)
         setError(err instanceof Error ? err.message : 'Unknown error')
-
-        // Fallback to static JSON on error
-        const staticData: AreaRegulations[] = [
-          area19Regulations as AreaRegulations,
-          area20Regulations as AreaRegulations,
-        ]
-
-        if (areaId) {
-          setRegulations(staticData.filter((r) => r.areaId === areaId))
-        } else {
-          setRegulations(staticData)
-        }
+        setRegulations([])
       } finally {
         setLoading(false)
       }
@@ -74,19 +53,87 @@ export function useRegulations(options: UseRegulationsOptions = {}) {
   return { regulations, loading, error }
 }
 
+/**
+ * Hook to fetch regulations for a specific location
+ */
+export function useLocationRegulations(locationName: string | null) {
+  const [regulations, setRegulations] = useState<AreaRegulations | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!locationName) {
+      setRegulations(null)
+      setLoading(false)
+      return
+    }
+
+    const fetchRegulations = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const data = await regulationsService.getRegulationsByLocation(locationName)
+        setRegulations(data)
+      } catch (err) {
+        console.error('Error fetching regulations:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load regulations')
+        setRegulations(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRegulations()
+  }, [locationName])
+
+  return { regulations, loading, error }
+}
+
+/**
+ * Get regulations for a location from already-fetched data
+ * This is now more dynamic and doesn't rely on hardcoded mappings
+ */
 export function getRegulationsByLocationClient(
   locationName: string,
-  regulations: AreaRegulations[]
+  regulations: AreaRegulations[],
 ): AreaRegulations | null {
-  const locationToAreaMap: Record<string, string> = {
-    'Victoria, Sidney': '19',
-    'Sooke, Port Renfrew': '20',
-  }
+  // First try exact match on areaName
+  const exactMatch = regulations.find(r => r.areaName === locationName)
+  if (exactMatch) return exactMatch
 
-  const areaId = locationToAreaMap[locationName]
-  if (!areaId) {
-    return null
-  }
+  // If no exact match, could implement fuzzy matching or other logic here
+  // For now, return null if no match found
+  return null
+}
 
-  return regulations.find((r) => r.areaId === areaId) || null
+/**
+ * Hook to get all available locations with regulations
+ */
+export function useAvailableLocations() {
+  const [locations, setLocations] = useState<Array<{ areaId: string; areaName: string }>>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const data = await regulationsService.getAvailableLocations()
+        setLocations(data)
+      } catch (err) {
+        console.error('Error fetching available locations:', err)
+        setError('Failed to load available locations')
+        setLocations([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLocations()
+  }, [])
+
+  return { locations, loading, error }
 }
