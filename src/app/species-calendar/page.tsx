@@ -5,7 +5,6 @@ import { Search, Calendar, ExternalLink, AlertCircle } from 'lucide-react'
 import Sidebar from '../components/common/sidebar'
 import LocationSelector from '../components/species-calendar/location-selector'
 import SpeciesByStatusView from '../components/species-calendar/species-by-status-view'
-import ModernLoadingState from '../components/common/modern-loading-state'
 import ErrorState from '../components/common/error-state'
 import { SpeciesCalendarData } from '../api/species-calendar/route'
 
@@ -126,19 +125,17 @@ export default function SpeciesCalendarPage() {
 
           {/* Loading State */}
           {loading && (
-            <div className="flex justify-center items-center py-20">
-              <ModernLoadingState />
+            <div className="flex flex-col justify-center items-center py-20 space-y-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 border-4 border-slate-700/30 border-t-blue-500 rounded-full animate-spin" />
+              </div>
+              <p className="text-slate-400 text-lg">Loading species data...</p>
             </div>
           )}
 
           {/* Error State */}
           {error && !loading && (
-            <ErrorState
-              message={error}
-              onRetry={() => {
-                setSelectedLocation(selectedLocation)
-              }}
-            />
+            <ErrorState message={error} />
           )}
 
           {/* Species Grid */}
