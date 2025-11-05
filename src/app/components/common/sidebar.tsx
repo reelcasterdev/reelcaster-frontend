@@ -28,6 +28,13 @@ export default function Sidebar() {
       isActive: true,
     },
     {
+      id: 'species-calendar',
+      label: 'Species Calendar',
+      href: '/species-calendar',
+      icon: <Calendar className="w-5 h-5" />,
+      isActive: true,
+    },
+    {
       id: 'favorite-spots',
       label: 'Favorite Spots',
       href: '#',
@@ -39,13 +46,6 @@ export default function Sidebar() {
       label: 'Species ID',
       href: '#',
       icon: <Fish className="w-5 h-5" />,
-      isActive: false,
-    },
-    {
-      id: '14-day-report',
-      label: '14 Day Report',
-      href: '#',
-      icon: <Calendar className="w-5 h-5" />,
       isActive: false,
     },
   ]
