@@ -74,6 +74,20 @@ jobs:
             --max-time 600 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
         continue-on-error: true
 
+      - name: Send Scheduled Notifications
+        id: send_notifications
+        run: |
+          echo "📧 Sending scheduled fishing notifications..."
+
+          # Call the notification API endpoint with CRON_SECRET
+          curl -X POST "${{ secrets.APP_URL }}/api/notifications/send-scheduled" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --fail \
+            --show-error \
+            --max-time 600 || echo "notifications_failed=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
       - name: Create summary
         if: always()
         run: |
@@ -116,6 +130,18 @@ jobs:
           else
             echo "### ❌ Fishing Reports" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Scheduled Notifications
+          if [ "${{ steps.send_notifications.outcome }}" == "success" ]; then
+            echo "### ✅ Scheduled Notifications" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/notifications/send-scheduled" >> $GITHUB_STEP_SUMMARY
+            echo "- Sent personalized fishing forecasts to users" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Scheduled Notifications" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Failed or Skipped" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Notify on failure

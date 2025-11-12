@@ -641,6 +641,24 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
+
+              {/* Link to Advanced Notification Settings */}
+              <div className="pt-4 mt-6 border-t border-slate-700">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/profile/notification-settings')}
+                  className="w-full bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-blue-500/30 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 transition-all"
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  Advanced Notification Settings
+                  <span className="ml-auto text-xs bg-blue-500/20 px-2 py-1 rounded">
+                    New
+                  </span>
+                </Button>
+                <p className="text-xs text-slate-500 mt-2 text-center">
+                  Configure location, weather thresholds, species alerts & more
+                </p>
+              </div>
             </CardContent>
           </Card>
 

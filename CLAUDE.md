@@ -56,6 +56,7 @@ src/app/
 
 - `/` - Main fishing forecast page with location-based forecasts
 - `/profile` - User profile and preferences page
+- `/admin/send-email` - Admin email broadcast system (manual email sending)
 
 ## External APIs
 
@@ -185,6 +186,7 @@ The current application focuses on:
 - **Location-Based Data**: Multiple fishing locations in British Columbia
 - **Species Information**: Fishing regulations and species data
 - **User Authentication**: Profile management and personalized preferences
+- **Email Broadcast System**: Admin tool for sending customized emails to all users
 - **Responsive Design**: Mobile-first responsive interface
 
 ## Missing Configurations
@@ -236,6 +238,159 @@ The system is fully dynamic - just add data to the database and the frontend aut
 **For Regulations**: Add to `AREA_NAMES` in `src/app/utils/dfoScraperV2.ts`, run scraper
 
 See `docs/scraping-system.md` for detailed instructions.
+
+## Email Broadcast System
+
+ReelCaster includes an admin email broadcast system for sending customized emails to all registered users.
+
+### Features
+
+- **Manual Email Composition**: Admin can compose custom messages with rich text
+- **Optional Data Sections**: Toggle inclusion of forecast, weather, tides, and fishing reports
+- **Location-Specific Data**: Select location for forecast/tide data
+- **Email Preview**: Preview emails before sending
+- **Batch Sending**: Emails sent in batches of 20 to avoid rate limits
+- **Progress Tracking**: Real-time progress and result reporting
+- **Responsive Templates**: Beautiful, mobile-friendly HTML email templates
+
+### Setup Requirements
+
+**Environment Variables** (add to `.env.local`):
+```env
+# Supabase Service Role Key (for accessing auth.users)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Resend API Key (for email sending)
+# Free tier: 100 emails/day, 3,000 emails/month
+RESEND_API_KEY=your_resend_api_key
+```
+
+### Key Files
+
+- **Admin Page**: `/admin/send-email` - Email composition interface
+- **API Endpoints**:
+  - `/api/admin/preview-email` - Generate email preview
+  - `/api/admin/send-broadcast` - Send emails to all users
+- **Email Service**: `src/lib/email-service.ts` - Email sending logic
+- **Email Template**: `src/lib/email-templates/admin-broadcast.ts` - HTML template
+- **Components**:
+  - `src/app/components/admin/email-composer.tsx` - Composer UI
+  - `src/app/components/admin/email-preview.tsx` - Preview modal
+- **Documentation**: `docs/email-broadcast-system.md` - Comprehensive guide
+
+### Usage
+
+1. Navigate to `/admin/send-email`
+2. Compose custom message
+3. Select location and toggle data sections
+4. Preview email
+5. Send to all users
+
+### Technology
+
+- **Email Service**: Resend (https://resend.com)
+- **Template Engine**: Custom TypeScript/HTML generator
+- **Batch Processing**: 20 emails per batch with rate limiting
+- **Authentication**: Supabase Admin API for user access
+
+See `docs/email-broadcast-system.md` for detailed setup and usage instructions.
+
+## Automated Notification System
+
+ReelCaster features a comprehensive automated notification system that sends personalized fishing alerts to users based on their preferences and weather conditions.
+
+### Features
+
+- **Scheduled Notifications**: Daily or weekly emails sent automatically via GitHub Actions
+- **Personalized Forecasts**: Location-specific forecasts based on user-selected coordinates and radius
+- **Species-Specific Scoring**: Customized fishing scores for user's favorite species
+- **Weather Threshold Filtering**: Only send when conditions meet user's preferences
+- **Interactive Map Selection**: Mapbox GL integration for location and radius selection
+- **Comprehensive Preferences**:
+  - Location with adjustable radius (5-100km)
+  - Multiple species selection
+  - Weather thresholds (wind, waves, precipitation, temperature, UV, fishing score)
+  - Safety alerts (thunderstorms, gale warnings, pressure drops)
+  - Regulatory change notifications (bundled with scheduled emails)
+  - Frequency (daily/weekly) and timezone settings
+
+### Setup Requirements
+
+**Environment Variables** (add to `.env.local`):
+```env
+# Mapbox Access Token (for location selector map)
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_access_token
+
+# Cron Secret (for securing scheduled notification endpoint)
+CRON_SECRET=your_cron_secret_key
+```
+
+**GitHub Secrets** (add to repository settings):
+- `CRON_SECRET` - Same value as local CRON_SECRET for authenticating workflow requests
+
+### Database Schema
+
+- **`notification_preferences`** table stores all user preferences:
+  - Notification toggles (enabled, email, push)
+  - Schedule settings (frequency, time, timezone)
+  - Location (lat/lng, radius, name)
+  - Species preferences (array of IDs)
+  - Weather thresholds (11 different metrics)
+  - Alert toggles (3 safety alerts)
+  - Tracking (last_notification_sent timestamp)
+
+### Key Files
+
+- **Settings Page**: `/profile/notification-settings` - User preferences interface
+- **API Endpoints**:
+  - `/api/notifications/send-scheduled` - Automated notification sending
+  - `/api/notifications/preview` - Preview notification email
+- **Core Logic**: `src/lib/notification-service.ts` - Notification generation logic
+- **Email Template**: `src/lib/email-templates/scheduled-notification.ts` - Personalized HTML template
+- **Components**:
+  - `src/app/components/notifications/notification-preferences-form.tsx` - Main form
+  - `src/app/components/notifications/notification-location-selector.tsx` - Mapbox map
+  - `src/app/components/notifications/species-selector.tsx` - Multi-select species
+  - `src/app/components/notifications/weather-threshold-sliders.tsx` - Threshold controls
+  - `src/app/components/notifications/regulatory-preferences.tsx` - Regulation settings
+- **Automation**: `.github/workflows/scrape-data.yml` - Runs daily at 2 AM UTC after scraping
+- **Migration Script**: `scripts/migrate-notification-preferences.ts` - One-time data migration
+- **Documentation**: `docs/notification-system.md` - Comprehensive architecture guide
+
+### How It Works
+
+1. **User Configuration**: Users set preferences at `/profile/notification-settings`
+2. **Scheduled Trigger**: GitHub Actions workflow runs daily at 2 AM UTC
+3. **User Filtering**: System fetches users with notifications enabled
+4. **Notification Logic**:
+   - Checks if notification is due (based on frequency and last_sent)
+   - Fetches 7-day forecast for user's location
+   - Calculates fishing scores for user's species
+   - Checks weather conditions against user's thresholds
+   - Fetches regulation changes since last notification (if enabled)
+5. **Threshold Evaluation**: Only sends if conditions meet user's criteria:
+   - Fishing score >= threshold
+   - Weather within acceptable ranges
+   - Best day identified
+6. **Email Generation**: Creates personalized email with:
+   - Best fishing day highlighted
+   - 7-day forecast table
+   - Weather alerts (if any)
+   - Regulation changes (if any)
+   - Species-specific optimizations
+7. **Batch Sending**: Sends emails in batches of 20 via Resend
+8. **Timestamp Update**: Updates `last_notification_sent` for next cycle
+
+### Technology
+
+- **Map Library**: Mapbox GL JS (react-map-gl wrapper)
+- **Email Service**: Resend (shared with broadcast system)
+- **Automation**: GitHub Actions (daily cron job)
+- **Weather Data**: Open Meteo API (7-day forecasts)
+- **Scoring Algorithm**: Species-specific 13-factor calculation
+- **Database**: Supabase PostgreSQL with RLS policies
+
+See `docs/notification-system.md` for detailed architecture and implementation guide.
 
 ## Development Guidelines
 
