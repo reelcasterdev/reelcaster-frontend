@@ -25,6 +25,7 @@ import { TideStatusWidget } from './components/forecast/tide-status-widget'
 import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
 import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
+import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
@@ -75,6 +76,7 @@ const fishingLocations: FishingLocation[] = [
 
 function NewForecastContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const { trackEvent } = useAnalytics()
   const pageLoadStartTime = useRef<number>(Date.now())
   const hasTrackedPageView = useRef<boolean>(false)
@@ -121,6 +123,34 @@ function NewForecastContent() {
       ? { lat, lon }
       : currentHotspot?.coordinates || currentLocation?.coordinates || { lat: 48.4113, lon: -123.398 }
   }, [hasValidCoordinates, lat, lon, currentHotspot?.coordinates, currentLocation?.coordinates])
+
+  // Handle hotspot change from map click
+  const handleHotspotChange = useCallback((hotspotData: FishingHotspot) => {
+    if (!currentLocation) return;
+
+    const params = new URLSearchParams({
+      location: currentLocation.name,
+      hotspot: hotspotData.name,
+      lat: hotspotData.coordinates.lat.toString(),
+      lon: hotspotData.coordinates.lon.toString(),
+    });
+
+    if (species) {
+      params.set('species', species);
+    }
+
+    trackEvent('Hotspot Selected', {
+      location: currentLocation.name,
+      hotspot: hotspotData.name,
+      coordinates: hotspotData.coordinates,
+      source: 'map',
+      timestamp: new Date().toISOString(),
+    });
+
+    // Use replace instead of push to avoid adding to history stack
+    // This makes navigation feel smoother
+    router.replace(`/?${params.toString()}`);
+  }, [currentLocation, species, router, trackEvent]);
 
   // Fresh data fetching function (used for both initial load and background refresh)
   const fetchFreshForecastData = useCallback(async (): Promise<{
@@ -331,6 +361,18 @@ function NewForecastContent() {
         <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-3 sm:space-y-6 pt-16 lg:pt-6">
           {/* Location Selector */}
           <CompactLocationSelector />
+
+          {/* Weather Map */}
+          {!loading && currentLocation && (
+            <ForecastMapSwitcher
+              location={selectedLocation}
+              hotspot={selectedHotspot}
+              hotspots={currentLocation.hotspots}
+              centerCoordinates={coordinates}
+              onHotspotChange={handleHotspotChange}
+              openMeteoData={openMeteoData}
+            />
+          )}
 
           {/* Header - Always show */}
           <NewForecastHeader

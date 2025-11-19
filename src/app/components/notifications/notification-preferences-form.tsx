@@ -255,9 +255,8 @@ const NotificationPreferencesForm: React.FC = () => {
                 alert_on_pressure_drop: preferences.alert_on_pressure_drop,
               }}
               onChange={(thresholds) => {
-                Object.entries(thresholds).forEach(([key, value]) => {
-                  updatePreference(key as keyof NotificationPreferences, value as any);
-                });
+                // Update all thresholds in a single state update
+                setPreferences({ ...preferences, ...thresholds });
               }}
             />
           </div>

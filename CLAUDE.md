@@ -88,6 +88,92 @@ The application integrates with multiple data sources:
    - URL: `https://pacfin.psmfc.org/`
    - Pacific Fisheries data
 
+6. **OpenWeatherMap API** (Weather Tile Layers)
+   - Tile URL: `https://tile.openweathermap.org/map/{layer}/{z}/{x}/{y}.png`
+   - Provides visual weather overlays (temperature, precipitation, wind, clouds)
+   - Used in forecast weather map for enhanced visualizations
+
+## Interactive Weather Map
+
+The forecast page includes an interactive weather map with **dual visualization options**: a custom Mapbox-based map and an official Windy-powered map. Users can toggle between both map types, with their preference saved locally.
+
+### Map Options
+
+#### 1. Mapbox Map (Custom Implementation)
+
+**Features:**
+- **Mapbox GL Base Map**: Dark theme matching app design
+- **Hotspot Markers**: Clickable markers for all fishing locations in the selected area
+- **Weather Tile Layers**: Real-time weather overlays from OpenWeatherMap
+  - Temperature layer (heat map visualization)
+  - Precipitation layer (rainfall intensity)
+  - Wind layer (direction and speed)
+  - Cloud cover layer
+- **Layer Controls**: Toggle individual layers on/off with opacity adjustment
+- **Timeline Scrubber**: Playback forecast data through 14-day period
+- **Current Weather Display**: Real-time temp, wind, and precipitation metrics
+- **Interactive Markers**: Click hotspot markers to change location and reload forecast
+- **Wind Flow Visualization**: Custom animated directional arrows showing wind patterns over water (arrow length indicates wind intensity)
+
+**Environment Variables:**
+```env
+# Required - Mapbox GL base map
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_access_token
+
+# Optional - Weather tile layers (map works without this, but layers won't display)
+NEXT_PUBLIC_OPENWEATHERMAP_API_KEY=your_openweathermap_api_key
+```
+
+**API Keys:**
+- **Mapbox** (Free tier: 50,000 loads/month): https://account.mapbox.com/access-tokens/
+- **OpenWeatherMap** (Free tier: 60 calls/min, 1M tiles/month): https://home.openweathermap.org/api_keys
+
+**Technical Implementation:**
+- Map Library: react-map-gl v8.x with Mapbox GL JS
+- Tile Rendering: OpenWeatherMap raster tiles via Source/Layer
+- Timeline Playback: Auto-advance through forecast data points (500ms intervals)
+- Marker Interaction: Click handler updates URL params and triggers forecast reload
+- Responsive Design: 500px height on mobile, maintains aspect ratio on desktop
+
+#### 2. Windy Map (Official Integration)
+
+**Features:**
+- **Official Windy Visualization**: Industry-leading wind flow animations
+- **Multiple Weather Layers**: Wind, temperature, precipitation, clouds, and 20+ other parameters
+- **Hotspot Markers**: Same clickable markers as Mapbox version
+- **Interactive Forecast**: Click anywhere on map for detailed point forecast
+- **Timeline Controls**: Playback forecast data with Windy's built-in timeline
+- **Layer Menu**: Access to Windy's full layer selection (bottom-right)
+
+**Environment Variables:**
+```env
+# Required - Windy API key
+NEXT_PUBLIC_WINDY_API_KEY=your_windy_api_key
+```
+
+**API Keys:**
+- **Windy API** (Testing tier: Free for development only): https://api.windy.com/keys
+  - **Note**: Professional tier required for production use (contact Windy for pricing)
+
+**Technical Implementation:**
+- Map Library: Leaflet 1.4.x (loaded via Windy CDN)
+- API Integration: Windy Map Forecast API
+- Custom Markers: Leaflet divIcon with custom styling
+- Documentation: https://api.windy.com/map-forecast/docs
+
+### Map Switcher
+
+Users can toggle between map types using the **Map Type** switcher above the map. The selection is saved to `localStorage` and persists across sessions.
+
+### Key Files
+
+- **Switcher**: `src/app/components/forecast/forecast-map-switcher.tsx` - Main component with toggle
+- **Mapbox Map**: `src/app/components/forecast/forecast-map.tsx` - Custom Mapbox implementation
+- **Windy Map**: `src/app/components/forecast/forecast-map-windy.tsx` - Official Windy integration
+- **Wind Particles**: `src/app/components/forecast/wind-particle-layer.tsx` - Custom wind animation (Mapbox only)
+- **Integration**: `src/app/page.tsx` - Integrated between location selector and forecast header
+- **Data Flow**: Uses existing `openMeteoData` state for timeline playback
+
 ## Important Development Notes
 
 ### Component Creation
@@ -129,6 +215,10 @@ Based on current usage analysis, these components are actively used:
 **Forecast (Main UI):**
 
 - `new-forecast-header.tsx` - Forecast page header
+- `forecast-map-switcher.tsx` - Map type switcher with localStorage persistence
+- `forecast-map.tsx` - Custom Mapbox GL map with OpenWeatherMap layers
+- `forecast-map-windy.tsx` - Official Windy map integration with Leaflet
+- `wind-particle-layer.tsx` - Custom canvas-based wind animation overlay
 - `day-outlook.tsx` - Daily forecast overview
 - `overall-score.tsx` - Fishing score summary
 - `hourly-chart.tsx` - Hourly fishing score chart
