@@ -22,7 +22,6 @@ interface ForecastMapWindyProps {
 // Extend Window interface for Windy API
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     windyInit: (options: any, windyAPI: any) => void;
     L?: typeof import('leaflet');
   }
@@ -41,7 +40,6 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const [windyLoaded, setWindyLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
 
   // Timeline state for forecast playback
   const [timelineIndex, setTimelineIndex] = useState(0);
@@ -49,11 +47,8 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
   const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Store Windy API instance
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const windyAPIRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markersRef = useRef<any[]>([]);
 
   // Get current weather data for display
@@ -170,7 +165,6 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
 
       try {
         console.log('Initializing Windy with options:', options);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         window.windyInit(options, (windyAPI: any) => {
           console.log('Windy API initialized successfully');
           windyAPIRef.current = windyAPI;
@@ -269,12 +263,10 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
 
       // Add hover handlers
       marker.on('mouseover', () => {
-        setHoveredHotspot(hotspotData.name);
         marker.openPopup();
       });
 
       marker.on('mouseout', () => {
-        setHoveredHotspot(null);
         if (!isSelected) {
           marker.closePopup();
         }

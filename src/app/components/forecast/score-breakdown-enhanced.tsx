@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Info, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Info, X, AlertTriangle, Calendar } from 'lucide-react'
 import { FishingScore } from '../../utils/fishingCalculations'
 
 interface EnhancedScoreBreakdownProps {
@@ -472,6 +472,42 @@ export default function ScoreBreakdownEnhanced({
           </div>
         </div>
       </div>
+
+      {/* Safety Warnings Section */}
+      {(score.isSafe === false && score.safetyWarnings && score.safetyWarnings.length > 0) && (
+        <div className="p-4 bg-red-900/20 border-t border-b border-red-500/50">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+            <h4 className="text-sm font-bold text-red-300">Safety Warnings</h4>
+          </div>
+          <ul className="space-y-2">
+            {score.safetyWarnings.map((warning, index) => (
+              <li key={index} className="text-sm text-red-200 flex items-start gap-2">
+                <span className="text-red-400 mt-0.5 flex-shrink-0">⚠</span>
+                <span>{warning}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-red-300/70 mt-3 italic border-t border-red-500/30 pt-3">
+            These conditions may present safety risks. Exercise caution and proper judgment. The score reflects fishing potential, not safety.
+          </p>
+        </div>
+      )}
+
+      {/* Out of Season Warning */}
+      {score.isInSeason === false && (
+        <div className="p-4 bg-orange-900/20 border-t border-b border-orange-500/50">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-5 h-5 text-orange-400 flex-shrink-0" />
+            <div>
+              <h4 className="text-sm font-bold text-orange-300">Out of Season</h4>
+              <p className="text-xs text-orange-200 mt-1">
+                Fishing for this species is currently closed or outside peak season. Check local regulations before fishing.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Summary */}
       <div className="p-4 bg-slate-800/30 border-b border-slate-700/50">

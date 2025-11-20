@@ -74,6 +74,21 @@ jobs:
             --max-time 600 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
         continue-on-error: true
 
+      - name: Scrape DFO Fishery Notices
+        id: scrape_dfo_notices
+        run: |
+          echo "⚠️ Scraping DFO Fishery Notices (Recreational & Safety)..."
+
+          # Call the production API endpoint (requires CRON_SECRET for security)
+          # Scrapes recreational fishing and safety notices from DFO
+          curl -X POST "${{ secrets.APP_URL }}/api/dfo-notices/scrape?limit=30" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --fail \
+            --show-error \
+            --max-time 600 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
       - name: Send Scheduled Notifications
         id: send_notifications
         run: |
@@ -129,6 +144,19 @@ jobs:
             echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ Fishing Reports" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # DFO Fishery Notices
+          if [ "${{ steps.scrape_dfo_notices.outcome }}" == "success" ]; then
+            echo "### ✅ DFO Fishery Notices" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
+            echo "- Endpoint: /api/dfo-notices/scrape" >> $GITHUB_STEP_SUMMARY
+            echo "- Storage: Supabase database" >> $GITHUB_STEP_SUMMARY
+            echo "- Categories: Recreational fishing & safety alerts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ DFO Fishery Notices" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Failed" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY

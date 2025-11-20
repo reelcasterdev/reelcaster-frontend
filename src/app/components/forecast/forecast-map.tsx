@@ -250,7 +250,7 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
             className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
           />
           <p className="text-xs text-slate-400 mt-2">
-            <strong>Tip:</strong> Toggle layers to view different weather conditions. Enable "Wind Flow" to see directional arrows over water (longer arrows = stronger wind). Click hotspot markers to change location.
+            <strong>Tip:</strong> Toggle layers to view different weather conditions. Enable &quot;Wind Flow&quot; to see directional arrows over water (longer arrows = stronger wind). Click hotspot markers to change location.
           </p>
         </div>
       )}

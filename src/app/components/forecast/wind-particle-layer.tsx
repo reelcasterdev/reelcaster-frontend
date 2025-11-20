@@ -41,7 +41,6 @@ const WindParticleLayer: React.FC<WindParticleLayerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animationFrameRef = useRef<number | null>(null);
-  const waterCheckCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Convert wind direction (meteorological) to radians
   // Meteorological: direction wind is coming FROM

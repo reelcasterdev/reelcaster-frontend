@@ -42,6 +42,8 @@ export interface NotificationPreferences {
   alert_on_gale_warning: boolean
   alert_on_pressure_drop: boolean
   include_regulation_changes: boolean
+  dfo_notices_enabled: boolean
+  dfo_areas_of_interest: number[]
   last_notification_sent?: string | null
   created_at?: string
   updated_at?: string
@@ -70,6 +72,8 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: Omit<NotificationPreferences, 'id
   alert_on_gale_warning: true,
   alert_on_pressure_drop: true,
   include_regulation_changes: true,
+  dfo_notices_enabled: true,
+  dfo_areas_of_interest: [19, 20], // Default to Victoria and Sooke areas
   last_notification_sent: null,
 }
 

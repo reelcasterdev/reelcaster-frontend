@@ -10,6 +10,7 @@ import type { NotificationPreferences } from './user-preferences';
 import { fetchOpenMeteoWeather } from '@/app/utils/openMeteoApi';
 import { calculateOpenMeteoFishingScore } from '@/app/utils/fishingCalculations';
 import type { ProcessedOpenMeteoData, OpenMeteo15MinData } from '@/app/utils/openMeteoApi';
+import { getRelevantDFONoticesForUser, type DFONotice } from './dfo-notice-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -63,6 +64,7 @@ export interface NotificationData {
   bestDay?: ForecastDay;
   weatherAlerts?: WeatherAlert[];
   regulationChanges?: RegulationChange[];
+  dfoNotices?: DFONotice[];
 }
 
 /**
@@ -387,6 +389,11 @@ export async function generateNotificationForUser(
       ? await fetchRegulationChanges(prefs.last_notification_sent || null)
       : [];
 
+    // Fetch DFO notices if enabled
+    const dfoNotices = prefs.dfo_notices_enabled
+      ? await getRelevantDFONoticesForUser(prefs)
+      : [];
+
     // All checks passed - should send notification
     return {
       user,
@@ -395,6 +402,7 @@ export async function generateNotificationForUser(
       bestDay,
       weatherAlerts: alerts,
       regulationChanges,
+      dfoNotices,
     };
   } catch (error) {
     console.error(`Error generating notification for user ${user.id}:`, error);

@@ -7,8 +7,18 @@ import LocationSelector from '../components/species-calendar/location-selector'
 import SpeciesByStatusView from '../components/species-calendar/species-by-status-view'
 import ErrorState from '../components/common/error-state'
 import { SpeciesCalendarData } from '../api/species-calendar/route'
+import { DFONoticesSection } from '../components/forecast/dfo-notices-section'
 
 const AVAILABLE_LOCATIONS = ['Victoria, Sidney', 'Sooke, Port Renfrew']
+
+// Helper function to map location names to DFO fishing areas
+function getDFOAreasForLocation(locationName: string): number[] {
+  const locationToAreas: Record<string, number[]> = {
+    'Victoria, Sidney': [19],
+    'Sooke, Port Renfrew': [20],
+  }
+  return locationToAreas[locationName] || [19, 20] // Default to both areas if unknown
+}
 
 export default function SpeciesCalendarPage() {
   const [selectedLocation, setSelectedLocation] = useState('Victoria, Sidney')
@@ -166,6 +176,15 @@ export default function SpeciesCalendarPage() {
                 speciesByStatus={calendarData.speciesByStatus}
                 searchQuery={searchQuery}
               />
+
+              {/* DFO Fishery Notices */}
+              <div className="mt-8">
+                <DFONoticesSection
+                  areas={getDFOAreasForLocation(selectedLocation)}
+                  species={[]}
+                  limit={15}
+                />
+              </div>
             </div>
           )}
         </div>

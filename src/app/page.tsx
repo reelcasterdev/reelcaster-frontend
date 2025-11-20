@@ -26,6 +26,7 @@ import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
 import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
 import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
+import { DFONoticesSection } from './components/forecast/dfo-notices-section'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
@@ -73,6 +74,14 @@ const fishingLocations: FishingLocation[] = [
   },
 ]
 
+// Helper function to map location names to DFO fishing areas
+function getDFOAreasForLocation(locationName: string): number[] {
+  const locationToAreas: Record<string, number[]> = {
+    'Victoria, Sidney': [19],
+    'Sooke, Port Renfrew': [20],
+  }
+  return locationToAreas[locationName] || [19, 20] // Default to both areas if unknown
+}
 
 function NewForecastContent() {
   const searchParams = useSearchParams()
@@ -541,6 +550,15 @@ function NewForecastContent() {
               {/* Fishing Report Display */}
               <div className="mt-6">
                 <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
+              </div>
+
+              {/* DFO Fishery Notices */}
+              <div className="mt-6">
+                <DFONoticesSection
+                  areas={getDFOAreasForLocation(selectedLocation)}
+                  species={species ? [species] : []}
+                  limit={10}
+                />
               </div>
             </>
           )}

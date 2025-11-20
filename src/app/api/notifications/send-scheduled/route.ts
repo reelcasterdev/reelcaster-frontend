@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const emails: Array<{ to: string; subject: string; html: string }> = [];
 
     for (const notification of usersToNotify) {
-      const { user, forecastDays, bestDay, weatherAlerts, regulationChanges } = notification;
+      const { user, forecastDays, bestDay, weatherAlerts, regulationChanges, dfoNotices } = notification;
 
       if (!bestDay || !forecastDays) {
         console.warn(`Missing data for user ${user.id}, skipping`);
@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
         forecastDays,
         weatherAlerts,
         regulationChanges,
+        dfoNotices,
         speciesNames: speciesNames.length > 0 ? speciesNames : undefined,
         preferences: {
           fishing_score_threshold: user.preferences.fishing_score_threshold,

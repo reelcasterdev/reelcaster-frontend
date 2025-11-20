@@ -9,6 +9,7 @@ import type {
   WeatherAlert,
   RegulationChange,
 } from '../notification-service';
+import type { DFONotice } from '../dfo-notice-service';
 
 export interface ScheduledNotificationEmailData {
   userName?: string;
@@ -18,6 +19,7 @@ export interface ScheduledNotificationEmailData {
   forecastDays: ForecastDay[];
   weatherAlerts?: WeatherAlert[];
   regulationChanges?: RegulationChange[];
+  dfoNotices?: DFONotice[];
   speciesNames?: string[];
   preferences?: {
     fishing_score_threshold: number;
@@ -56,7 +58,7 @@ function getSeverityColor(severity: 'warning' | 'danger'): string {
 export function generateScheduledNotificationEmail(
   data: ScheduledNotificationEmailData
 ): string {
-  const { bestDay, forecastDays, weatherAlerts, regulationChanges, locationName, speciesNames } =
+  const { bestDay, forecastDays, weatherAlerts, regulationChanges, dfoNotices, locationName, speciesNames } =
     data;
 
   return `
@@ -217,6 +219,74 @@ export function generateScheduledNotificationEmail(
                     </div>
                   </div>
                 `).join('')}
+              </div>
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- DFO Fishery Notices -->
+          ${dfoNotices && dfoNotices.length > 0 ? `
+          <tr>
+            <td style="padding: 0 24px 24px;">
+              <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 16px;">
+                <h3 style="margin: 0 0 12px; color: #92400e; font-size: 16px; font-weight: 600;">
+                  ⚠️ DFO Fishery Notices
+                </h3>
+                <p style="margin: 0 0 12px; color: #78350f; font-size: 13px;">
+                  Recent fishing regulations and safety alerts for your area
+                </p>
+                ${dfoNotices.slice(0, 5).map(notice => {
+                  const priorityColors = {
+                    critical: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b' },
+                    high: { bg: '#fed7aa', border: '#f59e0b', text: '#92400e' },
+                    medium: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
+                    low: { bg: '#f3f4f6', border: '#9ca3af', text: '#4b5563' }
+                  };
+                  const colors = priorityColors[notice.priority_level] || priorityColors.medium;
+                  const noticeType = notice.is_biotoxin_alert ? '⚠️ Biotoxin Alert' :
+                                   notice.is_sanitary_closure ? '⚠️ Sanitary Closure' :
+                                   notice.is_closure ? '🚫 Closure' :
+                                   notice.is_opening ? '✅ Opening' : '📋 Information';
+
+                  return `
+                  <div style="margin-bottom: 12px; padding: 12px; background-color: ${colors.bg}; border-left: 3px solid ${colors.border}; border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+                      <div style="color: ${colors.text}; font-weight: 600; font-size: 13px;">
+                        ${noticeType}
+                      </div>
+                      <div style="color: ${colors.text}; font-size: 11px; opacity: 0.8;">
+                        ${notice.notice_number}
+                      </div>
+                    </div>
+                    <div style="color: #1f2937; font-weight: 600; font-size: 14px; margin-bottom: 4px;">
+                      ${notice.title}
+                    </div>
+                    ${notice.areas && notice.areas.length > 0 ? `
+                      <div style="color: #4b5563; font-size: 12px; margin-bottom: 4px;">
+                        📍 Areas: ${notice.areas.join(', ')}
+                        ${notice.subareas && notice.subareas.length > 0 ? ` (${notice.subareas.slice(0, 3).join(', ')}${notice.subareas.length > 3 ? '...' : ''})` : ''}
+                      </div>
+                    ` : ''}
+                    ${notice.species && notice.species.length > 0 ? `
+                      <div style="color: #4b5563; font-size: 12px; margin-bottom: 6px;">
+                        🐟 Species: ${notice.species.slice(0, 3).join(', ')}${notice.species.length > 3 ? '...' : ''}
+                      </div>
+                    ` : ''}
+                    <div style="margin-top: 8px;">
+                      <a href="${notice.notice_url}" style="color: #3b82f6; text-decoration: none; font-size: 12px; font-weight: 500;">
+                        View Full Notice →
+                      </a>
+                    </div>
+                  </div>
+                  `;
+                }).join('')}
+                ${dfoNotices.length > 5 ? `
+                  <div style="margin-top: 12px; padding: 8px; background-color: #ffffff; border-radius: 6px; text-align: center;">
+                    <span style="color: #6b7280; font-size: 12px;">
+                      + ${dfoNotices.length - 5} more notices available online
+                    </span>
+                  </div>
+                ` : ''}
               </div>
             </td>
           </tr>
