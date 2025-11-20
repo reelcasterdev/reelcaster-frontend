@@ -146,12 +146,39 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
   }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
+      const scoreData = selectedForecast.minutelyScores[data.index]
+      const isSafe = scoreData?.scoreDetails?.isSafe !== false
+      const isInSeason = scoreData?.scoreDetails?.isInSeason !== false
+
       return (
-        <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl">
+        <div className={`rounded-lg p-3 shadow-xl border ${
+          !isSafe
+            ? 'bg-red-900/90 border-red-500'
+            : !isInSeason
+            ? 'bg-orange-900/90 border-orange-500'
+            : 'bg-slate-800 border-slate-600'
+        }`}>
           <div className="text-white font-semibold mb-1">{data.fullTime}</div>
           <div className={`text-lg font-bold mb-2 ${getScoreColor(data.score)}`}>
             Score: {data.score.toFixed(1)}/10 ({getScoreLabel(data.score)})
           </div>
+
+          {/* Safety indicator */}
+          {!isSafe && (
+            <div className="mt-2 text-red-200 text-xs font-semibold flex items-center gap-1">
+              <span>⚠️</span>
+              <span>Unsafe conditions</span>
+            </div>
+          )}
+
+          {/* Out of season indicator */}
+          {!isInSeason && isSafe && (
+            <div className="mt-2 text-orange-200 text-xs font-semibold flex items-center gap-1">
+              <span>📅</span>
+              <span>Outside peak season</span>
+            </div>
+          )}
+
           {data.isInBestWindow && (
             <div className="mt-2 text-blue-300 text-xs font-semibold">⭐ In best 2-hour window</div>
           )}
@@ -204,14 +231,51 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
 
           {/* Best Window Info */}
           {bestTwoHourWindow && (
-            <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3 inline-block">
-              <p className="text-blue-300 text-xs sm:text-sm font-semibold">🏆 Best 2-Hour Window</p>
+            <div className={`rounded-lg p-3 inline-block ${
+              bestTwoHourWindow.score.isSafe === false
+                ? 'bg-red-900/30 border-2 border-red-500/70'
+                : bestTwoHourWindow.score.isInSeason === false
+                ? 'bg-orange-900/30 border-2 border-orange-500/70'
+                : 'bg-blue-900/30 border border-blue-500/50'
+            }`}>
+              <p className={`text-xs sm:text-sm font-semibold ${
+                bestTwoHourWindow.score.isSafe === false ? 'text-red-300' :
+                bestTwoHourWindow.score.isInSeason === false ? 'text-orange-300' :
+                'text-blue-300'
+              }`}>
+                {bestTwoHourWindow.score.isSafe === false && '⚠️ '}
+                {bestTwoHourWindow.score.isInSeason === false && '📅 '}
+                🏆 Best 2-Hour Window
+              </p>
               <p className="text-white font-bold text-sm sm:text-base">
                 {formatTime(bestTwoHourWindow.startTime)} - {formatTime(bestTwoHourWindow.endTime)}
               </p>
               <p className={`text-base sm:text-lg font-bold ${getScoreColor(bestTwoHourWindow.score.total)}`}>
                 Score: {bestTwoHourWindow.score.total.toFixed(1)}/10
               </p>
+
+              {/* Safety warnings summary */}
+              {bestTwoHourWindow.score.isSafe === false && bestTwoHourWindow.score.safetyWarnings && (
+                <div className="mt-2 text-xs text-red-200 bg-red-900/30 rounded p-2">
+                  <p className="font-semibold mb-1">⚠️ Safety Concerns:</p>
+                  <ul className="list-disc list-inside space-y-0.5">
+                    {bestTwoHourWindow.score.safetyWarnings.slice(0, 2).map((warning, i) => (
+                      <li key={i}>{warning.replace('Unsafe: ', '')}</li>
+                    ))}
+                    {bestTwoHourWindow.score.safetyWarnings.length > 2 && (
+                      <li>+{bestTwoHourWindow.score.safetyWarnings.length - 2} more</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {/* Out of season warning */}
+              {bestTwoHourWindow.score.isInSeason === false && (
+                <div className="mt-2 text-xs text-orange-200 bg-orange-900/30 rounded p-2">
+                  <p className="font-semibold">📅 Outside peak season</p>
+                </div>
+              )}
+
               <button
                 onClick={() => setSelectedScore({
                   score: bestTwoHourWindow.score,
@@ -431,7 +495,7 @@ export default function HourlyChart({ forecasts, selectedDay = 0, species }: Hou
       <div className="mt-4 flex items-center gap-2 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
         <Info className="w-4 h-4 text-blue-400 flex-shrink-0" />
         <p className="text-xs text-blue-300">
-          Click on any bar to see detailed score breakdown with all factors, weights, and values
+          Click on any point to see detailed score breakdown including safety warnings, factor weights, and values
         </p>
       </div>
 

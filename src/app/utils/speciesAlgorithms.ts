@@ -246,13 +246,11 @@ export function calculateChinookSalmonScore(
   factors['precipitation'] = { value: precipitation, weight: 0.05, score: precipScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe, cap the score
-  if (!isSafe) {
-    total = Math.min(total, 3.0)
-  }
+  // Safety warnings are informational - don't cap the score
+  // Users can see actual fishing conditions AND make their own safety decisions
 
   return { total, factors, isSafe, safetyWarnings }
 }
@@ -423,13 +421,11 @@ export function calculatePinkSalmonScore(
   factors['waveHeight'] = { value: waveHeight, weight: 0.05, score: waveScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe, cap the score
-  if (!isSafe) {
-    total = Math.min(total, 3.0)
-  }
+  // Safety warnings are informational - don't cap the score
+  // Users can see actual fishing conditions AND make their own safety decisions
 
   return { total, factors, isSafe, safetyWarnings }
 }
@@ -567,13 +563,11 @@ export function calculateHalibutScore(
   factors['lightTime'] = { value: hour, weight: 0.05, score: lightScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe, cap the score
-  if (!isSafe) {
-    total = Math.min(total, 3.0)
-  }
+  // Safety warnings are informational - don't cap the score
+  // Users can see actual fishing conditions AND make their own safety decisions
 
   return { total, factors, isSafe, safetyWarnings }
 }
@@ -734,13 +728,11 @@ export function calculateLingcodScore(
   factors['waterTemp'] = { value: waterTemp, weight: 0.05, score: waterTempScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe, cap the score
-  if (!isSafe) {
-    total = Math.min(total, 3.0)
-  }
+  // Safety warnings are informational - don't cap the score
+  // Users can see actual fishing conditions AND make their own safety decisions
 
   return { total, factors, isSafe, safetyWarnings }
 }
@@ -908,13 +900,11 @@ export function calculateCohoSalmonScore(
   factors['waterTemp'] = { value: waterTemp, weight: 0.05, score: waterTempScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe, cap the score
-  if (!isSafe) {
-    total = Math.min(total, 3.0)
-  }
+  // Safety warnings are informational - don't cap the score
+  // Users can see actual fishing conditions AND make their own safety decisions
 
   return { total, factors, isSafe, safetyWarnings }
 }
@@ -1049,13 +1039,11 @@ export function calculateRockfishScore(
   factors['otherFactors'] = { value: cloudCover, weight: 0.05, score: otherScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe, cap the score
-  if (!isSafe) {
-    total = Math.min(total, 3.0)
-  }
+  // Safety warnings are informational - don't cap the score
+  // Users can see actual fishing conditions AND make their own safety decisions
 
   return { total, factors, isSafe, safetyWarnings }
 }
@@ -1173,13 +1161,11 @@ export function calculateCrabScore(
   factors['tidalRange'] = { value: tideData?.tidalRange || 0, weight: 0.10, score: tidalScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe, cap the score
-  if (!isSafe) {
-    total = Math.min(total, 3.0)
-  }
+  // Safety warnings are informational - don't cap the score
+  // Users can see actual fishing conditions AND make their own safety decisions
 
   return { total, factors, isSafe, safetyWarnings }
 }
@@ -1285,13 +1271,11 @@ export function calculateSpotPrawnScore(
   factors['waveHeight'] = { value: waveHeight, weight: 0.10, score: waveScore }
 
   // Calculate total score
-  let total = Object.values(factors).reduce((sum, factor) =>
+  const total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
-  // If unsafe OR outside season, cap the score
-  if (!isSafe || seasonalScore === 0.0) {
-    total = Math.min(total, 1.0)  // Very low cap for out-of-season/unsafe
-  }
+  // Safety warnings and seasonal info are informational - don't cap the score
+  // Note: Out of season status is tracked separately for UI display
 
   return { total, factors, isSafe, safetyWarnings }
 }

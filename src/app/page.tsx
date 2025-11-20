@@ -25,6 +25,8 @@ import { TideStatusWidget } from './components/forecast/tide-status-widget'
 import Sidebar from './components/common/sidebar'
 import CompactLocationSelector from './components/location/compact-location-selector'
 import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
+import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
+import { DFONoticesSection } from './components/forecast/dfo-notices-section'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
@@ -72,9 +74,18 @@ const fishingLocations: FishingLocation[] = [
   },
 ]
 
+// Helper function to map location names to DFO fishing areas
+function getDFOAreasForLocation(locationName: string): number[] {
+  const locationToAreas: Record<string, number[]> = {
+    'Victoria, Sidney': [19],
+    'Sooke, Port Renfrew': [20],
+  }
+  return locationToAreas[locationName] || [19, 20] // Default to both areas if unknown
+}
 
 function NewForecastContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const { trackEvent } = useAnalytics()
   const pageLoadStartTime = useRef<number>(Date.now())
   const hasTrackedPageView = useRef<boolean>(false)
@@ -121,6 +132,34 @@ function NewForecastContent() {
       ? { lat, lon }
       : currentHotspot?.coordinates || currentLocation?.coordinates || { lat: 48.4113, lon: -123.398 }
   }, [hasValidCoordinates, lat, lon, currentHotspot?.coordinates, currentLocation?.coordinates])
+
+  // Handle hotspot change from map click
+  const handleHotspotChange = useCallback((hotspotData: FishingHotspot) => {
+    if (!currentLocation) return;
+
+    const params = new URLSearchParams({
+      location: currentLocation.name,
+      hotspot: hotspotData.name,
+      lat: hotspotData.coordinates.lat.toString(),
+      lon: hotspotData.coordinates.lon.toString(),
+    });
+
+    if (species) {
+      params.set('species', species);
+    }
+
+    trackEvent('Hotspot Selected', {
+      location: currentLocation.name,
+      hotspot: hotspotData.name,
+      coordinates: hotspotData.coordinates,
+      source: 'map',
+      timestamp: new Date().toISOString(),
+    });
+
+    // Use replace instead of push to avoid adding to history stack
+    // This makes navigation feel smoother
+    router.replace(`/?${params.toString()}`);
+  }, [currentLocation, species, router, trackEvent]);
 
   // Fresh data fetching function (used for both initial load and background refresh)
   const fetchFreshForecastData = useCallback(async (): Promise<{
@@ -332,6 +371,18 @@ function NewForecastContent() {
           {/* Location Selector */}
           <CompactLocationSelector />
 
+          {/* Weather Map */}
+          {!loading && currentLocation && (
+            <ForecastMapSwitcher
+              location={selectedLocation}
+              hotspot={selectedHotspot}
+              hotspots={currentLocation.hotspots}
+              centerCoordinates={coordinates}
+              onHotspotChange={handleHotspotChange}
+              openMeteoData={openMeteoData}
+            />
+          )}
+
           {/* Header - Always show */}
           <NewForecastHeader
             location={selectedLocation}
@@ -499,6 +550,15 @@ function NewForecastContent() {
               {/* Fishing Report Display */}
               <div className="mt-6">
                 <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
+              </div>
+
+              {/* DFO Fishery Notices */}
+              <div className="mt-6">
+                <DFONoticesSection
+                  areas={getDFOAreasForLocation(selectedLocation)}
+                  species={species ? [species] : []}
+                  limit={10}
+                />
               </div>
             </>
           )}
