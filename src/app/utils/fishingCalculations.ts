@@ -1,7 +1,17 @@
 // Open-Meteo integration imports
 import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
 import { CHSWaterData } from './chsTideApi'
-import { calculateSpeciesSpecificScore } from './speciesAlgorithms'
+import { calculateSpeciesSpecificScore, ExtendedAlgorithmContext } from './speciesAlgorithms'
+import { FishingReportData } from './chinookAlgorithmV2'
+
+// Extended scoring context interface
+export interface ExtendedScoringContext {
+  latitude?: number
+  longitude?: number
+  locationName?: string
+  pressureHistory?: number[]
+  fishingReports?: FishingReportData
+}
 
 // Species-specific fishing profile system
 export interface SpeciesProfile {
@@ -333,33 +343,54 @@ export const calculateOpenMeteoFishingScore = (
   sunset: number,
   tideData?: CHSWaterData | null,
   speciesName?: string | null,
+  extendedContext?: ExtendedScoringContext | null,
 ): FishingScore => {
   // Try species-specific algorithm first if species is selected
   if (speciesName) {
-    const speciesResult = calculateSpeciesSpecificScore(speciesName, minuteData, tideData || undefined)
+    // Build extended algorithm context for V2 algorithms
+    const algorithmContext: ExtendedAlgorithmContext = {
+      sunrise,
+      sunset,
+      latitude: extendedContext?.latitude,
+      longitude: extendedContext?.longitude,
+      locationName: extendedContext?.locationName,
+      pressureHistory: extendedContext?.pressureHistory,
+      fishingReports: extendedContext?.fishingReports
+    }
+
+    const speciesResult = calculateSpeciesSpecificScore(
+      speciesName,
+      minuteData,
+      tideData || undefined,
+      algorithmContext
+    )
     if (speciesResult) {
       // Check if out of season based on seasonality score
       const seasonalityScore = speciesResult.factors.seasonality?.score || 0.5
       const isInSeason = seasonalityScore > 0.1 // Consider out of season if score is very low
 
       // Convert species result to FishingScore format
+      // Handle both V1 and V2 factor names
       return {
         total: Math.min(Math.max(speciesResult.total, 0), 10),
         breakdown: {
-          pressure: speciesResult.factors.pressure?.score * 10 || 0,
-          wind: speciesResult.factors.wind?.score * 10 || 0,
-          temperature: speciesResult.factors.waterTemp?.score * 10 || 0,
+          // V2 uses 'pressureTrend', V1 uses 'pressure'
+          pressure: (speciesResult.factors.pressureTrend?.score || speciesResult.factors.pressure?.score || 0.5) * 10,
+          // V2 uses 'seaState', V1 uses 'wind'
+          wind: (speciesResult.factors.seaState?.score || speciesResult.factors.wind?.score || 0.5) * 10,
+          temperature: speciesResult.factors.waterTemp?.score * 10 || speciesResult.factors.temperature?.score * 10 || 5,
           waterTemperature: speciesResult.factors.waterTemp?.score * 10 || 5,
-          precipitation: speciesResult.factors.precipitation?.score * 10 || 0,
+          precipitation: speciesResult.factors.precipitation?.score * 10 || 5,
           cloudCover: 5, // Not in species algorithms
-          timeOfDay: speciesResult.factors.lightTime?.score * 10 || 0,
+          timeOfDay: speciesResult.factors.lightTime?.score * 10 || 5,
           visibility: 5, // Not in species algorithms
           sunshine: 5, // Not in species algorithms
           lightning: 5, // Not in species algorithms
           atmospheric: 5, // Not in species algorithms
           comfort: 5, // Not in species algorithms
-          tide: (speciesResult.factors.tidalRange?.score || speciesResult.factors.slackTide?.score || 0.5) * 10,
-          currentSpeed: speciesResult.factors.currentFlow?.score * 10 || 5,
+          // V2 uses 'tidalCurrent', V1 uses 'tidalRange' or 'slackTide'
+          tide: (speciesResult.factors.tidalCurrent?.score || speciesResult.factors.tidalRange?.score || speciesResult.factors.slackTide?.score || 0.5) * 10,
+          currentSpeed: (speciesResult.factors.tidalCurrent?.score || speciesResult.factors.currentFlow?.score || 0.5) * 10,
           currentDirection: 5, // Not separately tracked
           species: seasonalityScore * 10,
         },
@@ -880,6 +911,7 @@ export const generateOpenMeteoDailyForecasts = (
   openMeteoData: ProcessedOpenMeteoData,
   tideData?: CHSWaterData | null,
   speciesName?: string | null,
+  extendedContext?: ExtendedScoringContext | null,
 ): OpenMeteoDailyForecast[] => {
   const dailyForecasts: OpenMeteoDailyForecast[] = []
 
@@ -926,10 +958,31 @@ export const generateOpenMeteoDailyForecasts = (
       sunset: dayData.sunset,
     })
 
+    // Build pressure history for this day (last 24 readings = 6 hours of 15-min data)
+    const currentDayPressureHistory = dayMinutely.slice(0, 24).map(d => d.pressure)
+
+    // Create extended context for this day
+    const dayExtendedContext: ExtendedScoringContext = {
+      ...extendedContext,
+      pressureHistory: currentDayPressureHistory,
+      latitude: extendedContext?.latitude ?? openMeteoData.location.latitude,
+      longitude: extendedContext?.longitude ?? openMeteoData.location.longitude,
+    }
+
     // Generate 15-minute scores
-    const minutelyScores = dayMinutely.map(minuteData => {
+    const minutelyScores = dayMinutely.map((minuteData, idx) => {
       const weather = getWeatherDescription(minuteData.weatherCode)
-      const fullScore = calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName)
+      // Build pressure history up to this point (last 24 readings before current)
+      const historicalPressure = idx >= 24
+        ? dayMinutely.slice(idx - 24, idx).map(d => d.pressure)
+        : dayMinutely.slice(0, idx).map(d => d.pressure)
+
+      const contextForThisMinute = {
+        ...dayExtendedContext,
+        pressureHistory: historicalPressure.length > 0 ? historicalPressure : undefined
+      }
+
+      const fullScore = calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName, contextForThisMinute)
       return {
         time: minuteData.time,
         timestamp: minuteData.timestamp,
@@ -989,7 +1042,7 @@ export const generateOpenMeteoDailyForecasts = (
           cape: segments.reduce((sum, seg) => sum + seg.cape, 0) / segments.length,
         }
 
-        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName)
+        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName, dayExtendedContext)
         const weather = getWeatherDescription(avgData.weatherCode)
 
         twoHourForecasts.push({
