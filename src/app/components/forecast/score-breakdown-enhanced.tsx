@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Info, X, AlertTriangle, Calendar } from 'lucide-react'
+import { ChevronDown, ChevronUp, Info, X, AlertTriangle, Calendar, Lightbulb, FlaskConical, Fish } from 'lucide-react'
 import { FishingScore } from '../../utils/fishingCalculations'
+import { getFactorExplanation, getRecommendationForScore, getSpeciesExplanations } from '../../utils/speciesExplanations'
 
 interface EnhancedScoreBreakdownProps {
   score: FishingScore
@@ -157,10 +158,17 @@ interface FactorRowProps {
   expanded: boolean
   onToggle: () => void
   config: any // Pass the config directly instead of looking it up
+  species?: string | null // Species for explanations
 }
 
-function FactorRow({ score, weight, contribution, actualValue, expanded, onToggle, config }: FactorRowProps) {
+function FactorRow({ factorKey, score, weight, contribution, actualValue, expanded, onToggle, config, species }: FactorRowProps) {
   if (!config) return null
+
+  // Get species-specific explanation
+  const speciesName = species || 'chinook'
+  const explanation = getFactorExplanation(speciesName, factorKey)
+  const recommendation = getRecommendationForScore(speciesName, factorKey, score)
+  const speciesData = getSpeciesExplanations(speciesName)
 
   const getScoreColor = (score: number) => {
     if (score >= 8) return 'text-green-400'
@@ -176,8 +184,12 @@ function FactorRow({ score, weight, contribution, actualValue, expanded, onToggl
     return 'text-red-400'
   }
 
-  // Trend could be calculated if we have previous values
-  // const trend = null
+  const getScoreStatus = (score: number) => {
+    if (score >= 8) return 'Excellent'
+    if (score >= 6) return 'Good'
+    if (score >= 4) return 'Fair'
+    return 'Poor'
+  }
 
   return (
     <div className="border border-slate-700/50 rounded-lg overflow-hidden">
@@ -228,48 +240,104 @@ function FactorRow({ score, weight, contribution, actualValue, expanded, onToggl
 
       {expanded && (
         <div className="px-4 py-3 bg-slate-800/30 border-t border-slate-700/50">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {/* Current Status */}
             <div className="flex items-center justify-between p-2 bg-slate-900/50 rounded">
               <span className="text-sm text-slate-400">Current Status:</span>
               <span className={`font-medium ${getScoreColor(score)}`}>
-                {score >= 8 ? 'Optimal' : score >= 6 ? 'Good' : score >= 4 ? 'Fair' : 'Poor'}
+                {getScoreStatus(score)}
               </span>
             </div>
+
+            {/* Why This Matters - Species Specific */}
+            {explanation && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Fish className="w-4 h-4 text-pink-400" />
+                  <span className="text-xs font-semibold text-pink-400">
+                    Why This Matters for {speciesData.displayName}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed pl-6">
+                  {explanation.whyItMatters}
+                </p>
+              </div>
+            )}
+
+            {/* How It's Calculated */}
+            {explanation && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="w-4 h-4 text-blue-400" />
+                  <span className="text-xs font-semibold text-blue-400">How It&apos;s Calculated</span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed pl-6">
+                  {explanation.howCalculated}
+                </p>
+              </div>
+            )}
 
             {/* Scoring Ranges */}
             <div className="space-y-2">
               <div className="text-xs font-medium text-slate-400 mb-1">Scoring Ranges:</div>
-              {config.scoring?.map((range: any, index: number) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between text-xs p-2 rounded ${
-                    // Highlight the current range
-                    actualValue !== undefined && range.label.toLowerCase().includes('optimal') && score >= 8
-                      ? 'bg-green-900/20 border border-green-700/30'
-                      : actualValue !== undefined && range.label.toLowerCase().includes('good') && score >= 6
-                      ? 'bg-yellow-900/20 border border-yellow-700/30'
-                      : 'bg-slate-800/50'
-                  }`}
-                >
-                  <div className="flex-1">
-                    <div className="font-medium text-slate-300">{range.range}</div>
-                    <div className="text-slate-500 mt-0.5">{range.label}</div>
+              {(explanation?.scoringRanges || config.scoring)?.map((range: any, index: number) => {
+                const isCurrentRange =
+                  (score >= 8 && (range.range?.includes('8-10') || range.label?.toLowerCase().includes('excellent') || range.label?.toLowerCase().includes('peak') || range.label?.toLowerCase().includes('optimal'))) ||
+                  (score >= 6 && score < 8 && (range.range?.includes('6-7') || range.range?.includes('5-7') || range.label?.toLowerCase().includes('good') || range.label?.toLowerCase().includes('active'))) ||
+                  (score >= 4 && score < 6 && (range.range?.includes('4-5') || range.range?.includes('3-4') || range.label?.toLowerCase().includes('fair') || range.label?.toLowerCase().includes('shoulder') || range.label?.toLowerCase().includes('moderate'))) ||
+                  (score < 4 && (range.range?.includes('0-3') || range.range?.includes('0-2') || range.label?.toLowerCase().includes('poor') || range.label?.toLowerCase().includes('off-season') || range.label?.toLowerCase().includes('slack')))
+
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between text-xs p-2 rounded ${
+                      isCurrentRange
+                        ? score >= 8 ? 'bg-green-900/30 border border-green-600/40'
+                        : score >= 6 ? 'bg-blue-900/30 border border-blue-600/40'
+                        : score >= 4 ? 'bg-yellow-900/30 border border-yellow-600/40'
+                        : 'bg-red-900/30 border border-red-600/40'
+                        : 'bg-slate-800/50'
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium text-slate-300">{range.range}</div>
+                      <div className="text-slate-500 mt-0.5">{range.label}</div>
+                    </div>
+                    <div className={`font-bold ml-3 ${
+                      range.color === 'emerald' || range.range?.includes('8-10') ? 'text-green-400' :
+                      range.color === 'blue' || range.range?.includes('6-7') || range.range?.includes('5-7') ? 'text-blue-400' :
+                      range.color === 'yellow' || range.range?.includes('4-5') || range.range?.includes('3-4') ? 'text-yellow-400' :
+                      'text-red-400'
+                    }`}>
+                      {range.range || range.score}
+                    </div>
                   </div>
-                  <div className={`font-bold ml-3 ${
-                    range.score.includes('8-10') ? 'text-green-400' :
-                    range.score.includes('6-8') || range.score.includes('7-9') ? 'text-yellow-400' :
-                    range.score.includes('4-6') || range.score.includes('5-7') ? 'text-orange-400' :
-                    'text-red-400'
-                  }`}>
-                    {range.score}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
+            {/* Recommendation */}
+            {recommendation && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-semibold text-amber-400">Recommendation</span>
+                </div>
+                <div className={`p-3 rounded-lg border ${
+                  score >= 8 ? 'bg-green-900/20 border-green-700/40' :
+                  score >= 6 ? 'bg-blue-900/20 border-blue-700/40' :
+                  score >= 4 ? 'bg-yellow-900/20 border-yellow-700/40' :
+                  'bg-red-900/20 border-red-700/40'
+                }`}>
+                  <p className="text-xs text-slate-200 leading-relaxed">
+                    {recommendation}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Algorithm Note */}
-            <div className="text-xs text-slate-500 italic">
+            <div className="text-xs text-slate-500 italic pt-2 border-t border-slate-700/50">
               Score contributes {contribution.toFixed(2)} to final score ({weight}% × {score.toFixed(1)}/10)
             </div>
           </div>
@@ -563,6 +631,7 @@ export default function ScoreBreakdownEnhanced({
             expanded={expandedFactors.has(factor.key)}
             onToggle={() => toggleFactor(factor.key)}
             config={factor.config}
+            species={species}
           />
         ))}
 
