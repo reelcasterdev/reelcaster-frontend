@@ -4,6 +4,25 @@
 import { OpenMeteo15MinData } from './openMeteoApi'
 import { CHSWaterData } from './chsTideApi'
 import { getMoonPhase, getMoonIllumination, isOddYear } from './astronomicalCalculations'
+import {
+  calculateChinookSalmonScoreV2,
+  AlgorithmContext,
+  FishingReportData
+} from './chinookAlgorithmV2'
+
+// Extended context for V2 algorithms
+export interface ExtendedAlgorithmContext {
+  sunrise?: number
+  sunset?: number
+  latitude?: number
+  longitude?: number
+  locationName?: string
+  pressureHistory?: number[]
+  fishingReports?: FishingReportData
+}
+
+// Flag to enable V2 algorithm (can be toggled for A/B testing)
+export const USE_CHINOOK_V2 = true
 
 // Helper function to calculate seasonal weight
 function getSeasonalWeight(date: Date, peakMonths: number[]): number {
@@ -1416,17 +1435,54 @@ export function calculateChumSalmonScore(
 export function calculateSpeciesSpecificScore(
   species: string | null | undefined,
   weather: OpenMeteo15MinData,
-  tideData?: CHSWaterData
+  tideData?: CHSWaterData,
+  extendedContext?: ExtendedAlgorithmContext
 ): SpeciesScoreResult | null {
   if (!species) return null
 
   // Normalize species name to match our function names
   const normalizedSpecies = species.toLowerCase().replace(/\s+/g, '-')
 
-  console.log('[Species Algorithm] Called with:', { species, normalizedSpecies, hasTideData: !!tideData })
+  console.log('[Species Algorithm] Called with:', { species, normalizedSpecies, hasTideData: !!tideData, hasExtendedContext: !!extendedContext })
 
   switch (normalizedSpecies) {
     case 'chinook-salmon':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_CHINOOK_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: AlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,  // Default to Victoria
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          fishingReports: extendedContext.fishingReports
+        }
+
+        const v2Result = calculateChinookSalmonScoreV2(weather, v2Context, tideData, extendedContext.fishingReports)
+
+        console.log('[Chinook V2 Algorithm] Result:', {
+          total: v2Result.total,
+          isSafe: v2Result.isSafe,
+          isInSeason: v2Result.isInSeason,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        // Convert V2 result to standard SpeciesScoreResult format
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings
+        }
+      }
+      // Fall back to V1 if V2 context not available
       return calculateChinookSalmonScore(weather, tideData)
     case 'pink-salmon':
       return calculatePinkSalmonScore(weather, tideData)

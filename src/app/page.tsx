@@ -27,6 +27,7 @@ import CompactLocationSelector from './components/location/compact-location-sele
 import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
 import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
 import { DFONoticesSection } from './components/forecast/dfo-notices-section'
+import AlgorithmInfoModal from './components/forecast/algorithm-info-modal'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
@@ -107,6 +108,7 @@ function NewForecastContent() {
   // Single source of truth for tide data - using CHS API
   const [tideData, setTideData] = useState<CHSWaterData | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
+  const [showAlgorithmModal, setShowAlgorithmModal] = useState(false)
 
   // Cache-related state
   const [isCachedData, setIsCachedData] = useState(false)
@@ -451,7 +453,12 @@ function NewForecastContent() {
 
                 {/* Overall Score - Full width on mobile */}
                 <div className="lg:col-span-1">
-                  <OverallScore forecasts={forecastData} selectedDay={selectedDay} />
+                  <OverallScore
+                    forecasts={forecastData}
+                    selectedDay={selectedDay}
+                    species={species}
+                    onLearnMore={() => setShowAlgorithmModal(true)}
+                  />
                 </div>
               </div>
 
@@ -564,6 +571,13 @@ function NewForecastContent() {
           )}
         </div>
       </div>
+
+      {/* Algorithm Info Modal */}
+      <AlgorithmInfoModal
+        isOpen={showAlgorithmModal}
+        onClose={() => setShowAlgorithmModal(false)}
+        species={species}
+      />
     </div>
   )
 }
