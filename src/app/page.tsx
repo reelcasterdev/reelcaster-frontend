@@ -28,6 +28,8 @@ import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
 import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
 import { DFONoticesSection } from './components/forecast/dfo-notices-section'
 import AlgorithmInfoModal from './components/forecast/algorithm-info-modal'
+import { AlgorithmVersionToggle } from './components/forecast/algorithm-version-toggle'
+import { setAlgorithmVersion } from './utils/speciesAlgorithms'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
@@ -372,6 +374,15 @@ function NewForecastContent() {
         <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-3 sm:space-y-6 pt-16 lg:pt-6">
           {/* Location Selector */}
           <CompactLocationSelector />
+
+          {/* Algorithm Version Toggle */}
+          <AlgorithmVersionToggle
+            onVersionChange={(version) => {
+              setAlgorithmVersion(version)
+              // Trigger forecast refresh to recalculate with new version
+              fetchForecastData()
+            }}
+          />
 
           {/* Weather Map */}
           {!loading && currentLocation && (

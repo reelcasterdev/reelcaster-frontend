@@ -55,16 +55,43 @@ export { parseBaitPresenceFromText }
 export type { FishingReportIntel }
 
 // Flags to enable V2 algorithms (can be toggled for A/B testing)
-export const USE_CHINOOK_V2 = true
-export const USE_PINK_V2 = true
-export const USE_COHO_V2 = true
-export const USE_CHUM_V2 = true
-export const USE_HALIBUT_V2 = true
-export const USE_LINGCOD_V2 = true
-export const USE_ROCKFISH_V2 = true
-export const USE_CRAB_V2 = true
-export const USE_SPOT_PRAWN_V2 = true
-export const USE_SOCKEYE_V2 = true
+// Use setAlgorithmVersion() to change globally, or set individual species flags
+let USE_CHINOOK_V2 = true
+let USE_PINK_V2 = true
+let USE_COHO_V2 = true
+let USE_CHUM_V2 = true
+let USE_HALIBUT_V2 = true
+let USE_LINGCOD_V2 = true
+let USE_ROCKFISH_V2 = true
+let USE_CRAB_V2 = true
+let USE_SPOT_PRAWN_V2 = true
+let USE_SOCKEYE_V2 = true
+
+/**
+ * Set algorithm version globally for all species
+ * @param version - 'v1' or 'v2'
+ */
+export function setAlgorithmVersion(version: 'v1' | 'v2') {
+  const useV2 = version === 'v2'
+  USE_CHINOOK_V2 = useV2
+  USE_PINK_V2 = useV2
+  USE_COHO_V2 = useV2
+  USE_CHUM_V2 = useV2
+  USE_HALIBUT_V2 = useV2
+  USE_LINGCOD_V2 = useV2
+  USE_ROCKFISH_V2 = useV2
+  USE_CRAB_V2 = useV2
+  USE_SPOT_PRAWN_V2 = useV2
+  USE_SOCKEYE_V2 = useV2
+  console.log(`[Algorithm Version] Switched to ${version.toUpperCase()}`)
+}
+
+/**
+ * Get current algorithm version setting
+ */
+export function getAlgorithmVersion(): 'v1' | 'v2' {
+  return USE_CHINOOK_V2 ? 'v2' : 'v1'
+}
 
 // Helper function to calculate seasonal weight
 function getSeasonalWeight(date: Date, peakMonths: number[]): number {
