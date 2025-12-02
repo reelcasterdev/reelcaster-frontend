@@ -9,11 +9,29 @@
 // 5. Fishing report integration
 // 6. Merged sea state (wind + waves)
 // 7. Safety score capping
+//
+// V2 Improvements (Physics-based):
+// 8. Trollability/Blowback factor - penalizes large tidal exchanges
+// 9. Predator Suppression - Orca detection from fishing reports
+// 10. Depth advice instead of light penalty
+// 11. Seasonal mode (Feeder vs Spawner) with dynamic weights
+// 12. Bait presence scoring
 
 import { OpenMeteo15MinData } from './openMeteoApi'
 import { CHSWaterData } from './chsTideApi'
-// Moon phase calculation available if needed for more accurate solunar timing
-// import { getMoonPhase } from './astronomicalCalculations'
+import {
+  calculateTrollabilityScore,
+  detectPredatorPresence,
+  getChinookDepthAdvice,
+  getChinookSeasonalMode,
+  calculateBaitPresenceScore,
+  parseBaitPresenceFromText,
+  calculateWindTideInteraction,
+  type TrollabilityResult,
+  type PredatorPresenceResult,
+  type ChinookDepthAdvice,
+  type ChinookSeasonalMode
+} from './physicsHelpers'
 
 // ==================== INTERFACES ====================
 
@@ -30,10 +48,15 @@ export interface ChinookScoreResult {
   isSafe: boolean
   safetyWarnings: string[]
   isInSeason: boolean
+  strategyAdvice?: string[]
+  depthAdvice?: ChinookDepthAdvice
+  seasonalMode?: ChinookSeasonalMode
   debug?: {
     pressureTrend?: PressureTrend
     solunarPeriod?: SolunarPeriodInfo
     lightCondition?: string
+    trollability?: TrollabilityResult
+    predatorPresence?: PredatorPresenceResult
   }
 }
 
@@ -66,11 +89,78 @@ export interface AlgorithmContext {
   locationName?: string
   pressureHistory?: number[]  // Last 6 hours of pressure readings
   fishingReports?: FishingReportData
+  // V2 Improvements - Extended context
+  sunElevation?: number        // Sun angle above horizon (0-90 degrees)
+  windDirection?: number       // Wind direction (0-360 degrees)
+  currentDirection?: number    // Current direction (0-360 degrees)
+  tidalRange?: number          // High-low difference in meters
+  minutesToSlack?: number      // Minutes until next slack tide
+  cloudCover?: number          // Cloud cover percentage (0-100)
+  fishingReportText?: string   // Raw report text for bio-intel parsing
 }
 
 // ==================== WEIGHT CONFIGURATION ====================
 
-const WEIGHTS = {
+// Base weights - adjusted dynamically by seasonal mode
+const BASE_WEIGHTS = {
+  // TIDAL MECHANICS (30%) - King of Chinook factors
+  tidalCurrent: 0.15,       // Current flow
+  trollability: 0.15,       // Blowback/depth control
+
+  // LIGHT & DEPTH (20%) - Guides depth, not penalty
+  lightDepth: 0.20,         // Sun elevation -> depth advice
+
+  // BAIT PRESENCE (20%) - Critical for feeders
+  baitPresence: 0.20,       // Bio-intel from reports
+
+  // SOLUNAR (10%)
+  solunar: 0.10,            // Major/minor periods
+
+  // BAROMETER (10%)
+  pressureTrend: 0.10,      // Pressure change
+
+  // SAFETY/CONDITIONS (10%)
+  seaState: 0.05,           // Wind + waves
+  precipitation: 0.03,      // Rain
+  waterTemp: 0.02,          // Temperature
+}
+
+// Dynamic weight adjustments based on seasonal mode
+function getSeasonalWeights(mode: 'feeder' | 'spawner') {
+  if (mode === 'feeder') {
+    // Feeder mode (Dec-May): Emphasize bait and light
+    return {
+      ...BASE_WEIGHTS,
+      tidalCurrent: 0.12,
+      trollability: 0.13,
+      lightDepth: 0.22,
+      baitPresence: 0.23,
+      solunar: 0.10,
+      pressureTrend: 0.10,
+      seaState: 0.05,
+      precipitation: 0.03,
+      waterTemp: 0.02,
+    }
+  } else {
+    // Spawner mode (Jun-Sep): Emphasize tidal mechanics
+    return {
+      ...BASE_WEIGHTS,
+      tidalCurrent: 0.18,
+      trollability: 0.17,
+      lightDepth: 0.18,
+      baitPresence: 0.17,
+      solunar: 0.10,
+      pressureTrend: 0.10,
+      seaState: 0.05,
+      precipitation: 0.03,
+      waterTemp: 0.02,
+    }
+  }
+}
+
+// Legacy weights for backward compatibility if seasonal mode unavailable
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const LEGACY_WEIGHTS = {
   // PRESENCE FACTORS (35%)
   seasonality: 0.20,      // Run timing - when fish are present
   catchReports: 0.15,     // Recent verified catches
@@ -698,76 +788,112 @@ export function calculatePrecipitationScore(
 
 /**
  * Calculate Chinook Salmon fishing score v2
+ *
+ * Enhanced with physics-based factors:
+ * - Trollability/Blowback for deep trolling control
+ * - Predator Suppression (Orca detection)
+ * - Depth advice instead of light penalty
+ * - Seasonal mode (Feeder vs Spawner) with dynamic weights
+ * - Bait presence scoring
  */
 export function calculateChinookSalmonScoreV2(
   weather: OpenMeteo15MinData,
   context: AlgorithmContext,
-  tideData?: CHSWaterData,
-  fishingReports?: FishingReportData
+  tideData?: CHSWaterData
 ): ChinookScoreResult {
   const factors: ChinookScoreResult['factors'] = {}
   const safetyWarnings: string[] = []
+  const strategyAdvice: string[] = []
   let isSafe = true
 
   const date = new Date(weather.timestamp * 1000)
+  const month = date.getMonth()
 
-  // ==================== PRESENCE FACTORS (35%) ====================
+  // ==================== SEASONAL MODE ====================
+  const seasonalMode = getChinookSeasonalMode(month)
+  const weights = getSeasonalWeights(seasonalMode.mode)
 
-  // 1. Seasonality (20%)
-  const { score: seasonalityScore, runType } = calculateSeasonalityScore(date, context.locationName)
-  factors['seasonality'] = {
-    value: date.getMonth() + 1,
-    weight: WEIGHTS.seasonality,
-    score: seasonalityScore,
-    description: runType
+  strategyAdvice.push(`${seasonalMode.mode.toUpperCase()} MODE (${seasonalMode.monthRange}): ${seasonalMode.behavior}`)
+
+  // ==================== DEPTH ADVICE (Light -> Depth) ====================
+  const sunElevation = context.sunElevation ?? estimateSunElevation(weather.timestamp, context.sunrise, context.sunset)
+  const cloudCover = context.cloudCover ?? 50
+  const depthAdvice = getChinookDepthAdvice(sunElevation, cloudCover)
+
+  // Light score - for Chinook, we don't penalize high sun, we just adjust depth
+  // Score based on how actionable the conditions are (always fishable with right depth)
+  let lightDepthScore = 0.7 // Base - always decent with proper depth
+  if (depthAdvice.isDeepBite) {
+    // Deep bite is prime time for experienced trollers
+    lightDepthScore = 0.85
+    strategyAdvice.push(depthAdvice.advice)
+  } else if (sunElevation < 25) {
+    // Low light golden hours
+    lightDepthScore = 1.0
   }
 
-  // 2. Catch Reports (15%)
-  const catchReportScore = calculateCatchReportScore(fishingReports)
-  factors['catchReports'] = {
-    value: fishingReports?.daysAgo ?? -1,
-    weight: WEIGHTS.catchReports,
-    score: catchReportScore,
-    description: fishingReports?.hasChinookCatches ? 'recent_catches' : 'no_recent_data'
+  factors['lightDepth'] = {
+    value: sunElevation,
+    weight: weights.lightDepth,
+    score: lightDepthScore,
+    description: depthAdvice.isDeepBite ? 'deep_bite' : `depth_${depthAdvice.recommendedDepth}`
   }
 
-  // ==================== ACTIVITY FACTORS (45%) ====================
-
-  // 3. Light/Time (15%)
-  const { score: lightScore, condition: lightCondition } = calculateDynamicLightScore(
-    weather.timestamp,
-    context.sunrise,
-    context.sunset
-  )
-  factors['lightTime'] = {
-    value: date.getHours() + date.getMinutes() / 60,
-    weight: WEIGHTS.lightTime,
-    score: lightScore,
-    description: lightCondition
-  }
-
-  // 4. Tidal Current (12%)
+  // ==================== TIDAL CURRENT ====================
   const { score: currentScore, description: currentDesc } = calculateTidalCurrentScore(tideData)
   factors['tidalCurrent'] = {
     value: tideData?.currentSpeed ?? 0,
-    weight: WEIGHTS.tidalCurrent,
+    weight: weights.tidalCurrent,
     score: currentScore,
     description: currentDesc
   }
 
-  // 5. Pressure Trend (10%)
-  const { score: pressureScore, trend: pressureTrend } = calculatePressureTrendScore(
-    weather.pressure,
-    context.pressureHistory
+  // ==================== TROLLABILITY / BLOWBACK ====================
+  const tidalRange = context.tidalRange ?? 3.0 // Default moderate range
+  const minutesToSlack = context.minutesToSlack ?? 180 // Default 3 hours
+  const trollability = calculateTrollabilityScore(
+    tidalRange,
+    minutesToSlack,
+    tideData?.currentSpeed ? Math.abs(tideData.currentSpeed) : undefined
   )
-  factors['pressureTrend'] = {
-    value: weather.pressure,
-    weight: WEIGHTS.pressureTrend,
-    score: pressureScore,
-    description: pressureTrend.trend
+
+  factors['trollability'] = {
+    value: tidalRange,
+    weight: weights.trollability,
+    score: trollability.score,
+    description: trollability.blowbackLevel
   }
 
-  // 6. Solunar (8%)
+  if (trollability.warning) {
+    strategyAdvice.push(trollability.warning)
+  }
+  if (trollability.recommendation) {
+    strategyAdvice.push(trollability.recommendation)
+  }
+
+  // ==================== BAIT PRESENCE ====================
+  let baitPresence: 'none' | 'low' | 'moderate' | 'high' | 'massive' = 'moderate'
+  let baitKeywords: string[] = []
+
+  if (context.fishingReportText) {
+    const parsed = parseBaitPresenceFromText(context.fishingReportText)
+    baitPresence = parsed.presence
+    baitKeywords = parsed.keywords
+  }
+
+  const baitResult = calculateBaitPresenceScore(baitPresence, baitKeywords)
+  factors['baitPresence'] = {
+    value: baitKeywords.length,
+    weight: weights.baitPresence,
+    score: baitResult.score,
+    description: baitPresence
+  }
+
+  if (baitResult.recommendation) {
+    strategyAdvice.push(baitResult.recommendation)
+  }
+
+  // ==================== SOLUNAR ====================
   const { score: solunarScore, periodInfo } = calculateSolunarScore(
     weather.timestamp,
     context.latitude,
@@ -775,32 +901,31 @@ export function calculateChinookSalmonScoreV2(
   )
   factors['solunar'] = {
     value: periodInfo.periodType === 'major' ? 2 : periodInfo.periodType === 'minor' ? 1 : 0,
-    weight: WEIGHTS.solunar,
+    weight: weights.solunar,
     score: solunarScore,
     description: periodInfo.periodType
   }
 
-  // ==================== CONDITIONS FACTORS (20%) ====================
-
-  // 7. Water Temperature (8%)
-  const { score: waterTempScore, description: tempDesc } = calculateWaterTempScore(
-    tideData?.waterTemperature
+  // ==================== PRESSURE TREND ====================
+  const { score: pressureScore, trend: pressureTrend } = calculatePressureTrendScore(
+    weather.pressure,
+    context.pressureHistory
   )
-  factors['waterTemp'] = {
-    value: tideData?.waterTemperature ?? 0,
-    weight: WEIGHTS.waterTemp,
-    score: waterTempScore,
-    description: tempDesc
+  factors['pressureTrend'] = {
+    value: weather.pressure,
+    weight: weights.pressureTrend,
+    score: pressureScore,
+    description: pressureTrend.trend
   }
 
-  // 8. Sea State (7%)
+  // ==================== SEA STATE ====================
   const seaState = calculateSeaStateScore(
     weather.windSpeed,
     weather.windGusts
   )
   factors['seaState'] = {
     value: weather.windSpeed,
-    weight: WEIGHTS.seaState,
+    weight: weights.seaState,
     score: seaState.score,
     description: seaState.description
   }
@@ -812,15 +937,55 @@ export function calculateChinookSalmonScoreV2(
     }
   }
 
-  // 9. Precipitation (5%)
+  // ==================== WIND-TIDE INTERACTION ====================
+  // Add wind-tide safety check if directions available
+  if (context.windDirection !== undefined && context.currentDirection !== undefined) {
+    const windTide = calculateWindTideInteraction(
+      context.windDirection,
+      weather.windSpeed * 0.539957, // Convert km/h to knots
+      context.currentDirection,
+      tideData?.currentSpeed ? Math.abs(tideData.currentSpeed) : 0
+    )
+
+    if (windTide.warning) {
+      safetyWarnings.push(windTide.warning)
+    }
+    if (windTide.severity === 'dangerous') {
+      isSafe = false
+    }
+  }
+
+  // ==================== PRECIPITATION ====================
   const { score: precipScore, description: precipDesc } = calculatePrecipitationScore(
     weather.precipitation
   )
   factors['precipitation'] = {
     value: weather.precipitation,
-    weight: WEIGHTS.precipitation,
+    weight: weights.precipitation,
     score: precipScore,
     description: precipDesc
+  }
+
+  // ==================== WATER TEMPERATURE ====================
+  const { score: waterTempScore, description: tempDesc } = calculateWaterTempScore(
+    tideData?.waterTemperature
+  )
+  factors['waterTemp'] = {
+    value: tideData?.waterTemperature ?? 0,
+    weight: weights.waterTemp,
+    score: waterTempScore,
+    description: tempDesc
+  }
+
+  // ==================== PREDATOR SUPPRESSION (ORCA) ====================
+  let predatorPresence: PredatorPresenceResult = { detected: false, keywords: [], suppression: 1.0 }
+
+  if (context.fishingReportText) {
+    predatorPresence = detectPredatorPresence(context.fishingReportText)
+    if (predatorPresence.warning) {
+      safetyWarnings.push(predatorPresence.warning)
+      strategyAdvice.push('Consider fishing different area or waiting for orca to move through.')
+    }
   }
 
   // ==================== ADDITIONAL SAFETY CHECKS ====================
@@ -847,6 +1012,17 @@ export function calculateChinookSalmonScoreV2(
   let total = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0) * 10
 
+  // PREDATOR SUPPRESSION: Apply Orca multiplier
+  if (predatorPresence.detected) {
+    total = total * predatorPresence.suppression
+  }
+
+  // BAIT OVERRIDE: Massive bait guarantees minimum score
+  if (baitResult.isOverride && total < 6.0) {
+    total = Math.max(total, 6.0)
+    strategyAdvice.unshift('BAIT OVERRIDE: Massive bait presence guarantees good fishing!')
+  }
+
   // SAFETY CAPPING: If unsafe, cap score at 3.0
   if (!isSafe) {
     total = Math.min(total, 3.0)
@@ -855,7 +1031,8 @@ export function calculateChinookSalmonScoreV2(
   // Clamp to 0-10 range
   total = Math.min(Math.max(total, 0), 10)
 
-  // Determine if in season (score > 0.3 on seasonality)
+  // Determine if in season
+  const { score: seasonalityScore } = calculateSeasonalityScore(date, context.locationName)
   const isInSeason = seasonalityScore > 0.3
 
   return {
@@ -864,12 +1041,42 @@ export function calculateChinookSalmonScoreV2(
     isSafe,
     safetyWarnings,
     isInSeason,
+    strategyAdvice: strategyAdvice.length > 0 ? strategyAdvice : undefined,
+    depthAdvice,
+    seasonalMode,
     debug: {
       pressureTrend,
       solunarPeriod: periodInfo,
-      lightCondition
+      lightCondition: depthAdvice.advice,
+      trollability,
+      predatorPresence
     }
   }
+}
+
+/**
+ * Estimate sun elevation from timestamp and sunrise/sunset
+ * Used when actual sun elevation isn't provided
+ */
+function estimateSunElevation(timestamp: number, sunrise: number, sunset: number): number {
+  const dayLength = sunset - sunrise
+  const timeSinceSunrise = timestamp - sunrise
+
+  if (timeSinceSunrise < 0) {
+    // Before sunrise
+    return Math.max(-10, timeSinceSunrise / 3600 * 10)
+  }
+
+  if (timeSinceSunrise > dayLength) {
+    // After sunset
+    const timeSinceSunset = timestamp - sunset
+    return Math.max(-10, -timeSinceSunset / 3600 * 10)
+  }
+
+  // During daytime - parabolic curve peaking at solar noon
+  const progress = timeSinceSunrise / dayLength
+  const angle = Math.sin(progress * Math.PI)
+  return angle * 65 // Max ~65 degrees at solar noon in BC
 }
 
 // ==================== EXPORTS ====================

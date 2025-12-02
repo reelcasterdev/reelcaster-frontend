@@ -299,9 +299,10 @@ export interface FishingScore {
   isInSeason?: boolean // New field to track if fishing is in legal season
   speciesFactors?: {
     [key: string]: {
-      value: number
+      value: number | string
       weight: number
       score: number
+      description?: string
     }
   } // Raw species-specific factors with actual weights
 }

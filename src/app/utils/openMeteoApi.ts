@@ -82,6 +82,9 @@ export interface OpenMeteo15MinData {
   sunshineDuration: number
   lightningPotential: number
   cape: number
+  // Marine data (from Open Meteo Marine API)
+  swellHeight?: number      // meters
+  swellPeriod?: number      // seconds
 }
 
 export interface OpenMeteoDailyData {
