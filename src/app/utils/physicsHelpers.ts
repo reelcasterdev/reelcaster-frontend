@@ -456,8 +456,12 @@ export function calculateTrollabilityScore(
   // Large exchange threshold
   const isLargeExchange = tidalRange > 3.5
 
-  // Within slack window = no penalty
-  const isNearSlack = minutesToSlack <= 90
+  // Dynamic slack window based on tidal range magnitude
+  // Large exchange (>3.5m) = tight window (45 mins)
+  // Medium exchange (2.5-3.5m) = moderate window (60 mins)
+  // Small exchange (<2.5m) = loose window (90 mins)
+  const slackBufferMinutes = tidalRange > 3.5 ? 45 : (tidalRange > 2.5 ? 60 : 90)
+  const isNearSlack = minutesToSlack <= slackBufferMinutes
 
   if (isLargeExchange && !isNearSlack) {
     // Calculate severity based on how far from slack

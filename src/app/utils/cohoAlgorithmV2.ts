@@ -59,17 +59,17 @@ export interface CohoScoreResult {
 
 const WEIGHTS = {
   // PRESENCE FACTORS (35%)
-  seasonality: 0.20,        // Peak September timing (reduced to make room for bait)
-  baitPresence: 0.15,       // NEW: Bio-intel from fishing reports
+  seasonality: 0.15,        // Peak September timing (reduced per Gemini feedback)
+  baitPresence: 0.20,       // Bio-intel from reports (increased per Gemini)
 
   // ACTIVITY FACTORS (35%)
   lightAndStealth: 0.20,    // Light + cloud cover + sun elevation (critical for visual hunters)
   currentFlow: 0.15,        // Active currents for tide lines
 
   // CONDITIONS FACTORS (30%)
-  seaSurfaceState: 0.15,    // NEW: Wind-against-tide + swell quality combined
+  seaSurfaceState: 0.15,    // Wind-against-tide + swell quality combined
   pressureTrend: 0.10,      // Barometric pressure trend
-  riverTurbidity: 0.05,     // NEW: Freshet detection for estuary fishing
+  riverTurbidity: 0.05,     // Freshet detection (will be applied as multiplier)
 }
 
 // ==================== SEASONALITY ====================
@@ -513,13 +513,27 @@ export function calculateCohoSalmonScoreV2(
 
   // ==================== VISUAL HUNTER MODIFIERS ====================
 
-  // Sun Angle Penalty (applied to final score)
+  // 1. Sun Angle Penalty
   let baitOverride = false
   if (sunAnglePenalty < 1.0) {
     total = total * sunAnglePenalty
   }
 
-  // Bait Override: Massive bait guarantees minimum 80% score
+  // 2. Glass Calm Penalty (Coho are line-shy in dead calm)
+  // windSpeedKnots already defined earlier (line 450)
+  const cloudCover = context.cloudCover ?? 50
+  if (windSpeedKnots < 4 && cloudCover < 50) {
+    total = total * 0.85
+    recommendations.push('⚠️ GLASS CALM: Fish are line-shy. Lengthen leaders and drop gear deeper')
+  }
+
+  // 3. Freshet Multiplier (Turbid water shuts down visual feeding)
+  if (turbidity.isBlownOut) {
+    total = total * 0.4
+    recommendations.unshift('🚨 RIVER BLOWN OUT: Turbidity shuts down visual feeding')
+  }
+
+  // 4. Bait Override: Massive bait guarantees minimum 80% score
   if (bait.isOverride && total < 8.0) {
     total = Math.max(total, 8.0)
     baitOverride = true

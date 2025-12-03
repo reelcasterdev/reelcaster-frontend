@@ -1076,7 +1076,15 @@ function estimateSunElevation(timestamp: number, sunrise: number, sunset: number
   // During daytime - parabolic curve peaking at solar noon
   const progress = timeSinceSunrise / dayLength
   const angle = Math.sin(progress * Math.PI)
-  return angle * 65 // Max ~65 degrees at solar noon in BC
+
+  // Seasonal max elevation for BC (Lat ~49-50°)
+  // Winter Solstice: ~17°, Summer Solstice: ~64°
+  const date = new Date(timestamp * 1000)
+  const month = date.getMonth() // 0-11
+  // Cosine curve for seasonal variation
+  const seasonalMax = 40 - 23 * Math.cos((month + 1) * Math.PI / 6)
+
+  return angle * seasonalMax
 }
 
 // ==================== EXPORTS ====================
