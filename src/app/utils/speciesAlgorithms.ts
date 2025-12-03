@@ -9,6 +9,17 @@ import {
   AlgorithmContext,
   FishingReportData
 } from './chinookAlgorithmV2'
+import { calculatePinkSalmonScoreV2, PinkAlgorithmContext } from './pinkAlgorithmV2'
+import { calculateCohoSalmonScoreV2, CohoAlgorithmContext } from './cohoAlgorithmV2'
+import { calculateChumSalmonScoreV2, ChumAlgorithmContext } from './chumAlgorithmV2'
+import { calculateHalibutScoreV2, HalibutAlgorithmContext } from './halibutAlgorithmV2'
+import { calculateLingcodScoreV2, LingcodAlgorithmContext } from './lingcodAlgorithmV2'
+import { calculateRockfishScoreV2, RockfishAlgorithmContext } from './rockfishAlgorithmV2'
+import { calculateCrabScoreV2, CrabAlgorithmContext } from './crabAlgorithmV2'
+import { calculateSpotPrawnScoreV2, SpotPrawnAlgorithmContext } from './spotPrawnAlgorithmV2'
+import { calculateSockeyeSalmonScoreV2, SockeyeAlgorithmContext } from './sockeyeAlgorithmV2'
+import { parseBaitPresenceFromText } from './physicsHelpers'
+import type { FishingReportIntel } from '../types/algorithmTypes'
 
 // Extended context for V2 algorithms
 export interface ExtendedAlgorithmContext {
@@ -19,10 +30,68 @@ export interface ExtendedAlgorithmContext {
   locationName?: string
   pressureHistory?: number[]
   fishingReports?: FishingReportData
+
+  // Physics-based inference fields (for Coho Visual Hunter & Halibut Bottom & Comfort)
+  sunElevation?: number        // Degrees (0-90). Critical for depth predictions
+  windDirection?: number       // Degrees (0-360). Direction wind is coming FROM
+  currentDirection?: number    // Degrees (0-360). Direction water is flowing TOWARDS
+  swellHeight?: number         // Meters
+  swellPeriod?: number         // Seconds. Critical for comfort/fishability
+  precipitation24h?: number    // mm total in last 24h (for freshet calculation)
+  maxTemp24h?: number          // Celsius (Critical for Freshet/Snowmelt calculation)
+  cloudCover?: number          // 0-100%
+  timeToNextSlack?: number     // Minutes until next slack tide
+
+  // Chinook-specific fields (V2 improvements)
+  tidalRange?: number          // High-low difference in meters (for trollability)
+  minutesToSlack?: number      // Minutes until next slack tide (for blowback calc)
+
+  // Raw fishing report text for bio-intel parsing (bait presence detection)
+  fishingReportText?: string
 }
 
-// Flag to enable V2 algorithm (can be toggled for A/B testing)
-export const USE_CHINOOK_V2 = true
+// Re-export for convenience
+export { parseBaitPresenceFromText }
+export type { FishingReportIntel }
+
+// Flags to enable V2 algorithms (can be toggled for A/B testing)
+// Use setAlgorithmVersion() to change globally, or set individual species flags
+let USE_CHINOOK_V2 = true
+let USE_PINK_V2 = true
+let USE_COHO_V2 = true
+let USE_CHUM_V2 = true
+let USE_HALIBUT_V2 = true
+let USE_LINGCOD_V2 = true
+let USE_ROCKFISH_V2 = true
+let USE_CRAB_V2 = true
+let USE_SPOT_PRAWN_V2 = true
+let USE_SOCKEYE_V2 = true
+
+/**
+ * Set algorithm version globally for all species
+ * @param version - 'v1' or 'v2'
+ */
+export function setAlgorithmVersion(version: 'v1' | 'v2') {
+  const useV2 = version === 'v2'
+  USE_CHINOOK_V2 = useV2
+  USE_PINK_V2 = useV2
+  USE_COHO_V2 = useV2
+  USE_CHUM_V2 = useV2
+  USE_HALIBUT_V2 = useV2
+  USE_LINGCOD_V2 = useV2
+  USE_ROCKFISH_V2 = useV2
+  USE_CRAB_V2 = useV2
+  USE_SPOT_PRAWN_V2 = useV2
+  USE_SOCKEYE_V2 = useV2
+  console.log(`[Algorithm Version] Switched to ${version.toUpperCase()}`)
+}
+
+/**
+ * Get current algorithm version setting
+ */
+export function getAlgorithmVersion(): 'v1' | 'v2' {
+  return USE_CHINOOK_V2 ? 'v2' : 'v1'
+}
 
 // Helper function to calculate seasonal weight
 function getSeasonalWeight(date: Date, peakMonths: number[]): number {
@@ -67,9 +136,10 @@ interface SpeciesScoreResult {
   total: number
   factors: {
     [key: string]: {
-      value: number
+      value: number | string
       weight: number
       score: number
+      description?: string
     }
   }
   isSafe?: boolean
@@ -1456,15 +1526,25 @@ export function calculateSpeciesSpecificScore(
           longitude: extendedContext.longitude ?? -123.3656,
           locationName: extendedContext.locationName,
           pressureHistory: extendedContext.pressureHistory,
-          fishingReports: extendedContext.fishingReports
+          fishingReports: extendedContext.fishingReports,
+          // V2 Improvements - Extended context
+          sunElevation: extendedContext.sunElevation,
+          windDirection: extendedContext.windDirection,
+          currentDirection: extendedContext.currentDirection,
+          tidalRange: extendedContext.tidalRange ?? tideData?.tidalRange,
+          minutesToSlack: extendedContext.minutesToSlack ?? extendedContext.timeToNextSlack,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover,
+          fishingReportText: extendedContext.fishingReportText
         }
 
-        const v2Result = calculateChinookSalmonScoreV2(weather, v2Context, tideData, extendedContext.fishingReports)
+        const v2Result = calculateChinookSalmonScoreV2(weather, v2Context, tideData)
 
         console.log('[Chinook V2 Algorithm] Result:', {
           total: v2Result.total,
           isSafe: v2Result.isSafe,
           isInSeason: v2Result.isInSeason,
+          seasonalMode: v2Result.seasonalMode?.mode,
+          depthAdvice: v2Result.depthAdvice?.recommendedDepth,
           factors: Object.entries(v2Result.factors).map(([key, val]) => ({
             factor: key,
             weight: val.weight,
@@ -1479,27 +1559,277 @@ export function calculateSpeciesSpecificScore(
           total: v2Result.total,
           factors: v2Result.factors,
           isSafe: v2Result.isSafe,
-          safetyWarnings: v2Result.safetyWarnings
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
         }
       }
       // Fall back to V1 if V2 context not available
       return calculateChinookSalmonScore(weather, tideData)
+
     case 'pink-salmon':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_PINK_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: PinkAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover,
+          precipitation24h: extendedContext.precipitation24h ?? (weather.precipitation * 24),
+          // V2 Bio-Mechanics enhancements
+          fishingReportText: extendedContext.fishingReportText
+        }
+        const v2Result = calculatePinkSalmonScoreV2(weather, v2Context, tideData)
+
+        console.log('[Pink V2 Algorithm] Result:', {
+          total: v2Result.total,
+          isSafe: v2Result.isSafe,
+          isInSeason: v2Result.isInSeason,
+          isOddYear: v2Result.isOddYear,
+          schoolingIntel: v2Result.debug?.schoolingIntel?.confidence,
+          strategyAdvice: v2Result.strategyAdvice,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
+        }
+      }
       return calculatePinkSalmonScore(weather, tideData)
+
     case 'coho-salmon':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_COHO_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        // Parse bait presence from fishing reports if available
+        const cohoBaitIntel = extendedContext.fishingReportText
+          ? parseBaitPresenceFromText(extendedContext.fishingReportText)
+          : { presence: 'none' as const, keywords: [] }
+
+        const v2Context: CohoAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover,
+          timeToNextSlack: extendedContext.timeToNextSlack,
+          // Visual Hunter enhancements
+          sunElevation: extendedContext.sunElevation,
+          windDirection: extendedContext.windDirection,
+          currentDirection: extendedContext.currentDirection,
+          swellHeight: extendedContext.swellHeight,
+          swellPeriod: extendedContext.swellPeriod,
+          precipitation24h: extendedContext.precipitation24h,
+          maxTemp24h: extendedContext.maxTemp24h,
+          // Bio-intel
+          fishingReports: {
+            text: extendedContext.fishingReportText || '',
+            sentiment: 0,
+            recentCatchCount: 0,
+            baitPresence: cohoBaitIntel.presence,
+            keywordsFound: cohoBaitIntel.keywords
+          }
+        }
+        const v2Result = calculateCohoSalmonScoreV2(weather, v2Context, tideData)
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings
+        }
+      }
       return calculateCohoSalmonScore(weather, tideData)
+
     case 'sockeye-salmon':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_SOCKEYE_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: SockeyeAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          // V2 Interception Model enhancements
+          riverTemp: undefined, // TODO: Need river temperature data integration
+          sunElevation: extendedContext.sunElevation,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover,
+          precipitation24h: extendedContext.precipitation24h ?? (weather.precipitation * 24),
+          fishingReportText: extendedContext.fishingReportText
+        }
+        const v2Result = calculateSockeyeSalmonScoreV2(weather, v2Context, tideData)
+
+        console.log('[Sockeye V2 Algorithm] Result:', {
+          total: v2Result.total,
+          isSafe: v2Result.isSafe,
+          isInSeason: v2Result.isInSeason,
+          fisheryStatus: v2Result.fisheryStatus,
+          thermalStacking: v2Result.debug?.thermalBlockade?.isStacking,
+          depthTarget: v2Result.depthCorridor?.targetDepth,
+          strategyAdvice: v2Result.strategyAdvice,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
+        }
+      }
       return calculateSockeyeSalmonScore(weather, tideData)
+
     case 'chum-salmon':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_CHUM_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: ChumAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover,
+          precipitation24h: extendedContext.precipitation24h ?? (weather.precipitation * 24),
+          // V2 Storm Biter enhancements
+          fishingReportText: extendedContext.fishingReportText
+        }
+        const v2Result = calculateChumSalmonScoreV2(weather, v2Context, tideData)
+
+        console.log('[Chum V2 Algorithm] Result:', {
+          total: v2Result.total,
+          isSafe: v2Result.isSafe,
+          isInSeason: v2Result.isInSeason,
+          stormBiter: v2Result.debug?.stormTrigger?.isActive,
+          strategyAdvice: v2Result.strategyAdvice,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
+        }
+      }
       return calculateChumSalmonScore(weather, tideData)
+
     case 'halibut':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_HALIBUT_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        // Parse bait presence from fishing reports if available
+        const halibutBaitIntel = extendedContext.fishingReportText
+          ? parseBaitPresenceFromText(extendedContext.fishingReportText)
+          : { presence: 'none' as const, keywords: [] }
+
+        const v2Context: HalibutAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          timeToNextSlack: extendedContext.timeToNextSlack,
+          // Bottom & Comfort enhancements
+          windDirection: extendedContext.windDirection,
+          currentDirection: extendedContext.currentDirection,
+          swellHeight: extendedContext.swellHeight,
+          swellPeriod: extendedContext.swellPeriod,
+          // Bio-intel
+          fishingReports: {
+            text: extendedContext.fishingReportText || '',
+            sentiment: 0,
+            recentCatchCount: 0,
+            baitPresence: halibutBaitIntel.presence,
+            keywordsFound: halibutBaitIntel.keywords
+          }
+        }
+        const v2Result = calculateHalibutScoreV2(weather, v2Context, tideData)
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings
+        }
+      }
       return calculateHalibutScore(weather, tideData)
+
     case 'lingcod':
-      const result = calculateLingcodScore(weather, tideData)
-      console.log('[Lingcod Algorithm] Result:', {
-        total: result.total,
-        isSafe: result.isSafe,
-        factors: Object.entries(result.factors).map(([key, val]) => ({
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_LINGCOD_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: LingcodAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover,
+          // V2.1 Bio-Mechanics enhancements
+          swellHeight: extendedContext.swellHeight,
+          swellPeriod: extendedContext.swellPeriod,
+          windDirection: extendedContext.windDirection,
+          currentDirection: extendedContext.currentDirection,
+          fishingReportText: extendedContext.fishingReportText
+        }
+        const v2Result = calculateLingcodScoreV2(weather, v2Context, tideData)
+
+        console.log('[Lingcod V2 Algorithm] Result:', {
+          total: v2Result.total,
+          isSafe: v2Result.isSafe,
+          isInSeason: v2Result.isInSeason,
+          depthStrategy: v2Result.depthStrategy?.mode,
+          strategyAdvice: v2Result.strategyAdvice,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
+        }
+      }
+      // V1 fallback with logging
+      const lingcodResult = calculateLingcodScore(weather, tideData)
+      console.log('[Lingcod V1 Algorithm] Result:', {
+        total: lingcodResult.total,
+        isSafe: lingcodResult.isSafe,
+        factors: Object.entries(lingcodResult.factors).map(([key, val]) => ({
           factor: key,
           value: val.value,
           weight: val.weight,
@@ -1507,16 +1837,142 @@ export function calculateSpeciesSpecificScore(
           contribution: (val.score * val.weight * 10).toFixed(2)
         }))
       })
-      return result
+      return lingcodResult
+
     case 'rockfish':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_ROCKFISH_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: RockfishAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          // V2 Bio-Mechanics enhancements
+          swellHeight: extendedContext.swellHeight,
+          swellPeriod: extendedContext.swellPeriod,
+          windDirection: extendedContext.windDirection,
+          currentDirection: extendedContext.currentDirection,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover
+        }
+        const v2Result = calculateRockfishScoreV2(weather, v2Context, tideData)
+
+        console.log('[Rockfish V2 Algorithm] Result:', {
+          total: v2Result.total,
+          isSafe: v2Result.isSafe,
+          isInRCA: v2Result.isInRCA,
+          strategyAdvice: v2Result.strategyAdvice,
+          regulations: v2Result.regulations,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
+        }
+      }
       return calculateRockfishScore(weather, tideData)
+
     case 'crab':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_CRAB_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: CrabAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          // V2 Soak-based enhancements
+          soakDurationHours: 12, // Default overnight soak
+          windDirection: extendedContext.windDirection,
+          currentDirection: extendedContext.currentDirection
+        }
+        const v2Result = calculateCrabScoreV2(weather, v2Context, tideData)
+
+        console.log('[Crab V2 Algorithm] Result:', {
+          total: v2Result.total,
+          soakScore: v2Result.soakScore,
+          haulScore: v2Result.haulScore,
+          isSafe: v2Result.isSafe,
+          moltQuality: v2Result.moltQuality?.quality,
+          strategyAdvice: v2Result.strategyAdvice,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
+        }
+      }
       return calculateCrabScore(weather, tideData)
+
     case 'spot-prawn':
     case 'spotprawn':
     case 'spot-prawns':
     case 'spotprawns':
+      // Use V2 algorithm if enabled and we have required context
+      if (USE_SPOT_PRAWN_V2 && extendedContext?.sunrise && extendedContext?.sunset) {
+        const v2Context: SpotPrawnAlgorithmContext = {
+          sunrise: extendedContext.sunrise,
+          sunset: extendedContext.sunset,
+          latitude: extendedContext.latitude ?? 48.4284,
+          longitude: extendedContext.longitude ?? -123.3656,
+          locationName: extendedContext.locationName,
+          pressureHistory: extendedContext.pressureHistory,
+          // V2 Extreme Depth enhancements
+          targetDepthFt: 300, // Default typical depth
+          sunElevation: extendedContext.sunElevation,
+          cloudCover: extendedContext.cloudCover ?? weather.cloudCover
+        }
+        const v2Result = calculateSpotPrawnScoreV2(weather, v2Context, tideData)
+
+        console.log('[Spot Prawn V2 Algorithm] Result:', {
+          total: v2Result.total,
+          isSafe: v2Result.isSafe,
+          isInSeason: v2Result.isInSeason,
+          seasonStatus: v2Result.seasonStatus,
+          catenaryRisk: v2Result.debug?.catenaryDrag?.lineAngleRisk,
+          slackWindow: v2Result.debug?.slackWindow?.windowDuration,
+          strategyAdvice: v2Result.strategyAdvice,
+          factors: Object.entries(v2Result.factors).map(([key, val]) => ({
+            factor: key,
+            weight: val.weight,
+            score: val.score,
+            description: val.description,
+            contribution: (val.score * val.weight * 10).toFixed(2)
+          }))
+        })
+
+        return {
+          total: v2Result.total,
+          factors: v2Result.factors,
+          isSafe: v2Result.isSafe,
+          safetyWarnings: v2Result.safetyWarnings,
+          debug: v2Result.strategyAdvice?.join(' | ')
+        }
+      }
       return calculateSpotPrawnScore(weather, tideData)
+
     default:
       console.log('[Species Algorithm] No match found for:', normalizedSpecies)
       return null
