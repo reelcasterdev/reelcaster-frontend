@@ -7,6 +7,108 @@
 // - Freshet/Snowmelt detection (river blowout conditions)
 // - Sun Elevation light penetration (fish depth prediction)
 // - Bait Presence bio-availability scoring
+// - V2.2 Smooth gradient functions (reverseSigmoid, gaussian, powerDecay)
+
+// ==================== V2.2 SMOOTH GRADIENT FUNCTIONS ====================
+
+/**
+ * Reverse Sigmoid - For "lower is better" factors (wind, pressure rise)
+ * Score drops smoothly as value increases, eliminating score cliffs
+ *
+ * @param value - Input value (e.g., wind speed in knots)
+ * @param center - Midpoint where score = 50 (e.g., 15 kts)
+ * @param steepness - Curve slope (default 0.4, higher = steeper)
+ * @returns Score from 0-100
+ *
+ * Example: reverseSigmoid(windSpeed, 15.0, 0.4)
+ *   14.9 kts → 51.2
+ *   15.0 kts → 50.0
+ *   15.1 kts → 48.8  (smooth transition, no cliff)
+ */
+export function reverseSigmoid(
+  value: number,
+  center: number,
+  steepness: number = 0.4
+): number {
+  return 100 / (1 + Math.exp(steepness * (value - center)))
+}
+
+/**
+ * Gaussian (Bell Curve) - For factors with a specific optimal value
+ * Score peaks at center and drops smoothly on both sides
+ *
+ * @param value - Input value (e.g., current speed in knots)
+ * @param center - Optimal value (e.g., 1.2 kts)
+ * @param width - Standard deviation (controls curve width)
+ * @returns Score from 0-100
+ *
+ * Example: gaussian(currentSpeed, 1.2, 0.6)
+ *   0.6 kts → 60.7 (too slow)
+ *   1.2 kts → 100.0 (optimal)
+ *   1.8 kts → 60.7 (too fast)
+ */
+export function gaussian(
+  value: number,
+  center: number,
+  width: number
+): number {
+  return 100 * Math.exp(-Math.pow(value - center, 2) / (2 * Math.pow(width, 2)))
+}
+
+/**
+ * Power Decay - For time-based proximity to events (slack tide, solunar)
+ * Score drops exponentially as you move away from target time
+ *
+ * @param value - Current time value (e.g., minutes to slack)
+ * @param target - Optimal time (e.g., 20 minutes post-slack)
+ * @param halfLife - Time where score = 50 (e.g., 90 minutes)
+ * @returns Score from 0-100
+ *
+ * Example: powerDecay(minsToSlack, 20, 90)
+ *   20 min → 100.0 (optimal)
+ *   50 min → 74.1 (30 min away)
+ *   110 min → 50.0 (90 min away = half-life)
+ */
+export function powerDecay(
+  value: number,
+  target: number,
+  halfLife: number
+): number {
+  return 100 * Math.pow(0.5, Math.abs(value - target) / halfLife)
+}
+
+/**
+ * Linear Interpolation - For smooth transitions between thresholds
+ * Maps input range to output range linearly
+ *
+ * @param value - Input value
+ * @param minInput - Minimum input value
+ * @param maxInput - Maximum input value
+ * @param minOutput - Output at minInput
+ * @param maxOutput - Output at maxInput
+ * @returns Interpolated value clamped to output range
+ *
+ * Example: lerp(pressureDelta, -2.0, 2.0, 100, 0)
+ *   -2.0 hPa → 100 (falling = excellent)
+ *    0.0 hPa → 50 (stable)
+ *   +2.0 hPa → 0 (rising = poor)
+ */
+export function lerp(
+  value: number,
+  minInput: number,
+  maxInput: number,
+  minOutput: number,
+  maxOutput: number
+): number {
+  // Clamp input to range
+  const clampedValue = Math.max(minInput, Math.min(maxInput, value))
+
+  // Calculate interpolation factor (0-1)
+  const t = (clampedValue - minInput) / (maxInput - minInput)
+
+  // Interpolate output
+  return minOutput + t * (maxOutput - minOutput)
+}
 
 // ==================== WIND-TIDE INTERACTION ====================
 

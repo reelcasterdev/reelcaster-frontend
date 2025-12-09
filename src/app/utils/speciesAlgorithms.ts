@@ -1526,9 +1526,7 @@ export function calculateSpeciesSpecificScore(
           longitude: extendedContext.longitude ?? -123.3656,
           locationName: extendedContext.locationName,
           pressureHistory: extendedContext.pressureHistory,
-          fishingReports: extendedContext.fishingReports,
-          // V2 Improvements - Extended context
-          sunElevation: extendedContext.sunElevation,
+          // V2 Context
           windDirection: extendedContext.windDirection,
           currentDirection: extendedContext.currentDirection,
           tidalRange: extendedContext.tidalRange ?? tideData?.tidalRange,
@@ -1541,25 +1539,32 @@ export function calculateSpeciesSpecificScore(
 
         console.log('[Chinook V2 Algorithm] Result:', {
           total: v2Result.total,
+          season: v2Result.season.mode,
           isSafe: v2Result.isSafe,
-          isInSeason: v2Result.isInSeason,
-          seasonalMode: v2Result.seasonalMode?.mode,
-          depthAdvice: v2Result.depthAdvice?.recommendedDepth,
+          depthAdvice: v2Result.depthAdvice,
+          baseScore: v2Result.debug?.baseScoreBeforeModifiers,
+          finalScore: v2Result.debug?.finalScoreAfterModifiers,
+          modifiers: v2Result.modifiers,
+          trollabilityWarnings: v2Result.trollabilityWarnings,
           factors: Object.entries(v2Result.factors).map(([key, val]) => ({
             factor: key,
             weight: val.weight,
             score: val.score,
             description: val.description,
-            contribution: (val.score * val.weight * 10).toFixed(2)
+            contribution: (val.score * val.weight).toFixed(2)
           }))
         })
 
         // Convert V2 result to standard SpeciesScoreResult format
+        // NOTE: V2 now uses 0-100 scale - divide by 10 if 0-10 compatibility needed
         return {
-          total: v2Result.total,
+          total: v2Result.total / 10, // Convert to 0-10 scale for compatibility
           factors: v2Result.factors,
           isSafe: v2Result.isSafe,
-          safetyWarnings: v2Result.safetyWarnings,
+          safetyWarnings: [
+            ...v2Result.safetyWarnings,
+            ...(v2Result.trollabilityWarnings || [])
+          ],
           debug: v2Result.strategyAdvice?.join(' | ')
         }
       }
