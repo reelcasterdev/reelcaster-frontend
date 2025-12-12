@@ -112,8 +112,16 @@ export function calculateCrabScoreV2(
   let isSafe = true
 
   const soakDurationHours = context.soakDurationHours ?? 12
-  const waterTemp = tideData?.waterTemperature ?? 10 // Default cold water
+  // Use sea surface temperature from Marine API if available
+  const waterTemp = weather.seaSurfaceTemp ?? tideData?.waterTemperature ?? 10
   const currentSpeed = Math.abs(tideData?.currentSpeed || 0)
+
+  // Log water temp source for debugging
+  if (weather.seaSurfaceTemp !== undefined) {
+    console.log('[Crab V2] Using Marine API water temp:', weather.seaSurfaceTemp, '°C')
+  } else {
+    console.log('[Crab V2] Using fallback water temp: 10°C')
+  }
 
   // ==================== SCENT HYDRAULICS (40%) ====================
   // Analyze current over soak duration (simplified: use current value as proxy)

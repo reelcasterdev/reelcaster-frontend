@@ -187,6 +187,43 @@ const chinookExplanations: SpeciesExplanationData = {
       scientificBasis:
         'Studies show fish feeding activity correlates positively with rising barometric pressure and negatively with falling pressure.',
     },
+    // V2 Chinook Factors
+    tide: {
+      whyItMatters:
+        'Chinook V2 uses a hybrid tidal model combining current speed (optimal ~1.2 kts) and timing (peak 20 min post-slack). This captures both the feeding window when bait is being flushed, and the trolling speed for proper gear presentation.',
+      howCalculated:
+        'Score = (Speed Score × 60%) + (Timing Score × 40%). Speed uses gaussian curve centered at 1.2 kts. Timing uses power decay from 20 minutes post-slack. Winter mode increases tide weight to 45%, summer uses 35%.',
+      recommendations: {
+        excellent: 'Perfect tidal conditions! Current speed and timing aligned for peak feeding. Fish the flush zone.',
+        good: 'Good tidal flow. Either speed or timing is optimal. Adjust depth and presentation accordingly.',
+        fair: 'Marginal tidal conditions. Either too fast, too slow, or poor timing. Fish structure and edges.',
+        poor: 'Poor tide. Wrong phase or speed. Consider waiting for better tidal window or try different location.',
+      },
+      scoringRanges: [
+        { range: '8-10', label: 'Optimal Flush', color: 'emerald' },
+        { range: '6-7', label: 'Good Flow', color: 'blue' },
+        { range: '4-5', label: 'Marginal', color: 'yellow' },
+        { range: '0-3', label: 'Poor', color: 'red' },
+      ],
+    },
+    lightDepth: {
+      whyItMatters:
+        'Light penetration determines where Chinook feed in the water column. Bright sun pushes fish deep (120ft+), overcast brings them mid-depth (50-80ft), twilight brings them shallow (30ft). Winter mode uses static bottom strategy, summer uses dynamic cloud-based depth.',
+      howCalculated:
+        'Winter (Oct 16 - Apr 14): Always scores 10/10, recommends fishing bottom (10ft from substrate). Summer (Apr 15 - Oct 15): Cloud cover >70% = 10/10 at 50ft, Cloud 30-70% = 9/10 at 80ft, Clear = 8.5/10 at 120ft+. Twilight always 10/10 at 30ft.',
+      recommendations: {
+        excellent: 'Perfect light conditions! Fish are at optimal feeding depth. Follow the depth advice provided.',
+        good: 'Good light levels. Fish are accessible. Target the recommended depth zone.',
+        fair: 'Marginal light. Fish may be deeper or more selective. Adjust tackle weight for depth.',
+        poor: 'Difficult light. Bright midday or very dark. Fish deep or wait for better light window.',
+      },
+      scoringRanges: [
+        { range: '8-10', label: 'Optimal (Twilight/Overcast)', color: 'emerald' },
+        { range: '7-9', label: 'Good (Partial Cloud)', color: 'blue' },
+        { range: '6-8', label: 'Fair (Clear)', color: 'yellow' },
+        { range: '0-5', label: 'Poor', color: 'red' },
+      ],
+    },
     solunar: {
       whyItMatters:
         'Solunar theory suggests that fish feeding activity peaks during major and minor lunar periods - times when the moon is directly overhead or underfoot (major) or at right angles (minor). Many experienced anglers swear by these windows.',

@@ -60,14 +60,23 @@ export default function OverallScore({
   // Build factor scores from first 2-hour forecast (as representative)
   const representativeForecast = selectedForecast?.twoHourForecasts[0]
   const factorScores: FactorScore[] = representativeForecast?.score.speciesFactors
-    ? Object.entries(representativeForecast.score.speciesFactors).map(([key, data]) => ({
-        key,
-        label: formatFactorLabel(key),
-        score: data.score * 10,
-        maxScore: 10,
-        value: data.value,
-        contribution: data.score * data.weight * 10,
-      }))
+    ? Object.entries(representativeForecast.score.speciesFactors).map(([key, data]) => {
+        // All algorithms now use consistent 0-10 scale
+        // data.score: 0-10 (from algorithm)
+        // data.weight: 0-1 (e.g., 0.45 = 45%)
+        // contribution: score × weight = (0-10) × (0-1) = (0-1)
+        const normalizedScore = data.score
+        const contribution = data.score * data.weight
+
+        return {
+          key,
+          label: formatFactorLabel(key),
+          score: normalizedScore,
+          maxScore: 10,
+          value: data.value,
+          contribution,
+        }
+      })
     : []
 
   // Generate overall recommendation

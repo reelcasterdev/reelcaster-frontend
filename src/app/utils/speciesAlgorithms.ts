@@ -9,6 +9,9 @@ import {
   AlgorithmContext,
   FishingReportData
 } from './chinookAlgorithmV2'
+import {
+  calculateGeneralBottomfishScore
+} from './generalBottomfishAlgorithm'
 import { calculatePinkSalmonScoreV2, PinkAlgorithmContext } from './pinkAlgorithmV2'
 import { calculateCohoSalmonScoreV2, CohoAlgorithmContext } from './cohoAlgorithmV2'
 import { calculateChumSalmonScoreV2, ChumAlgorithmContext } from './chumAlgorithmV2'
@@ -1508,7 +1511,38 @@ export function calculateSpeciesSpecificScore(
   tideData?: CHSWaterData,
   extendedContext?: ExtendedAlgorithmContext
 ): SpeciesScoreResult | null {
-  if (!species) return null
+  // If no species selected, use General Bottomfish algorithm
+  if (!species) {
+    console.log('[General Bottomfish] No species selected - using general algorithm')
+
+    if (!extendedContext?.sunrise || !extendedContext?.sunset) {
+      console.warn('[General Bottomfish] Missing sunrise/sunset - cannot calculate')
+      return null
+    }
+
+    const result = calculateGeneralBottomfishScore(
+      weather,
+      extendedContext.sunrise,
+      extendedContext.sunset,
+      tideData,
+      extendedContext.pressureHistory
+    )
+
+    // Convert to SpeciesScoreResult format
+    return {
+      total: result.total,
+      factors: {
+        tideSpeed: result.physicsCore.factors.tideSpeed,
+        windSpeed: result.physicsCore.factors.windSpeed,
+        effectiveSwell: result.physicsCore.factors.effectiveSwell,
+        pressure: result.physicsCore.factors.pressure,
+        solunar: result.physicsCore.factors.solunar
+      },
+      isSafe: result.isSafe,
+      safetyWarnings: result.safetyWarnings,
+      debug: `General Bottomfish V1.5 | Base: ${result.debug.baseBeforeCaps} | Caps: ${result.debug.afterCaps} | Multipliers: ${result.comboMultipliers.totalMultiplier.toFixed(2)}x | ${result.strategyAdvice.join(' | ')}`
+    }
+  }
 
   // Normalize species name to match our function names
   const normalizedSpecies = species.toLowerCase().replace(/\s+/g, '-')
@@ -1556,9 +1590,9 @@ export function calculateSpeciesSpecificScore(
         })
 
         // Convert V2 result to standard SpeciesScoreResult format
-        // NOTE: V2 now uses 0-100 scale - divide by 10 if 0-10 compatibility needed
+        // NOTE: V2 uses 0-10 scale (consistent with all species)
         return {
-          total: v2Result.total / 10, // Convert to 0-10 scale for compatibility
+          total: v2Result.total, // Already 0-10 scale
           factors: v2Result.factors,
           isSafe: v2Result.isSafe,
           safetyWarnings: [

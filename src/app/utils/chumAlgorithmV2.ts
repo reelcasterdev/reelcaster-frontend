@@ -370,8 +370,18 @@ export function calculateChumSalmonScoreV2(
   let isSafe = true
 
   const date = new Date(weather.timestamp * 1000)
-  const waterTemp = tideData?.waterTemperature ?? 10
+  // Use sea surface temperature from Marine API if available
+  const waterTemp = weather.seaSurfaceTemp ?? tideData?.waterTemperature ?? 10
   const currentSpeed = Math.abs(tideData?.currentSpeed || 0)
+
+  // Log water temp source for debugging
+  if (weather.seaSurfaceTemp !== undefined) {
+    console.log('[Chum V2] Using Marine API water temp:', weather.seaSurfaceTemp, '°C')
+  } else if (tideData?.waterTemperature !== undefined) {
+    console.log('[Chum V2] Using tide data water temp:', tideData.waterTemperature, '°C')
+  } else {
+    console.log('[Chum V2] Using fallback water temp: 10°C')
+  }
 
   // ==================== STORM TRIGGER (35%) ====================
   // INVERTED: Falling pressure + rain = GOOD for Chums

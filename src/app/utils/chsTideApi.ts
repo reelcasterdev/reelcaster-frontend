@@ -52,6 +52,7 @@ export interface CHSWaterData {
 
 // BC Fishing locations mapped to CHS station IDs
 // Note: These are the actual MongoDB ObjectIDs from the CHS API, not the station codes
+// Updated December 9, 2025 - All stations verified against CHS IWLS API
 export const CHS_STATIONS: Record<string, { id: string; code: string; name: string }> = {
   'victoria-sidney': {
     id: '5cebf1df3d0f4a073c4bbd1e', // Victoria Harbour
@@ -59,44 +60,44 @@ export const CHS_STATIONS: Record<string, { id: string; code: string; name: stri
     name: 'Victoria Harbour',
   },
   'sooke-port-renfrew': {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback - Sooke not available
-    code: '07120',
-    name: 'Victoria Harbour',
+    id: '5cebf1df3d0f4a073c4bbd11', // Sooke Basin (VERIFIED)
+    code: '07024',
+    name: 'Sooke Basin',
   },
   tsawwassen: {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback
-    code: '07120', 
-    name: 'Victoria Harbour',
+    id: '5cebf1e13d0f4a073c4bbf85', // Roberts Bank (nearest station)
+    code: '07592',
+    name: 'Roberts Bank',
   },
   vancouver: {
-    id: '5cebf1e43d0f4a073c4bc404', // Kitsilano station in Vancouver
+    id: '5cebf1e43d0f4a073c4bc404', // Kitsilano station
     code: '07707',
     name: 'Kitsilano',
   },
   'barkley-sound': {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback - Bamfield not available
-    code: '07120',
-    name: 'Victoria Harbour',
+    id: '5cebf1e23d0f4a073c4bc062', // Bamfield (VERIFIED)
+    code: '08545',
+    name: 'Bamfield',
   },
   'port-hardy': {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback
-    code: '07120',
-    name: 'Victoria Harbour',
+    id: '5cebf1de3d0f4a073c4bb9c7', // Port Hardy (VERIFIED)
+    code: '08408',
+    name: 'Port Hardy',
   },
   'campbell-river': {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback
-    code: '07120',
-    name: 'Victoria Harbour',
+    id: '5cebf1de3d0f4a073c4bb996', // Campbell River (VERIFIED - PERMANENT)
+    code: '08074',
+    name: 'Campbell River',
   },
   nanaimo: {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback - Nanaimo not directly available
-    code: '07120',
-    name: 'Victoria Harbour',
+    id: '5cebf1de3d0f4a073c4bb96d', // Nanaimo Harbour (VERIFIED - PERMANENT)
+    code: '07917',
+    name: 'Nanaimo Harbour',
   },
   tofino: {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback
-    code: '07120',
-    name: 'Victoria Harbour',
+    id: '5cebf1e23d0f4a073c4bc07c', // Tofino (VERIFIED - PERMANENT)
+    code: '08615',
+    name: 'Tofino',
   },
   'prince-rupert': {
     id: '5cebf1e43d0f4a073c4bc469', // Prince Rupert RoRo
@@ -104,24 +105,24 @@ export const CHS_STATIONS: Record<string, { id: string; code: string; name: stri
     name: 'Prince Rupert RoRo',
   },
   'haida-gwaii': {
-    id: '5cebf1de3d0f4a073c4bba2d', // Rose Harbour (Queen Charlotte Islands)
+    id: '5cebf1de3d0f4a073c4bba2d', // Rose Harbour
     code: '09713',
     name: 'Rose Harbour',
   },
   squamish: {
-    id: '5cebf1e43d0f4a073c4bc404', // Using Kitsilano Vancouver as fallback
+    id: '5cebf1e43d0f4a073c4bc404', // Kitsilano Vancouver (nearest)
     code: '07707',
     name: 'Kitsilano',
   },
   sechelt: {
-    id: '5cebf1e43d0f4a073c4bc404', // Using Kitsilano Vancouver as fallback
-    code: '07707',
-    name: 'Kitsilano',
+    id: '5dd3064ee0fdc4b9b4be670a', // Roberts Creek (nearest to Sechelt)
+    code: '07824',
+    name: 'Roberts Creek',
   },
   'bella-bella': {
-    id: '5cebf1df3d0f4a073c4bbd1e', // Using Victoria as fallback
-    code: '07120',
-    name: 'Victoria Harbour',
+    id: '5cebf1e23d0f4a073c4bc0b7', // Bella Coola (nearest major station)
+    code: '08937',
+    name: 'Bella Coola',
   },
 }
 
