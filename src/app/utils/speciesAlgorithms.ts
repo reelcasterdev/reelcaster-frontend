@@ -1528,13 +1528,14 @@ export function calculateSpeciesSpecificScore(
       extendedContext.pressureHistory
     )
 
-    // Convert to SpeciesScoreResult format
+    // Convert to SpeciesScoreResult format with V2-style factor names
     return {
       total: result.total,
       factors: {
-        tideSpeed: result.physicsCore.factors.tideSpeed,
-        windSpeed: result.physicsCore.factors.windSpeed,
-        effectiveSwell: result.physicsCore.factors.effectiveSwell,
+        // V2-style naming for improved physics-based general algorithm
+        tide: result.physicsCore.factors.tideSpeed,
+        seaState: result.physicsCore.factors.windSpeed,
+        resultantDrift: result.physicsCore.factors.effectiveSwell,
         pressure: result.physicsCore.factors.pressure,
         solunar: result.physicsCore.factors.solunar
       },
