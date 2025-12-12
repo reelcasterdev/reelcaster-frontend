@@ -40,9 +40,8 @@ pnpm lint
 src/app/
 ├── components/         # Feature-specific components
 │   ├── auth/          # Authentication components (auth-button, auth-dialog, user-menu)
-│   ├── charts/        # Data visualization (shadcn-minutely-bar-chart, weather-data-chart)
+│   ├── charts/        # Data visualization (mobile-friendly-chart)
 │   ├── common/        # Shared components (sidebar, loading, error states)
-│   ├── demo/          # Demo components (fishing-forecast, open-meteo-demo)
 │   ├── forecast/      # Active forecast UI (day-outlook, hourly-chart, weather-conditions, etc.)
 │   ├── location/      # Location selection (compact-location-selector)
 │   └── ui/           # Enhanced UI components
@@ -198,19 +197,13 @@ Based on current usage analysis, these components are actively used:
 
 **Charts:**
 
-- `shadcn-minutely-bar-chart.tsx` - Minutely data visualization
-- `weather-data-chart.tsx` - Weather data charts
+- `mobile-friendly-chart.tsx` - Data visualization component for charts
 
 **Common:**
 
 - `sidebar.tsx` - Main navigation sidebar
 - `modern-loading-state.tsx` - Loading state component
 - `error-state.tsx` - Error display component
-
-**Demo:**
-
-- `fishing-forecast.tsx` - Demo forecast component
-- `open-meteo-demo.tsx` - Weather API demo
 
 **Forecast (Main UI):**
 
