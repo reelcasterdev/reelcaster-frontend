@@ -6,7 +6,7 @@
 // 2. Seasonal Modes: Winter (Structure-oriented) vs Summer (Suspension-oriented)
 // 3. Smooth Gradient Scoring: No score cliffs (reverseSigmoid, gaussian, powerDecay)
 // 4. Dynamic Weight Distribution: Weights adjust based on season
-// 5. Score Range: 0-100 (for granularity, can be divided by 10 for 0-10 compatibility)
+// 5. Score Range: 0-10 (consistent with all other species algorithms)
 // 6. Trollability Warnings: Blowback risk advisories (informational, not score penalty)
 //
 // Philosophy:
@@ -45,7 +45,7 @@ export const CHINOOK_CONFIG = {
   // SAFETY THRESHOLDS
   MAX_SAFE_WIND_SUMMER: 20.0,      // Summer max safe wind (kts)
   MAX_SAFE_WIND_WINTER: 15.0,      // Winter max safe wind (kts) - stricter for cold water
-  SAFETY_CAP_SCORE: 30.0,          // Maximum score when unsafe (out of 100)
+  SAFETY_CAP_SCORE: 3.0,           // Maximum score when unsafe (out of 10)
 
   // TROLLABILITY WARNING THRESHOLDS
   TROLLABILITY_LARGE_TIDE_M: 3.5,  // Large tidal range threshold
@@ -103,13 +103,13 @@ export interface SeasonalProfile {
 }
 
 export interface ChinookScoreResult {
-  total: number // 0-100 (divide by 10 for 0-10 compatibility)
+  total: number // 0-10 (consistent with all species)
   season: SeasonalProfile
   factors: {
     [key: string]: {
       value: number
       weight: number
-      score: number // 0-100
+      score: number // 0-10 (normalized from gradient functions)
       description?: string
     }
   }
@@ -205,30 +205,30 @@ export function getSeasonalMode(date: Date): SeasonalProfile {
 /**
  * Calculate Tidal Factor (Hybrid: Speed + Timing)
  * Combines current speed (60%) and tidal timing (40%)
+ * Returns score on 0-10 scale
  */
 function calculateTidalScore(
   currentSpeed: number,      // knots
   minutesToSlack: number,    // minutes
   isRising: boolean
 ): { score: number; speedScore: number; timingScore: number; description: string } {
-  // SPEED (60%): Gaussian curve centered at 1.2 kts
-  const speedScore = gaussian(
+  // SPEED (60%): Gaussian curve centered at 1.2 kts (returns 0-100)
+  const speedScore100 = gaussian(
     Math.abs(currentSpeed),
     CHINOOK_CONFIG.TIDE_IDEAL_KTS,
     CHINOOK_CONFIG.TIDE_WIDTH
   )
 
-  // TIMING (40%): Power decay from 20 min post-slack
+  // TIMING (40%): Power decay from 20 min post-slack (returns 0-100)
   const effectiveMinutes = Math.abs(minutesToSlack - CHINOOK_CONFIG.TIDE_LAG_MINUTES)
-
-  const timingScore = powerDecay(
+  const timingScore100 = powerDecay(
     effectiveMinutes,
     0,
     CHINOOK_CONFIG.TIDE_HALF_LIFE
   )
 
-  // Combined score (60/40 split)
-  const combinedScore = speedScore * 0.6 + timingScore * 0.4
+  // Combined score (60/40 split) - normalize to 0-10
+  const combinedScore = (speedScore100 * 0.6 + timingScore100 * 0.4) / 10
 
   // Description
   let description = `${Math.abs(currentSpeed).toFixed(1)} kts, `
@@ -237,16 +237,17 @@ function calculateTidalScore(
 
   return {
     score: combinedScore,
-    speedScore,
-    timingScore,
+    speedScore: speedScore100 / 10,
+    timingScore: timingScore100 / 10,
     description
   }
 }
 
 /**
  * Calculate Light/Depth Factor (Seasonal Strategy Logic)
- * Winter: Static bottom strategy (100 score)
+ * Winter: Static bottom strategy (10 score)
  * Summer: Dynamic cloud-based depth (varies score)
+ * Returns score on 0-10 scale
  */
 function calculateLightDepthScore(
   season: SeasonMode,
@@ -258,7 +259,7 @@ function calculateLightDepthScore(
   if (season === 'winter') {
     // WINTER MODE: Static depth strategy
     return {
-      score: 100,
+      score: 10.0, // Normalized to 0-10
       advice: 'Fish Bottom (within 10ft of substrate)',
       description: 'winter_static'
     }
@@ -275,20 +276,20 @@ function calculateLightDepthScore(
                          (minutesFromSunset >= -60 && minutesFromSunset <= 30)
 
     if (isGoldenHour) {
-      score = 100
+      score = 10.0 // Normalized to 0-10
       targetDepth = '30ft'
       description = 'twilight_shallow'
     } else if (cloudCover > 70) {
-      score = 100
+      score = 10.0 // Normalized to 0-10
       targetDepth = '50ft'
       description = 'overcast_mid'
     } else if (cloudCover > 30) {
-      score = 90
+      score = 9.0 // Normalized to 0-10
       targetDepth = '80ft'
       description = 'partly_cloudy_mid_deep'
     } else {
       // Clear/Sunny - Deep bite
-      score = 85
+      score = 8.5 // Normalized to 0-10
       targetDepth = '120ft+'
       description = 'clear_deep'
     }
@@ -303,6 +304,7 @@ function calculateLightDepthScore(
 
 /**
  * Calculate Sea State Factor (Safety Gatekeeper with Seasonal Wind Limits)
+ * Returns score on 0-10 scale
  */
 function calculateSeaStateScore(
   windSpeed: number,    // km/h
@@ -320,8 +322,8 @@ function calculateSeaStateScore(
     ? CHINOOK_CONFIG.MAX_SAFE_WIND_WINTER
     : CHINOOK_CONFIG.MAX_SAFE_WIND_SUMMER
 
-  // Smooth sigmoid scoring
-  const score = reverseSigmoid(windKnots, windCenter, 0.4)
+  // Smooth sigmoid scoring (returns 0-100) - normalize to 0-10
+  const score = reverseSigmoid(windKnots, windCenter, 0.4) / 10
 
   // Safety check
   const isSafe = windKnots <= maxSafeWind
@@ -386,7 +388,7 @@ export function calculatePressureTrendScore(
 }
 
 /**
- * Internal wrapper for V2 Chinook (uses 0-100 scale)
+ * Internal wrapper for V2 Chinook (uses 0-10 scale)
  */
 function calculatePressureScore(
   currentPressure: number,
@@ -394,7 +396,7 @@ function calculatePressureScore(
 ): { score: number; trend: string; delta3hr: number } {
   const result = calculatePressureTrendScore(currentPressure, pressureHistory)
   return {
-    score: result.score * 100, // Convert back to 0-100 for V2
+    score: result.score * 10, // Convert 0-1 to 0-10 for V2
     trend: result.trend.trend,
     delta3hr: result.trend.delta3hr
   }
@@ -402,6 +404,7 @@ function calculatePressureScore(
 
 /**
  * Calculate Solunar Factor
+ * Returns score on 0-10 scale
  */
 function calculateSolunarScore(
   timestamp: number,
@@ -420,9 +423,9 @@ function calculateSolunarScore(
                         (hour >= 23 || hour <= 1)
 
   if (isMajorPeriod) {
-    return { score: 100, periodType: 'major' }
+    return { score: 10.0, periodType: 'major' } // Normalized to 0-10
   } else {
-    return { score: 60, periodType: 'none' }
+    return { score: 6.0, periodType: 'none' } // Normalized to 0-10
   }
 }
 
@@ -430,6 +433,7 @@ function calculateSolunarScore(
 
 /**
  * Apply Bait Presence Modifier
+ * Works with 0-10 score scale
  */
 function applyBaitModifier(
   baseScore: number,
@@ -446,7 +450,7 @@ function applyBaitModifier(
   const hasMassiveBait = massiveKeywords.some(keyword => text.includes(keyword))
 
   if (hasMassiveBait) {
-    const newScore = Math.min(baseScore * CHINOOK_CONFIG.BAIT_MULTIPLIER_MASSIVE, 100)
+    const newScore = Math.min(baseScore * CHINOOK_CONFIG.BAIT_MULTIPLIER_MASSIVE, 10)
     return {
       score: newScore,
       multiplier: CHINOOK_CONFIG.BAIT_MULTIPLIER_MASSIVE,
@@ -460,7 +464,7 @@ function applyBaitModifier(
   const hasSomeBait = someKeywords.some(keyword => text.includes(keyword))
 
   if (hasSomeBait) {
-    const newScore = Math.min(baseScore * CHINOOK_CONFIG.BAIT_MULTIPLIER_SOME, 100)
+    const newScore = Math.min(baseScore * CHINOOK_CONFIG.BAIT_MULTIPLIER_SOME, 10)
     return {
       score: newScore,
       multiplier: CHINOOK_CONFIG.BAIT_MULTIPLIER_SOME,
@@ -665,7 +669,7 @@ export function calculateChinookSalmonScoreV2(
   let baseScore = Object.values(factors).reduce((sum, factor) =>
     sum + (factor.score * factor.weight), 0
   )
-  baseScore = Math.max(0, Math.min(100, baseScore))
+  baseScore = Math.max(0, Math.min(10, baseScore))
 
   // ==================== LAYER 2: MODIFIERS ====================
 
@@ -723,18 +727,18 @@ export function calculateChinookSalmonScoreV2(
 
   strategyAdvice.unshift(`📍 DEPTH: ${lightResult.advice}`)
 
-  if (tidalResult.timingScore < 50) {
+  if (tidalResult.timingScore < 5.0) {
     strategyAdvice.push(
       `⏰ TIMING: Optimal bite is ${CHINOOK_CONFIG.TIDE_LAG_MINUTES} min post-slack. Currently ${minutesToSlack} min to slack.`
     )
   }
 
-  finalScore = Math.max(0, Math.min(100, finalScore))
+  finalScore = Math.max(0, Math.min(10, finalScore))
 
   // ==================== RETURN RESULT ====================
 
   return {
-    total: Math.round(finalScore * 10) / 10,
+    total: Math.round(finalScore * 10) / 10, // Round to 1 decimal place
     season,
     factors,
     isSafe,

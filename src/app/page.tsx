@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { fetchOpenMeteoWeather, ProcessedOpenMeteoData } from './utils/openMeteoApi'
+import {
+  fetchOpenMeteoWeather,
+  fetchOpenMeteoMarine,
+  mergeMarineData,
+  ProcessedOpenMeteoData
+} from './utils/openMeteoApi'
 import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from './utils/fishingCalculations'
 import { fetchCHSTideData, CHSWaterData } from './utils/chsTideApi'
 import ForecastCacheService from './utils/forecastCacheService'
@@ -187,23 +192,53 @@ function NewForecastContent() {
         console.warn('CHS tide data not available:', chsError)
       }
 
-      // Fetch weather forecast
-      const result = await fetchOpenMeteoWeather(coordinates, 14)
+      // Fetch weather forecast and marine data in parallel
+      const [weatherResult, marineResult] = await Promise.all([
+        fetchOpenMeteoWeather(coordinates, 14),
+        fetchOpenMeteoMarine(coordinates, 7)
+      ])
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch weather data')
+      if (!weatherResult.success) {
+        throw new Error(weatherResult.error || 'Failed to fetch weather data')
+      }
+
+      // Merge marine data into weather data (sea temp, waves, currents)
+      const weatherData = weatherResult.data!
+      if (marineResult.success && marineResult.data) {
+        console.log('Marine data fetched successfully - merging into weather data')
+        console.log('Marine data sample:', {
+          hourlyPoints: marineResult.data.hourly.length,
+          firstSST: marineResult.data.hourly[0]?.seaSurfaceTemp,
+          firstWaveHeight: marineResult.data.hourly[0]?.waveHeight
+        })
+
+        weatherData.minutely15 = mergeMarineData(
+          weatherData.minutely15,
+          marineResult.data.hourly
+        )
+
+        // Verify merge worked
+        const merged = weatherData.minutely15.filter(d => d.seaSurfaceTemp !== undefined)
+        console.log('Merge result:', {
+          totalWeatherPoints: weatherData.minutely15.length,
+          pointsWithSST: merged.length,
+          sampleSST: weatherData.minutely15[0]?.seaSurfaceTemp,
+          sampleWaveHeight: weatherData.minutely15[0]?.waveHeight
+        })
+      } else {
+        console.warn('Marine data not available:', marineResult.error)
       }
 
       // Generate daily forecasts with tide data
       const dailyForecasts = generateOpenMeteoDailyForecasts(
-        result.data!, 
-        finalTideData, 
+        weatherData,
+        finalTideData,
         species
       )
 
       return {
         forecasts: dailyForecasts,
-        openMeteoData: result.data!,
+        openMeteoData: weatherData,
         tideData: finalTideData
       }
     } catch (err) {

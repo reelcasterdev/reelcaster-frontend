@@ -83,8 +83,13 @@ export interface OpenMeteo15MinData {
   lightningPotential: number
   cape: number
   // Marine data (from Open Meteo Marine API)
-  swellHeight?: number      // meters
-  swellPeriod?: number      // seconds
+  swellHeight?: number           // meters
+  swellPeriod?: number           // seconds
+  seaSurfaceTemp?: number        // celsius
+  waveHeight?: number            // meters
+  wavePeriod?: number            // seconds
+  oceanCurrentSpeed?: number     // km/h
+  oceanCurrentDirection?: number // degrees
 }
 
 export interface OpenMeteoDailyData {
@@ -103,6 +108,67 @@ export interface ProcessedOpenMeteoData {
     latitude: number
     longitude: number
     elevation: number
+    timezone: string
+  }
+}
+
+// ==================== MARINE API INTERFACES ====================
+
+export interface OpenMeteoMarineResponse {
+  latitude: number
+  longitude: number
+  generationtime_ms: number
+  utc_offset_seconds: number
+  timezone: string
+  timezone_abbreviation: string
+  hourly_units: {
+    time: string
+    wave_height: string
+    wave_period: string
+    wave_direction: string
+    wind_wave_height: string
+    wind_wave_period: string
+    swell_wave_height: string
+    swell_wave_period: string
+    ocean_current_velocity: string
+    ocean_current_direction: string
+    sea_surface_temperature: string
+  }
+  hourly: {
+    time: string[]
+    wave_height: number[]
+    wave_period: number[]
+    wave_direction: number[]
+    wind_wave_height: number[]
+    wind_wave_period: number[]
+    swell_wave_height: number[]
+    swell_wave_period: number[]
+    ocean_current_velocity: number[]
+    ocean_current_direction: number[]
+    sea_surface_temperature: number[]
+  }
+}
+
+export interface OpenMeteoMarineData {
+  time: string
+  timestamp: number
+  seaSurfaceTemp: number        // °C
+  waveHeight: number            // meters
+  wavePeriod: number            // seconds
+  waveDirection: number         // degrees
+  windWaveHeight: number        // meters (wind-generated)
+  windWavePeriod: number        // seconds
+  swellHeight: number           // meters (swell component)
+  swellPeriod: number           // seconds
+  oceanCurrentSpeed: number     // km/h
+  oceanCurrentDirection: number // degrees
+}
+
+export interface ProcessedMarineData {
+  hourly: OpenMeteoMarineData[]
+  location: {
+    latitude: number
+    longitude: number
     timezone: string
   }
 }
@@ -358,4 +424,137 @@ export const fetchOpenMeteoHistoricalWeather = async (
       error: err instanceof Error ? err.message : 'Failed to fetch Open-Meteo historical weather data',
     }
   }
+}
+
+// ==================== MARINE API ====================
+
+/**
+ * Fetch Marine Weather Data from Open-Meteo Marine API
+ * Provides sea surface temperature, wave data, and ocean currents
+ *
+ * @param coordinates - Latitude and longitude
+ * @param forecast_days - Number of forecast days (default 7)
+ * @returns Processed marine data with hourly resolution
+ */
+export const fetchOpenMeteoMarine = async (
+  coordinates: { lat: number; lon: number },
+  forecast_days: number = 7
+): Promise<{ success: boolean; data?: ProcessedMarineData; error?: string }> => {
+  try {
+    // Build Marine API URL
+    const params = new URLSearchParams({
+      latitude: coordinates.lat.toString(),
+      longitude: coordinates.lon.toString(),
+      hourly: [
+        'wave_height',
+        'wave_period',
+        'wave_direction',
+        'wind_wave_height',
+        'wind_wave_period',
+        'swell_wave_height',
+        'swell_wave_period',
+        'ocean_current_velocity',
+        'ocean_current_direction',
+        'sea_surface_temperature'
+      ].join(','),
+      forecast_days: forecast_days.toString(),
+      timezone: 'auto'
+    })
+
+    const url = `https://marine-api.open-meteo.com/v1/marine?${params}`
+    console.log('Open-Meteo Marine API URL:', url)
+
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      throw new Error(`Marine API error: ${response.status} - ${response.statusText}`)
+    }
+
+    const rawData: OpenMeteoMarineResponse = await response.json()
+    console.log('Open-Meteo Marine raw response:', {
+      latitude: rawData.latitude,
+      longitude: rawData.longitude,
+      hourlyCount: rawData.hourly.time.length,
+      firstTime: rawData.hourly.time[0],
+      lastTime: rawData.hourly.time[rawData.hourly.time.length - 1]
+    })
+
+    // Process marine data
+    const processedData: ProcessedMarineData = {
+      hourly: rawData.hourly.time.map((time, index) => ({
+        time,
+        timestamp: new Date(time).getTime() / 1000,
+        seaSurfaceTemp: rawData.hourly.sea_surface_temperature[index] ?? 10,
+        waveHeight: rawData.hourly.wave_height[index] ?? 0,
+        wavePeriod: rawData.hourly.wave_period[index] ?? 0,
+        waveDirection: rawData.hourly.wave_direction[index] ?? 0,
+        windWaveHeight: rawData.hourly.wind_wave_height[index] ?? 0,
+        windWavePeriod: rawData.hourly.wind_wave_period[index] ?? 0,
+        swellHeight: rawData.hourly.swell_wave_height[index] ?? 0,
+        swellPeriod: rawData.hourly.swell_wave_period[index] ?? 0,
+        oceanCurrentSpeed: rawData.hourly.ocean_current_velocity[index] ?? 0,
+        oceanCurrentDirection: rawData.hourly.ocean_current_direction[index] ?? 0
+      })),
+      location: {
+        latitude: rawData.latitude,
+        longitude: rawData.longitude,
+        timezone: rawData.timezone
+      }
+    }
+
+    console.log('Processed Marine data:', {
+      hourlyCount: processedData.hourly.length,
+      firstEntry: processedData.hourly[0],
+      sampleSST: processedData.hourly[0]?.seaSurfaceTemp
+    })
+
+    return { success: true, data: processedData }
+  } catch (err) {
+    console.error('Open-Meteo Marine API error:', err)
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to fetch Marine weather data'
+    }
+  }
+}
+
+/**
+ * Merge marine data into weather data
+ * Marine data is hourly, weather data is 15-min
+ * We interpolate marine data to match weather timestamps
+ */
+export function mergeMarineData(
+  weatherData: OpenMeteo15MinData[],
+  marineData: OpenMeteoMarineData[]
+): OpenMeteo15MinData[] {
+  if (!marineData || marineData.length === 0) {
+    return weatherData
+  }
+
+  return weatherData.map(weather => {
+    // Find closest marine data point (within 1 hour)
+    const closestMarine = marineData.reduce((closest, marine) => {
+      const timeDiff = Math.abs(marine.timestamp - weather.timestamp)
+      const closestDiff = Math.abs(closest.timestamp - weather.timestamp)
+      return timeDiff < closestDiff ? marine : closest
+    }, marineData[0])
+
+    // Only merge if within 1 hour (3600 seconds)
+    const timeDiff = Math.abs(closestMarine.timestamp - weather.timestamp)
+    if (timeDiff > 3600) {
+      return weather // Too far apart, don't merge
+    }
+
+    // Merge marine data into weather
+    return {
+      ...weather,
+      seaSurfaceTemp: closestMarine.seaSurfaceTemp,
+      waveHeight: closestMarine.waveHeight,
+      wavePeriod: closestMarine.wavePeriod,
+      swellHeight: closestMarine.swellHeight,
+      swellPeriod: closestMarine.swellPeriod,
+      oceanCurrentSpeed: closestMarine.oceanCurrentSpeed,
+      oceanCurrentDirection: closestMarine.oceanCurrentDirection
+    }
+  })
 }

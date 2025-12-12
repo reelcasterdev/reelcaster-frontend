@@ -393,6 +393,7 @@ export default function ScoreBreakdownEnhanced({
 
           // Create custom config with species-specific name and actual weight
           const customNameMap: {[key: string]: string} = {
+            // V1 Legacy factors
             'lightTime': 'Light/Time of Day',
             'tidalRange': 'Tidal Range',
             'slackTide': 'Slack Tide',
@@ -406,9 +407,74 @@ export default function ScoreBreakdownEnhanced({
             'precipitation': 'Precipitation',
             'waveHeight': 'Wave Height',
             'temperature': 'Air Temperature',
+
+            // V2 Chinook factors
+            'tide': 'Tidal Current',
+            'lightDepth': 'Light & Depth Strategy',
+            'seaState': 'Sea State',
+            'solunar': 'Solunar Periods',
+
+            // V2 Coho factors
+            'lightAndStealth': 'Light & Stealth',
+            'baitPresence': 'Bait Presence',
+            'seaSurfaceState': 'Sea Surface State',
+            'pressureTrend': 'Pressure Trend',
+            'riverTurbidity': 'River Turbidity',
+
+            // V2 Halibut factors
+            'tidalSlope': 'Tidal Slope',
+            'swellQuality': 'Swell Quality',
+            'windTideSafety': 'Wind-Tide Safety',
+            'lightTideInteraction': 'Light-Tide Interaction',
+            'baitScent': 'Bait/Scent',
+
+            // V2 Lingcod factors
+            'tidalShoulder': 'Tidal Shoulder',
+
+            // V2 Rockfish factors
+            'resultantDrift': 'Resultant Drift',
+            'swellHeave': 'Swell Heave',
+            'barometricStability': 'Barometric Stability',
+            'lightConditions': 'Light Conditions',
+            'windSafety': 'Wind Safety',
+
+            // V2 Crab factors
+            'scentHydraulics': 'Scent Hydraulics',
+            'moltQuality': 'Molt Quality',
+            'darkness': 'Darkness/Moon',
+            'slackWindow': 'Slack Window',
+            'retrievalSafety': 'Retrieval Safety',
+
+            // V2 Chum factors
+            'stormTrigger': 'Storm Trigger',
+            'stagingSeams': 'Staging Seams',
+            'thermalGate': 'Thermal Gate',
+            'runTiming': 'Run Timing',
+
+            // V2 Pink factors
+            'estuaryFlush': 'Estuary Flush',
+            'surfaceTexture': 'Surface Texture',
+            'schoolingIntel': 'Schooling Intel',
+            'barometer': 'Barometric Pressure',
+
+            // V2 Sockeye/Lingcod shared
+            'bioIntel': 'Bio-Intel',
+
+            // V2 Sockeye specific
+            'thermalBlockade': 'Thermal Blockade',
+            'tidalTreadmill': 'Tidal Treadmill',
+            'corridorLight': 'Light Corridor',
+            'waterClarity': 'Water Clarity',
+
+            // V2 Spot Prawn factors
+            'catenaryDrag': 'Catenary Drag',
+            'intraSeason': 'Intra-Season',
+            'photoperiod': 'Photoperiod',
+            'tideDirection': 'Tide Direction',
           }
 
           const iconMap: {[key: string]: string} = {
+            // V1 Legacy
             'lightTime': '🕐',
             'tidalRange': '🌊',
             'slackTide': '🌊',
@@ -422,9 +488,74 @@ export default function ScoreBreakdownEnhanced({
             'precipitation': '🌧️',
             'waveHeight': '🌊',
             'temperature': '🌡️',
+
+            // V2 Chinook
+            'tide': '🌊',
+            'lightDepth': '☀️',
+            'seaState': '🌊',
+            'solunar': '🌙',
+
+            // V2 Coho
+            'lightAndStealth': '👁️',
+            'baitPresence': '🐟',
+            'seaSurfaceState': '🌊',
+            'pressureTrend': '📉',
+            'riverTurbidity': '💧',
+
+            // V2 Halibut
+            'tidalSlope': '📈',
+            'swellQuality': '🌊',
+            'windTideSafety': '⚓',
+            'lightTideInteraction': '🌅',
+            'baitScent': '🦐',
+
+            // V2 Lingcod
+            'tidalShoulder': '⚡',
+
+            // V2 Rockfish
+            'resultantDrift': '🧭',
+            'swellHeave': '↕️',
+            'barometricStability': '🎚️',
+            'lightConditions': '☁️',
+            'windSafety': '💨',
+
+            // V2 Crab
+            'scentHydraulics': '💨',
+            'moltQuality': '🦀',
+            'darkness': '🌑',
+            'slackWindow': '⏱️',
+            'retrievalSafety': '⚓',
+
+            // V2 Chum
+            'stormTrigger': '⛈️',
+            'stagingSeams': '🌊',
+            'thermalGate': '🌡️',
+            'runTiming': '📅',
+
+            // V2 Pink
+            'estuaryFlush': '🌊',
+            'surfaceTexture': '💧',
+            'schoolingIntel': '🐟',
+            'barometer': '📉',
+
+            // V2 Sockeye/Lingcod shared
+            'bioIntel': '🎣',
+
+            // V2 Sockeye specific
+            'thermalBlockade': '🌡️',
+            'tidalTreadmill': '🏃',
+            'corridorLight': '🔦',
+            'waterClarity': '💎',
+
+            // V2 Spot Prawn
+            'catenaryDrag': '⚓',
+            'intraSeason': '📆',
+            'photoperiod': '☀️',
+            'tideDirection': '🧭',
           }
 
           const unitMap: {[key: string]: string} = {
+            // V1 Legacy
             'lightTime': 'hour',
             'tidalRange': 'm',
             'slackTide': 'knots',
@@ -438,6 +569,50 @@ export default function ScoreBreakdownEnhanced({
             'precipitation': 'mm/hr',
             'waveHeight': 'm',
             'temperature': '°C',
+
+            // V2 factors
+            'tide': 'kts',
+            'lightDepth': '',
+            'seaState': 'kts',
+            'solunar': '',
+            'lightAndStealth': '',
+            'baitPresence': '',
+            'seaSurfaceState': 'kts',
+            'pressureTrend': 'hPa',
+            'riverTurbidity': '',
+            'tidalSlope': 'min',
+            'swellQuality': 'm/s',
+            'windTideSafety': '',
+            'lightTideInteraction': '',
+            'baitScent': '',
+            'tidalShoulder': 'kts',
+            'bioIntel': '',
+            'resultantDrift': 'kts',
+            'swellHeave': 'm/s',
+            'barometricStability': 'hPa',
+            'lightConditions': '%',
+            'windSafety': 'kts',
+            'scentHydraulics': 'kts',
+            'moltQuality': '°C',
+            'darkness': '%',
+            'slackWindow': 'min',
+            'retrievalSafety': '',
+            'stormTrigger': 'hPa',
+            'stagingSeams': 'kts',
+            'thermalGate': '°C',
+            'runTiming': '',
+            'estuaryFlush': 'm',
+            'surfaceTexture': 'kts',
+            'schoolingIntel': '',
+            'barometer': 'hPa',
+            'thermalBlockade': '°C',
+            'tidalTreadmill': 'kts',
+            'corridorLight': 'ft',
+            'waterClarity': '',
+            'catenaryDrag': 'kts',
+            'intraSeason': '',
+            'photoperiod': '',
+            'tideDirection': '',
           }
 
           const finalConfig = {
@@ -448,13 +623,20 @@ export default function ScoreBreakdownEnhanced({
             scoring: baseConfig?.scoring || []
           }
 
+          // All algorithms now use consistent 0-10 scale
+          // factorData.score: 0-10 (from algorithm)
+          // factorData.weight: 0-1 (e.g., 0.45 = 45%)
+          // contribution: score × weight = (0-10) × (0-1) = (0-1), multiply by 10 for display
+          const normalizedScore = factorData.score
+          const contribution = factorData.score * factorData.weight
+
           return {
             key,
-            value: factorData.score * 10, // Convert 0-1 score to 0-10
+            value: normalizedScore,
             config: finalConfig,
-            weight: Math.round(factorData.weight * 100), // Use actual weight from species algorithm
-            contribution: factorData.score * factorData.weight * 10, // Calculate actual contribution
-            actualValue: factorData.value // Use the actual measured value
+            weight: Math.round(factorData.weight * 100),
+            contribution,
+            actualValue: factorData.value
           }
         })
         .filter(Boolean) as any[]
