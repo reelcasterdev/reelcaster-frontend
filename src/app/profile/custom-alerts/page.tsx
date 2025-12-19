@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Plus, ArrowLeft } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
 import Sidebar from '@/app/components/common/sidebar'
@@ -89,8 +89,8 @@ export default function CustomAlertsPage() {
     }
   }
 
-  const handleUpdateProfile = async (profileData: Partial<AlertProfile> & { id: string }) => {
-    if (!session?.access_token) return
+  const handleUpdateProfile = async (profileData: Partial<AlertProfile> & { id?: string }) => {
+    if (!session?.access_token || !profileData.id) return
 
     try {
       const response = await fetch('/api/alerts', {

@@ -27,7 +27,6 @@ import {
   Thermometer,
   Moon,
   Fish,
-  MapPin,
   ChevronDown,
   Save,
   X,

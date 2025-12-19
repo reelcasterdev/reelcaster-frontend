@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Optionally include recent history
-    let history: Record<string, unknown[]> = {};
+    const history: Record<string, unknown[]> = {};
     if (includeHistory && profiles && profiles.length > 0) {
       const profileIds = profiles.map((p) => p.id);
       const { data: historyData } = await supabaseAdmin

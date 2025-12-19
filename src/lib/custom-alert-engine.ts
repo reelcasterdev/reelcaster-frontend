@@ -405,6 +405,7 @@ export function evaluateWaterTempTrigger(
  *
  * Simplified calculation using moon phase as proxy
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getSolunarPeriod(date: Date, lat: number, lng: number): SolunarPhase | null {
   const hour = date.getHours();
   const moonPhase = getMoonPhase(date);

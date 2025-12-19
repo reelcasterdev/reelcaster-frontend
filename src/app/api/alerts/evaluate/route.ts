@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { processAlerts, getUserEmail, logAlertHistory } from '@/lib/custom-alert-engine';
+import { processAlerts, getUserEmail } from '@/lib/custom-alert-engine';
 import { sendEmail } from '@/lib/email-service';
 import { generateCustomAlertEmail } from '@/lib/email-templates/custom-alert';
 import { createClient } from '@supabase/supabase-js';
