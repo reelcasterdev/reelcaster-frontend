@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/auth-context'
 import { MixpanelProvider } from '@/contexts/mixpanel-context'
 import { UnitPreferencesProvider } from '@/contexts/unit-preferences-context'
+import FishOnButtonWrapper from '@/app/components/catch-log/fish-on-button-wrapper'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,7 +34,10 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <MixpanelProvider>
-            <UnitPreferencesProvider>{children}</UnitPreferencesProvider>
+            <UnitPreferencesProvider>
+              {children}
+              <FishOnButtonWrapper />
+            </UnitPreferencesProvider>
           </MixpanelProvider>
         </AuthProvider>
       </body>

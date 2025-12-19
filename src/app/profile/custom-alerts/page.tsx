@@ -167,28 +167,29 @@ export default function CustomAlertsPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-900 text-white">
       <Sidebar />
 
-      <main className="flex-1 md:ml-64 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
+      <main className="ml-64 min-h-screen overflow-auto">
+        <div className="max-w-4xl mx-auto p-6 space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 onClick={() => router.push('/profile')}
-                className="md:hidden"
+                className="text-slate-400 hover:text-white"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
               </Button>
               <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <Bell className="h-6 w-6 text-primary" />
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent flex items-center gap-3">
+                  <Bell className="h-7 w-7 text-blue-500" />
                   Custom Alerts
                 </h1>
-                <p className="text-muted-foreground text-sm mt-1">
+                <p className="text-slate-400 mt-1">
                   Get notified when your perfect fishing conditions are detected
                 </p>
               </div>
@@ -198,7 +199,7 @@ export default function CustomAlertsPage() {
               <Button
                 onClick={() => setShowForm(true)}
                 disabled={profiles.length >= 10}
-                className="gap-2"
+                className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               >
                 <Plus className="h-4 w-4" />
                 New Alert
@@ -208,9 +209,9 @@ export default function CustomAlertsPage() {
 
           {/* Error message */}
           {error && (
-            <Card className="mb-6 border-destructive">
+            <Card className="border-red-500 bg-red-500/10">
               <CardContent className="py-4">
-                <p className="text-destructive text-sm">{error}</p>
+                <p className="text-red-400 text-sm">{error}</p>
               </CardContent>
             </Card>
           )}
@@ -226,25 +227,27 @@ export default function CustomAlertsPage() {
               }}
             />
           ) : loading ? (
-            <Card>
+            <Card className="bg-slate-800 border-slate-700">
               <CardContent className="py-12">
-                <div className="flex flex-col items-center justify-center text-muted-foreground">
-                  <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mb-4" />
+                <div className="flex flex-col items-center justify-center text-slate-400">
+                  <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mb-4" />
                   <p>Loading alerts...</p>
                 </div>
               </CardContent>
             </Card>
           ) : profiles.length === 0 ? (
-            <Card>
+            <Card className="bg-slate-800 border-slate-700">
               <CardContent className="py-12">
                 <div className="flex flex-col items-center justify-center text-center">
-                  <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Custom Alerts Yet</h3>
-                  <p className="text-muted-foreground mb-6 max-w-md">
+                  <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-4">
+                    <Bell className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">No Custom Alerts Yet</h3>
+                  <p className="text-slate-400 mb-6 max-w-md">
                     Create custom alerts to get notified when specific fishing conditions
                     are detected at your favorite spots.
                   </p>
-                  <Button onClick={() => setShowForm(true)} className="gap-2">
+                  <Button onClick={() => setShowForm(true)} className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
                     <Plus className="h-4 w-4" />
                     Create Your First Alert
                   </Button>
@@ -261,26 +264,26 @@ export default function CustomAlertsPage() {
           )}
 
           {/* Info card */}
-          <Card className="mt-6">
+          <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
-              <CardTitle className="text-base">How Custom Alerts Work</CardTitle>
+              <CardTitle className="text-white text-base">How Custom Alerts Work</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-2">
+            <CardContent className="text-sm text-slate-400 space-y-2">
               <p>
-                <strong>Triggers:</strong> Set conditions for wind, tide, pressure, water temperature,
+                <strong className="text-slate-300">Triggers:</strong> Set conditions for wind, tide, pressure, water temperature,
                 solunar periods, and fishing score.
               </p>
               <p>
-                <strong>Logic Mode:</strong> Choose AND (all conditions must match) or OR (any condition can match).
+                <strong className="text-slate-300">Logic Mode:</strong> Choose AND (all conditions must match) or OR (any condition can match).
               </p>
               <p>
-                <strong>Cooldown:</strong> Prevents duplicate alerts. Set 1-168 hours between notifications.
+                <strong className="text-slate-300">Cooldown:</strong> Prevents duplicate alerts. Set 1-168 hours between notifications.
               </p>
               <p>
-                <strong>Active Hours:</strong> Only check conditions during specific times of day.
+                <strong className="text-slate-300">Active Hours:</strong> Only check conditions during specific times of day.
               </p>
               <p>
-                <strong>Evaluation:</strong> Conditions are checked every 30 minutes.
+                <strong className="text-slate-300">Evaluation:</strong> Conditions are checked every 30 minutes.
               </p>
             </CardContent>
           </Card>

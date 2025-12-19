@@ -55,6 +55,8 @@ src/app/
 
 - `/` - Main fishing forecast page with location-based forecasts
 - `/profile` - User profile and preferences page
+- `/profile/catch-log` - Catch logging history and statistics
+- `/profile/custom-alerts` - Custom alert configuration
 - `/admin/send-email` - Admin email broadcast system (manual email sending)
 
 ## External APIs
@@ -223,6 +225,12 @@ Based on current usage analysis, these components are actively used:
 **Location:**
 
 - `compact-location-selector.tsx` - Location picker component
+
+**Catch Log:**
+
+- `fish-on-button.tsx` - Floating action button for quick catch logging
+- `fish-on-button-wrapper.tsx` - Auth-aware wrapper component
+- `quick-catch-modal.tsx` - Outcome selection modal (Bite/Landed)
 
 ### API Integration
 
@@ -533,6 +541,71 @@ ReelCaster includes a custom alert engine that allows users to define multi-vari
 - **Tide Data**: CHS API (reuses existing integration)
 - **Email Service**: Resend (shared infrastructure)
 - **Database**: Supabase PostgreSQL with RLS policies
+
+## Catch Logging System (Fish On)
+
+ReelCaster includes a mobile-first catch logging system that allows anglers to quickly log catches with minimal friction. The system features offline-first architecture with background sync.
+
+### Features
+
+- **Quick Capture**: Large "Fish On" floating action button for instant logging
+- **Auto-Captured Data**: GPS coordinates, accuracy, heading, speed, timestamp
+- **Two Outcome Types**: Bite (lost) or Landed (in the boat)
+- **Offline-First**: IndexedDB storage with Supabase sync when online
+- **Deferred Details**: Species, depth, lure, size, weight can be added later
+- **Retention Tracking**: Released or Kept status
+- **Predefined Lures**: BC fishing lures with custom entry option
+
+### Database Schema
+
+- **`catch_logs`**: Individual catch records with GPS, weather context, and optional details
+- **`lures`**: Predefined BC lures + user-created custom lures
+
+### Key Files
+
+- **Floating Button**: `src/app/components/catch-log/fish-on-button.tsx` - Global FAB
+- **Quick Capture Modal**: `src/app/components/catch-log/quick-catch-modal.tsx` - Outcome selection
+- **Button Wrapper**: `src/app/components/catch-log/fish-on-button-wrapper.tsx` - Auth integration
+- **History Page**: `src/app/profile/catch-log/page.tsx` - Catch history and stats
+- **API Endpoints**:
+  - `/api/catches` - CRUD operations
+  - `/api/catches/sync` - Batch offline sync
+  - `/api/lures` - Lure CRUD
+- **Services**:
+  - `src/lib/geolocation-service.ts` - GPS capture helper
+  - `src/lib/offline-catch-store.ts` - IndexedDB wrapper
+  - `src/lib/catch-sync-manager.ts` - Background sync
+- **Migrations**:
+  - `supabase/migrations/20251220_create_catch_logs.sql`
+  - `supabase/migrations/20251220_create_lures.sql`
+
+### UX Flow
+
+1. **Quick Capture (2 taps)**:
+   - Tap "Fish On" button → GPS capture starts
+   - Select outcome → "Bite" or "In the Boat"
+   - Done → Catch saved locally, syncs when online
+
+2. **Add Details (optional)**:
+   - Species, Retention status (Released/Kept)
+   - Depth, Size, Weight
+   - Lure selection, Notes, Photos
+
+### Offline Sync Strategy
+
+- All catches stored locally first (instant response)
+- Background sync every 30 seconds when online
+- `client_id` prevents duplicates during sync
+- Exponential backoff with max 5 retries
+- Conflict detection with manual resolution
+
+### Technology
+
+- **Local Storage**: IndexedDB via `idb` library
+- **GPS**: Browser Geolocation API with high accuracy
+- **Sync**: Custom sync manager with queue
+- **UI**: Floating action button with haptic feedback
+- **Database**: Supabase PostgreSQL with RLS
 
 ## Development Guidelines
 

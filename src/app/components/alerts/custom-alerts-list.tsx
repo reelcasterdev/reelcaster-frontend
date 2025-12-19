@@ -120,19 +120,19 @@ export function CustomAlertsList({
         return (
           <Card
             key={profile.id}
-            className={`transition-opacity ${!profile.is_active ? 'opacity-60' : ''}`}
+            className={`bg-slate-800 border-slate-700 transition-opacity ${!profile.is_active ? 'opacity-60' : ''}`}
           >
             <CardContent className="p-4">
               {/* Header */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-lg">{profile.name}</h3>
-                    <Badge variant={profile.logic_mode === 'AND' ? 'default' : 'secondary'}>
+                    <h3 className="font-semibold text-lg text-white">{profile.name}</h3>
+                    <Badge variant={profile.logic_mode === 'AND' ? 'default' : 'secondary'} className="bg-blue-600 text-white">
                       {profile.logic_mode}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-4 text-sm text-slate-400">
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5" />
                       {profile.location_name || `${profile.location_lat.toFixed(4)}, ${profile.location_lng.toFixed(4)}`}
@@ -160,11 +160,11 @@ export function CustomAlertsList({
                   <Badge
                     key={trigger}
                     variant="outline"
-                    className="flex items-center gap-1.5 py-1 px-2"
+                    className="flex items-center gap-1.5 py-1 px-2 border-slate-600 bg-slate-700/50 text-slate-300"
                   >
                     {TRIGGER_ICONS[trigger]}
                     <span className="font-medium">{TRIGGER_LABELS[trigger]}</span>
-                    <span className="text-muted-foreground">
+                    <span className="text-slate-400">
                       {formatTriggerSummary(trigger, profile.triggers)}
                     </span>
                   </Badge>
@@ -172,8 +172,8 @@ export function CustomAlertsList({
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-3 border-t">
-                <div className="text-xs text-muted-foreground">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-700">
+                <div className="text-xs text-slate-400">
                   {profile.last_triggered_at ? (
                     <span className="flex items-center gap-1">
                       <History className="h-3.5 w-3.5" />
@@ -212,16 +212,16 @@ export function CustomAlertsList({
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Alert Profile?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-white">Delete Alert Profile?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
               This will permanently delete this alert profile and all its history.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deleteConfirm) {
@@ -229,7 +229,7 @@ export function CustomAlertsList({
                   setDeleteConfirm(null)
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-600 text-white hover:bg-red-700"
             >
               Delete
             </AlertDialogAction>

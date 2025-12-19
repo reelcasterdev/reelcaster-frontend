@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Fish, Menu, X, FileText, Calendar, Bell } from 'lucide-react'
+import { MapPin, Fish, Menu, X, FileText, Calendar, Bell, Anchor } from 'lucide-react'
 import { AuthButton } from '../auth/auth-button'
 
 interface NavItem {
@@ -39,6 +39,13 @@ export default function Sidebar() {
       label: 'Custom Alerts',
       href: '/profile/custom-alerts',
       icon: <Bell className="w-5 h-5" />,
+      isActive: true,
+    },
+    {
+      id: 'catch-log',
+      label: 'Catch Log',
+      href: '/profile/catch-log',
+      icon: <Anchor className="w-5 h-5" />,
       isActive: true,
     },
     {

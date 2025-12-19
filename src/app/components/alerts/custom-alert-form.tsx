@@ -151,15 +151,15 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
   }
 
   return (
-    <Card>
+    <Card className="bg-slate-800 border-slate-700">
       <CardHeader>
-        <CardTitle>{profile ? 'Edit Alert' : 'Create New Alert'}</CardTitle>
+        <CardTitle className="text-white">{profile ? 'Edit Alert' : 'Create New Alert'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error */}
           {error && (
-            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+            <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               {error}
             </div>
           )}
@@ -167,19 +167,20 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
           {/* Basic Info */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Alert Name</Label>
+              <Label htmlFor="name" className="text-white">Alert Name</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sooke Basin Chinook"
                 required
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="lat">Latitude</Label>
+                <Label htmlFor="lat" className="text-white">Latitude</Label>
                 <Input
                   id="lat"
                   type="number"
@@ -187,10 +188,11 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                   value={locationLat}
                   onChange={(e) => setLocationLat(parseFloat(e.target.value))}
                   required
+                  className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="lng">Longitude</Label>
+                <Label htmlFor="lng" className="text-white">Longitude</Label>
                 <Input
                   id="lng"
                   type="number"
@@ -198,29 +200,31 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                   value={locationLng}
                   onChange={(e) => setLocationLng(parseFloat(e.target.value))}
                   required
+                  className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="locationName">Location Name</Label>
+              <Label htmlFor="locationName" className="text-white">Location Name</Label>
               <Input
                 id="locationName"
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
                 placeholder="e.g., Victoria, BC"
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
               />
             </div>
           </div>
 
           {/* Triggers */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Trigger Conditions</Label>
+            <Label className="text-base font-semibold text-white">Trigger Conditions</Label>
 
             {/* Wind Trigger */}
             <Collapsible open={openSections.wind} onOpenChange={() => toggleSection('wind')}>
-              <div className="border rounded-lg">
-                <div className="flex items-center justify-between w-full p-3 hover:bg-muted/50">
+              <div className="border border-slate-600 rounded-lg bg-slate-700/30">
+                <div className="flex items-center justify-between w-full p-3 hover:bg-slate-700/50">
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={triggers.wind?.enabled}
@@ -229,8 +233,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                         if (checked) setOpenSections((prev) => ({ ...prev, wind: true }))
                       }}
                     />
-                    <Wind className="h-4 w-4" />
-                    <span className="font-medium">Wind</span>
+                    <Wind className="h-4 w-4 text-slate-400" />
+                    <span className="font-medium text-white">Wind</span>
                   </div>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -241,34 +245,36 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                 <CollapsibleContent className="p-3 pt-0 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs">Min Speed (mph)</Label>
+                      <Label className="text-xs text-slate-400">Min Speed (mph)</Label>
                       <Input
                         type="number"
                         min={0}
                         max={100}
                         value={triggers.wind?.speed_min || 0}
                         onChange={(e) => updateTrigger('wind', { speed_min: parseInt(e.target.value) })}
+                        className="bg-slate-700 border-slate-600 text-white"
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">Max Speed (mph)</Label>
+                      <Label className="text-xs text-slate-400">Max Speed (mph)</Label>
                       <Input
                         type="number"
                         min={0}
                         max={100}
                         value={triggers.wind?.speed_max || 15}
                         onChange={(e) => updateTrigger('wind', { speed_max: parseInt(e.target.value) })}
+                        className="bg-slate-700 border-slate-600 text-white"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs">Direction (optional)</Label>
+                      <Label className="text-xs text-slate-400">Direction (optional)</Label>
                       <Select
                         value={triggers.wind?.direction_center?.toString() || '__none__'}
                         onValueChange={(v) => updateTrigger('wind', { direction_center: v === '__none__' ? undefined : parseInt(v) })}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                           <SelectValue placeholder="Any direction" />
                         </SelectTrigger>
                         <SelectContent>
@@ -282,7 +288,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                       </Select>
                     </div>
                     <div>
-                      <Label className="text-xs">Tolerance (±degrees)</Label>
+                      <Label className="text-xs text-slate-400">Tolerance (±degrees)</Label>
                       <Input
                         type="number"
                         min={0}
@@ -290,6 +296,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                         value={triggers.wind?.direction_tolerance || 45}
                         onChange={(e) => updateTrigger('wind', { direction_tolerance: parseInt(e.target.value) })}
                         disabled={!triggers.wind?.direction_center}
+                        className="bg-slate-700 border-slate-600 text-white disabled:opacity-50"
                       />
                     </div>
                   </div>
@@ -299,8 +306,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
 
             {/* Tide Trigger */}
             <Collapsible open={openSections.tide} onOpenChange={() => toggleSection('tide')}>
-              <div className="border rounded-lg">
-                <div className="flex items-center justify-between w-full p-3 hover:bg-muted/50">
+              <div className="border border-slate-600 rounded-lg bg-slate-700/30">
+                <div className="flex items-center justify-between w-full p-3 hover:bg-slate-700/50">
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={triggers.tide?.enabled}
@@ -309,11 +316,11 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                         if (checked) setOpenSections((prev) => ({ ...prev, tide: true }))
                       }}
                     />
-                    <Waves className="h-4 w-4" />
-                    <span className="font-medium">Tide Phase</span>
+                    <Waves className="h-4 w-4 text-slate-400" />
+                    <span className="font-medium text-white">Tide Phase</span>
                   </div>
                   <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
                       <ChevronDown className={`h-4 w-4 transition-transform ${openSections.tide ? 'rotate-180' : ''}`} />
                     </Button>
                   </CollapsibleTrigger>
@@ -333,14 +340,14 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                             updateTrigger('tide', { phases: updated as any })
                           }}
                         />
-                        <Label htmlFor={`tide-${phase.id}`} className="text-sm">
+                        <Label htmlFor={`tide-${phase.id}`} className="text-sm text-slate-300">
                           {phase.name}
                         </Label>
                       </div>
                     ))}
                   </div>
                   <div>
-                    <Label className="text-xs">Min Tidal Exchange (m, optional)</Label>
+                    <Label className="text-xs text-slate-400">Min Tidal Exchange (m, optional)</Label>
                     <Input
                       type="number"
                       step="0.1"
@@ -348,6 +355,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                       value={triggers.tide?.exchange_min || ''}
                       onChange={(e) => updateTrigger('tide', { exchange_min: e.target.value ? parseFloat(e.target.value) : undefined })}
                       placeholder="Any exchange"
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
                     />
                   </div>
                 </CollapsibleContent>
@@ -356,8 +364,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
 
             {/* Pressure Trigger */}
             <Collapsible open={openSections.pressure} onOpenChange={() => toggleSection('pressure')}>
-              <div className="border rounded-lg">
-                <div className="flex items-center justify-between w-full p-3 hover:bg-muted/50">
+              <div className="border border-slate-600 rounded-lg bg-slate-700/30">
+                <div className="flex items-center justify-between w-full p-3 hover:bg-slate-700/50">
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={triggers.pressure?.enabled}
@@ -366,8 +374,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                         if (checked) setOpenSections((prev) => ({ ...prev, pressure: true }))
                       }}
                     />
-                    <Gauge className="h-4 w-4" />
-                    <span className="font-medium">Barometric Pressure</span>
+                    <Gauge className="h-4 w-4 text-slate-400" />
+                    <span className="font-medium text-white">Barometric Pressure</span>
                   </div>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -377,12 +385,12 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                 </div>
                 <CollapsibleContent className="p-3 pt-0 space-y-3">
                   <div>
-                    <Label className="text-xs">Trend</Label>
+                    <Label className="text-xs text-slate-400">Trend</Label>
                     <Select
                       value={triggers.pressure?.trend || 'falling'}
                       onValueChange={(v) => updateTrigger('pressure', { trend: v as 'rising' | 'falling' | 'steady' })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -393,14 +401,14 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs">Gradient Threshold (mb/3h)</Label>
+                    <Label className="text-xs text-slate-400">Gradient Threshold (mb/3h)</Label>
                     <Input
                       type="number"
                       step="0.5"
                       value={triggers.pressure?.gradient_threshold || -2}
                       onChange={(e) => updateTrigger('pressure', { gradient_threshold: parseFloat(e.target.value) })}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-slate-500 mt-1">
                       {triggers.pressure?.trend === 'falling' ? 'Alert when change ≤ threshold' : 'Alert when change ≥ threshold'}
                     </p>
                   </div>
@@ -410,8 +418,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
 
             {/* Water Temp Trigger */}
             <Collapsible open={openSections.water_temp} onOpenChange={() => toggleSection('water_temp')}>
-              <div className="border rounded-lg">
-                <div className="flex items-center justify-between w-full p-3 hover:bg-muted/50">
+              <div className="border border-slate-600 rounded-lg bg-slate-700/30">
+                <div className="flex items-center justify-between w-full p-3 hover:bg-slate-700/50">
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={triggers.water_temp?.enabled}
@@ -420,8 +428,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                         if (checked) setOpenSections((prev) => ({ ...prev, water_temp: true }))
                       }}
                     />
-                    <Thermometer className="h-4 w-4" />
-                    <span className="font-medium">Water Temperature</span>
+                    <Thermometer className="h-4 w-4 text-slate-400" />
+                    <span className="font-medium text-white">Water Temperature</span>
                   </div>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -432,7 +440,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                 <CollapsibleContent className="p-3 pt-0 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs">Min (°C)</Label>
+                      <Label className="text-xs text-slate-400">Min (°C)</Label>
                       <Input
                         type="number"
                         step="0.5"
@@ -441,7 +449,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">Max (°C)</Label>
+                      <Label className="text-xs text-slate-400">Max (°C)</Label>
                       <Input
                         type="number"
                         step="0.5"
@@ -456,8 +464,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
 
             {/* Solunar Trigger */}
             <Collapsible open={openSections.solunar} onOpenChange={() => toggleSection('solunar')}>
-              <div className="border rounded-lg">
-                <div className="flex items-center justify-between w-full p-3 hover:bg-muted/50">
+              <div className="border border-slate-600 rounded-lg bg-slate-700/30">
+                <div className="flex items-center justify-between w-full p-3 hover:bg-slate-700/50">
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={triggers.solunar?.enabled}
@@ -466,8 +474,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                         if (checked) setOpenSections((prev) => ({ ...prev, solunar: true }))
                       }}
                     />
-                    <Moon className="h-4 w-4" />
-                    <span className="font-medium">Solunar Period</span>
+                    <Moon className="h-4 w-4 text-slate-400" />
+                    <span className="font-medium text-white">Solunar Period</span>
                   </div>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -516,8 +524,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
 
             {/* Fishing Score Trigger */}
             <Collapsible open={openSections.fishing_score} onOpenChange={() => toggleSection('fishing_score')}>
-              <div className="border rounded-lg">
-                <div className="flex items-center justify-between w-full p-3 hover:bg-muted/50">
+              <div className="border border-slate-600 rounded-lg bg-slate-700/30">
+                <div className="flex items-center justify-between w-full p-3 hover:bg-slate-700/50">
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={triggers.fishing_score?.enabled}
@@ -526,8 +534,8 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                         if (checked) setOpenSections((prev) => ({ ...prev, fishing_score: true }))
                       }}
                     />
-                    <Fish className="h-4 w-4" />
-                    <span className="font-medium">Fishing Score</span>
+                    <Fish className="h-4 w-4 text-slate-400" />
+                    <span className="font-medium text-white">Fishing Score</span>
                   </div>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -537,7 +545,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                 </div>
                 <CollapsibleContent className="p-3 pt-0 space-y-3">
                   <div>
-                    <Label className="text-xs">Minimum Score: {triggers.fishing_score?.min_score || 70}/100</Label>
+                    <Label className="text-xs text-slate-400">Minimum Score: {triggers.fishing_score?.min_score || 70}/100</Label>
                     <Slider
                       value={[triggers.fishing_score?.min_score || 70]}
                       onValueChange={([v]) => updateTrigger('fishing_score', { min_score: v })}
@@ -548,12 +556,12 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Species (optional)</Label>
+                    <Label className="text-xs text-slate-400">Species (optional)</Label>
                     <Select
                       value={triggers.fishing_score?.species || '__none__'}
                       onValueChange={(v) => updateTrigger('fishing_score', { species: v === '__none__' ? undefined : v })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                         <SelectValue placeholder="Any species" />
                       </SelectTrigger>
                       <SelectContent>
@@ -573,7 +581,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
 
           {/* Logic Mode */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Logic Mode</Label>
+            <Label className="text-base font-semibold text-white">Logic Mode</Label>
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
                 <input
@@ -583,9 +591,9 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                   value="AND"
                   checked={logicMode === 'AND'}
                   onChange={() => setLogicMode('AND')}
-                  className="w-4 h-4"
+                  className="w-4 h-4 accent-blue-500"
                 />
-                <Label htmlFor="logic-and" className="text-sm font-normal">
+                <Label htmlFor="logic-and" className="text-sm font-normal text-slate-300">
                   AND - All conditions must match
                 </Label>
               </div>
@@ -597,9 +605,9 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                   value="OR"
                   checked={logicMode === 'OR'}
                   onChange={() => setLogicMode('OR')}
-                  className="w-4 h-4"
+                  className="w-4 h-4 accent-blue-500"
                 />
-                <Label htmlFor="logic-or" className="text-sm font-normal">
+                <Label htmlFor="logic-or" className="text-sm font-normal text-slate-300">
                   OR - Any condition can match
                 </Label>
               </div>
@@ -608,9 +616,9 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
 
           {/* Cooldown */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Cooldown Period</Label>
+            <Label className="text-base font-semibold text-white">Cooldown Period</Label>
             <div>
-              <Label className="text-xs text-muted-foreground">
+              <Label className="text-xs text-slate-400">
                 Minimum {cooldownHours} hours between notifications
               </Label>
               <Slider
@@ -621,7 +629,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
                 step={1}
                 className="mt-2"
               />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <div className="flex justify-between text-xs text-slate-500 mt-1">
                 <span>1 hour</span>
                 <span>1 week</span>
               </div>
@@ -631,7 +639,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
           {/* Active Hours */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">Active Hours</Label>
+              <Label className="text-base font-semibold text-white">Active Hours</Label>
               <Switch
                 checked={activeHoursEnabled}
                 onCheckedChange={setActiveHoursEnabled}
@@ -640,19 +648,21 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
             {activeHoursEnabled && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Start Time</Label>
+                  <Label className="text-xs text-slate-400">Start Time</Label>
                   <Input
                     type="time"
                     value={activeHoursStart}
                     onChange={(e) => setActiveHoursStart(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">End Time</Label>
+                  <Label className="text-xs text-slate-400">End Time</Label>
                   <Input
                     type="time"
                     value={activeHoursEnd}
                     onChange={(e) => setActiveHoursEnd(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
                   />
                 </div>
               </div>
@@ -660,12 +670,12 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
+          <div className="flex gap-3 pt-4 border-t border-slate-700">
+            <Button type="button" variant="outline" onClick={onCancel} disabled={saving} className="border-slate-600 text-slate-300 hover:bg-slate-700">
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            <Button type="submit" disabled={saving} className="flex-1">
+            <Button type="submit" disabled={saving} className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
