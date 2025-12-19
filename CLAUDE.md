@@ -475,6 +475,65 @@ CRON_SECRET=your_cron_secret_key
 
 See `docs/notification-system.md` for detailed architecture and implementation guide.
 
+## Custom Alert Engine
+
+ReelCaster includes a custom alert engine that allows users to define multi-variable fishing condition triggers for specific GPS locations. When conditions match, users receive email notifications.
+
+### Features
+
+- **Multi-Variable Triggers**: Wind (speed, direction), Tide (phase, exchange), Pressure (trend, gradient), Water Temperature, Solunar Periods, Fishing Score
+- **Logic Modes**: AND (all conditions must match) or OR (any condition can match)
+- **Anti-Spam Protection**:
+  - Configurable cooldown (1-168 hours between alerts)
+  - Hysteresis/deadband logic to prevent flickering
+  - Active hours filtering (only check during specified times)
+- **Data Smoothing**: 3-point SMA for wind speed to filter gusts
+- **Pressure Gradient**: 3-hour lookback for trend detection
+
+### Database Schema
+
+- **`user_alert_profiles`**: Custom alert definitions with JSONB triggers
+- **`alert_history`**: Log of triggered alerts with condition snapshots
+
+### Key Files
+
+- **Core Engine**: `src/lib/custom-alert-engine.ts` - Evaluation logic, math functions, anti-spam
+- **CRUD API**: `src/app/api/alerts/route.ts` - Create/read/update/delete profiles
+- **Evaluation Endpoint**: `src/app/api/alerts/evaluate/route.ts` - Cron job endpoint
+- **Email Template**: `src/lib/email-templates/custom-alert.ts` - Notification format
+- **UI Page**: `src/app/profile/custom-alerts/page.tsx` - User interface
+- **Components**:
+  - `src/app/components/alerts/custom-alerts-list.tsx` - Profile list
+  - `src/app/components/alerts/custom-alert-form.tsx` - Create/edit form
+- **Automation**: `.github/workflows/custom-alerts.yml` - Runs every 30 minutes
+
+### Trigger JSONB Structure
+
+```json
+{
+  "wind": { "enabled": true, "speed_min": 0, "speed_max": 15, "direction_center": 270, "direction_tolerance": 45 },
+  "tide": { "enabled": true, "phases": ["incoming", "high_slack"], "exchange_min": 1.5 },
+  "pressure": { "enabled": true, "trend": "falling", "gradient_threshold": -2.0 },
+  "water_temp": { "enabled": true, "min": 10.0, "max": 14.0 },
+  "solunar": { "enabled": true, "phases": ["major", "minor"] },
+  "fishing_score": { "enabled": true, "min_score": 70, "species": "chinook-salmon" }
+}
+```
+
+### Math Functions
+
+- **Wind Direction**: Angular difference with 360° wrap-around: `Δθ = 180 - | |θ_target - θ_current| - 180 |`
+- **Pressure Gradient**: `ΔP = P₀ - P₋₃ₕ` (current vs 3 hours ago)
+- **Tide Phase Detection**: Derivative-based: incoming (dH/dt > 0.05), outgoing (< -0.05), slack (|dH/dt| < 0.05)
+
+### Technology
+
+- **Polling Frequency**: Every 30 minutes via GitHub Actions
+- **Weather Data**: Open Meteo API (reuses existing integration)
+- **Tide Data**: CHS API (reuses existing integration)
+- **Email Service**: Resend (shared infrastructure)
+- **Database**: Supabase PostgreSQL with RLS policies
+
 ## Development Guidelines
 
 When implementing a large new feature always create a detailed step by step plan as a task list. Ask me any clarifying question and then start implementation.
