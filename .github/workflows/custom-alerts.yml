@@ -1,0 +1,74 @@
+name: Custom Alerts Evaluation
+
+on:
+  # Run every 30 minutes
+  schedule:
+    - cron: '*/30 * * * *'
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  evaluate-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Evaluate Custom Alerts
+        id: evaluate_alerts
+        run: |
+          echo "🎣 Evaluating custom fishing alerts..."
+
+          # Call the alerts evaluation endpoint with CRON_SECRET
+          RESPONSE=$(curl -s -X POST "${{ secrets.APP_URL }}/api/alerts/evaluate" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 300)
+
+          echo "Response: $RESPONSE"
+
+          # Extract stats from response
+          PROCESSED=$(echo "$RESPONSE" | jq -r '.profiles_processed // 0')
+          TRIGGERED=$(echo "$RESPONSE" | jq -r '.alerts_triggered // 0')
+          SENT=$(echo "$RESPONSE" | jq -r '.notifications_sent // 0')
+          ERRORS=$(echo "$RESPONSE" | jq -r '.errors // 0')
+
+          echo "processed=$PROCESSED" >> $GITHUB_OUTPUT
+          echo "triggered=$TRIGGERED" >> $GITHUB_OUTPUT
+          echo "sent=$SENT" >> $GITHUB_OUTPUT
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+
+          # Check for success
+          SUCCESS=$(echo "$RESPONSE" | jq -r '.success // false')
+          if [ "$SUCCESS" != "true" ]; then
+            echo "evaluation_failed=true" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "# 🎣 Custom Alerts Evaluation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.evaluate_alerts.outcome }}" == "success" ]; then
+            echo "### ✅ Evaluation Complete" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Profiles Processed | ${{ steps.evaluate_alerts.outputs.processed }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Alerts Triggered | ${{ steps.evaluate_alerts.outputs.triggered }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Notifications Sent | ${{ steps.evaluate_alerts.outputs.sent }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Errors | ${{ steps.evaluate_alerts.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Evaluation Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Check the logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Custom alerts evaluation failed. Check logs for details."

@@ -55,6 +55,8 @@ src/app/
 
 - `/` - Main fishing forecast page with location-based forecasts
 - `/profile` - User profile and preferences page
+- `/profile/catch-log` - Catch logging history and statistics
+- `/profile/custom-alerts` - Custom alert configuration
 - `/admin/send-email` - Admin email broadcast system (manual email sending)
 
 ## External APIs
@@ -223,6 +225,12 @@ Based on current usage analysis, these components are actively used:
 **Location:**
 
 - `compact-location-selector.tsx` - Location picker component
+
+**Catch Log:**
+
+- `fish-on-button.tsx` - Floating action button for quick catch logging
+- `fish-on-button-wrapper.tsx` - Auth-aware wrapper component
+- `quick-catch-modal.tsx` - Outcome selection modal (Bite/Landed)
 
 ### API Integration
 
@@ -474,6 +482,130 @@ CRON_SECRET=your_cron_secret_key
 - **Database**: Supabase PostgreSQL with RLS policies
 
 See `docs/notification-system.md` for detailed architecture and implementation guide.
+
+## Custom Alert Engine
+
+ReelCaster includes a custom alert engine that allows users to define multi-variable fishing condition triggers for specific GPS locations. When conditions match, users receive email notifications.
+
+### Features
+
+- **Multi-Variable Triggers**: Wind (speed, direction), Tide (phase, exchange), Pressure (trend, gradient), Water Temperature, Solunar Periods, Fishing Score
+- **Logic Modes**: AND (all conditions must match) or OR (any condition can match)
+- **Anti-Spam Protection**:
+  - Configurable cooldown (1-168 hours between alerts)
+  - Hysteresis/deadband logic to prevent flickering
+  - Active hours filtering (only check during specified times)
+- **Data Smoothing**: 3-point SMA for wind speed to filter gusts
+- **Pressure Gradient**: 3-hour lookback for trend detection
+
+### Database Schema
+
+- **`user_alert_profiles`**: Custom alert definitions with JSONB triggers
+- **`alert_history`**: Log of triggered alerts with condition snapshots
+
+### Key Files
+
+- **Core Engine**: `src/lib/custom-alert-engine.ts` - Evaluation logic, math functions, anti-spam
+- **CRUD API**: `src/app/api/alerts/route.ts` - Create/read/update/delete profiles
+- **Evaluation Endpoint**: `src/app/api/alerts/evaluate/route.ts` - Cron job endpoint
+- **Email Template**: `src/lib/email-templates/custom-alert.ts` - Notification format
+- **UI Page**: `src/app/profile/custom-alerts/page.tsx` - User interface
+- **Components**:
+  - `src/app/components/alerts/custom-alerts-list.tsx` - Profile list
+  - `src/app/components/alerts/custom-alert-form.tsx` - Create/edit form
+- **Automation**: `.github/workflows/custom-alerts.yml` - Runs every 30 minutes
+
+### Trigger JSONB Structure
+
+```json
+{
+  "wind": { "enabled": true, "speed_min": 0, "speed_max": 15, "direction_center": 270, "direction_tolerance": 45 },
+  "tide": { "enabled": true, "phases": ["incoming", "high_slack"], "exchange_min": 1.5 },
+  "pressure": { "enabled": true, "trend": "falling", "gradient_threshold": -2.0 },
+  "water_temp": { "enabled": true, "min": 10.0, "max": 14.0 },
+  "solunar": { "enabled": true, "phases": ["major", "minor"] },
+  "fishing_score": { "enabled": true, "min_score": 70, "species": "chinook-salmon" }
+}
+```
+
+### Math Functions
+
+- **Wind Direction**: Angular difference with 360° wrap-around: `Δθ = 180 - | |θ_target - θ_current| - 180 |`
+- **Pressure Gradient**: `ΔP = P₀ - P₋₃ₕ` (current vs 3 hours ago)
+- **Tide Phase Detection**: Derivative-based: incoming (dH/dt > 0.05), outgoing (< -0.05), slack (|dH/dt| < 0.05)
+
+### Technology
+
+- **Polling Frequency**: Every 30 minutes via GitHub Actions
+- **Weather Data**: Open Meteo API (reuses existing integration)
+- **Tide Data**: CHS API (reuses existing integration)
+- **Email Service**: Resend (shared infrastructure)
+- **Database**: Supabase PostgreSQL with RLS policies
+
+## Catch Logging System (Fish On)
+
+ReelCaster includes a mobile-first catch logging system that allows anglers to quickly log catches with minimal friction. The system features offline-first architecture with background sync.
+
+### Features
+
+- **Quick Capture**: Large "Fish On" floating action button for instant logging
+- **Auto-Captured Data**: GPS coordinates, accuracy, heading, speed, timestamp
+- **Two Outcome Types**: Bite (lost) or Landed (in the boat)
+- **Offline-First**: IndexedDB storage with Supabase sync when online
+- **Deferred Details**: Species, depth, lure, size, weight can be added later
+- **Retention Tracking**: Released or Kept status
+- **Predefined Lures**: BC fishing lures with custom entry option
+
+### Database Schema
+
+- **`catch_logs`**: Individual catch records with GPS, weather context, and optional details
+- **`lures`**: Predefined BC lures + user-created custom lures
+
+### Key Files
+
+- **Floating Button**: `src/app/components/catch-log/fish-on-button.tsx` - Global FAB
+- **Quick Capture Modal**: `src/app/components/catch-log/quick-catch-modal.tsx` - Outcome selection
+- **Button Wrapper**: `src/app/components/catch-log/fish-on-button-wrapper.tsx` - Auth integration
+- **History Page**: `src/app/profile/catch-log/page.tsx` - Catch history and stats
+- **API Endpoints**:
+  - `/api/catches` - CRUD operations
+  - `/api/catches/sync` - Batch offline sync
+  - `/api/lures` - Lure CRUD
+- **Services**:
+  - `src/lib/geolocation-service.ts` - GPS capture helper
+  - `src/lib/offline-catch-store.ts` - IndexedDB wrapper
+  - `src/lib/catch-sync-manager.ts` - Background sync
+- **Migrations**:
+  - `supabase/migrations/20251220_create_catch_logs.sql`
+  - `supabase/migrations/20251220_create_lures.sql`
+
+### UX Flow
+
+1. **Quick Capture (2 taps)**:
+   - Tap "Fish On" button → GPS capture starts
+   - Select outcome → "Bite" or "In the Boat"
+   - Done → Catch saved locally, syncs when online
+
+2. **Add Details (optional)**:
+   - Species, Retention status (Released/Kept)
+   - Depth, Size, Weight
+   - Lure selection, Notes, Photos
+
+### Offline Sync Strategy
+
+- All catches stored locally first (instant response)
+- Background sync every 30 seconds when online
+- `client_id` prevents duplicates during sync
+- Exponential backoff with max 5 retries
+- Conflict detection with manual resolution
+
+### Technology
+
+- **Local Storage**: IndexedDB via `idb` library
+- **GPS**: Browser Geolocation API with high accuracy
+- **Sync**: Custom sync manager with queue
+- **UI**: Floating action button with haptic feedback
+- **Database**: Supabase PostgreSQL with RLS
 
 ## Development Guidelines
 
