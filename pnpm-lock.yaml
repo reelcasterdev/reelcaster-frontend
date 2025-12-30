@@ -41,9 +41,6 @@ dependencies:
   '@supabase/supabase-js':
     specifier: ^2.52.1
     version: 2.52.1
-  '@types/leaflet':
-    specifier: ^1.9.21
-    version: 1.9.21
   cheerio:
     specifier: ^1.1.2
     version: 1.1.2
@@ -59,9 +56,6 @@ dependencies:
   idb:
     specifier: ^8.0.3
     version: 8.0.3
-  leaflet:
-    specifier: ^1.9.4
-    version: 1.9.4
   lucide-react:
     specifier: ^0.525.0
     version: 0.525.0(react@19.1.0)
@@ -83,9 +77,6 @@ dependencies:
   react-dom:
     specifier: ^19.0.0
     version: 19.1.0(react@19.1.0)
-  react-leaflet:
-    specifier: ^5.0.0
-    version: 5.0.0(leaflet@1.9.4)(react-dom@19.1.0)(react@19.1.0)
   react-map-gl:
     specifier: ^8.1.0
     version: 8.1.0(mapbox-gl@3.16.0)(react-dom@19.1.0)(react@19.1.0)
@@ -106,9 +97,9 @@ devDependencies:
   '@tailwindcss/postcss':
     specifier: ^4
     version: 4.1.11
-  '@types/dotenv':
-    specifier: ^8.2.3
-    version: 8.2.3
+  '@types/leaflet':
+    specifier: ^1.9.21
+    version: 1.9.21
   '@types/mapbox-gl':
     specifier: ^3.4.1
     version: 3.4.1
@@ -1867,18 +1858,6 @@ packages:
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
     dev: false
 
-  /@react-leaflet/core@3.0.0(leaflet@1.9.4)(react-dom@19.1.0)(react@19.1.0):
-    resolution: {integrity: sha512-3EWmekh4Nz+pGcr+xjf0KNyYfC3U2JjnkWsh0zcqaexYqmmB5ZhH37kz41JXGmKzpaMZCnPofBBm64i+YrEvGQ==}
-    peerDependencies:
-      leaflet: ^1.9.0
-      react: ^19.0.0
-      react-dom: ^19.0.0
-    dependencies:
-      leaflet: 1.9.4
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-    dev: false
-
   /@reduxjs/toolkit@2.8.2(react-redux@9.2.0)(react@19.1.0):
     resolution: {integrity: sha512-MYlOhQ0sLdw4ud48FoC5w0dH9VfWQjtCjreKwYTT3l+r427qYC5Y8PihNutepr8XrNaBUDQo9khWUwQxZaqt5A==}
     peerDependencies:
@@ -2200,13 +2179,6 @@ packages:
     resolution: {integrity: sha512-Ps3T8E8dZDam6fUyNiMkekK3XUsaUEik+idO9/YjPtfj2qruF8tFBXS7XhtE4iIXBLxhmLjP3SXpLhVf21I9Lw==}
     dev: false
 
-  /@types/dotenv@8.2.3:
-    resolution: {integrity: sha512-g2FXjlDX/cYuc5CiQvyU/6kkbP1JtmGzh0obW50zD7OKeILVL0NSpPWLXVfqoAGQjom2/SLLx9zHq0KXvD6mbw==}
-    deprecated: This is a stub types definition. dotenv provides its own type definitions, so you do not need this installed.
-    dependencies:
-      dotenv: 17.2.1
-    dev: true
-
   /@types/estree@1.0.8:
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
     dev: true
@@ -2232,7 +2204,7 @@ packages:
     resolution: {integrity: sha512-TbAd9DaPGSnzp6QvtYngntMZgcRk+igFELwR2N99XZn7RXUdKgsXMR+28bUO0rPsWp8MIu/f47luLIQuSLYv/w==}
     dependencies:
       '@types/geojson': 7946.0.16
-    dev: false
+    dev: true
 
   /@types/mapbox-gl@3.4.1:
     resolution: {integrity: sha512-NsGKKtgW93B+UaLPti6B7NwlxYlES5DpV5Gzj9F75rK5ALKsqSk15CiEHbOnTr09RGbr6ZYiCdI+59NNNcAImg==}
@@ -4358,10 +4330,6 @@ packages:
       language-subtag-registry: 0.3.23
     dev: true
 
-  /leaflet@1.9.4:
-    resolution: {integrity: sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==}
-    dev: false
-
   /levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
@@ -4937,19 +4905,6 @@ packages:
 
   /react-is@19.2.1:
     resolution: {integrity: sha512-L7BnWgRbMwzMAubQcS7sXdPdNLmKlucPlopgAzx7FtYbksWZgEWiuYM5x9T6UqS2Ne0rsgQTq5kY2SGqpzUkYA==}
-    dev: false
-
-  /react-leaflet@5.0.0(leaflet@1.9.4)(react-dom@19.1.0)(react@19.1.0):
-    resolution: {integrity: sha512-CWbTpr5vcHw5bt9i4zSlPEVQdTVcML390TjeDG0cK59z1ylexpqC6M1PJFjV8jD7CF+ACBFsLIDs6DRMoLEofw==}
-    peerDependencies:
-      leaflet: ^1.9.0
-      react: ^19.0.0
-      react-dom: ^19.0.0
-    dependencies:
-      '@react-leaflet/core': 3.0.0(leaflet@1.9.4)(react-dom@19.1.0)(react@19.1.0)
-      leaflet: 1.9.4
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
     dev: false
 
   /react-map-gl@8.1.0(mapbox-gl@3.16.0)(react-dom@19.1.0)(react@19.1.0):

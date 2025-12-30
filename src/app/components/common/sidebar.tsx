@@ -1,23 +1,51 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Fish, Menu, X, FileText, Calendar, Bell, Anchor } from 'lucide-react'
+import { Fish, Menu, X, FileText, Calendar, Bell, Anchor, History, Settings, Mail, Database, ChevronDown, ChevronRight } from 'lucide-react'
 import { AuthButton } from '../auth/auth-button'
+import { supabase } from '@/lib/supabase'
+
+// Admin emails - easy to add more admins here
+const ADMIN_EMAILS = [
+  'mohammad.faisal@toptal.com',
+]
 
 interface NavItem {
   id: string
   label: string
   href: string
   icon: React.ReactNode
-  isActive: boolean
 }
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [adminExpanded, setAdminExpanded] = useState(false)
+
+  // Check if current user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email && ADMIN_EMAILS.includes(user.email)) {
+        setIsAdmin(true)
+      }
+    }
+    checkAdmin()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user?.email && ADMIN_EMAILS.includes(session.user.email)) {
+        setIsAdmin(true)
+      } else {
+        setIsAdmin(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const navItems: NavItem[] = [
     {
@@ -25,42 +53,51 @@ export default function Sidebar() {
       label: 'Reports',
       href: '/',
       icon: <FileText className="w-5 h-5" />,
-      isActive: true,
     },
     {
       id: 'species-calendar',
       label: 'Species Calendar',
       href: '/species-calendar',
       icon: <Calendar className="w-5 h-5" />,
-      isActive: true,
+    },
+    {
+      id: 'historical-reports',
+      label: 'Historical Reports',
+      href: '/historical-reports',
+      icon: <History className="w-5 h-5" />,
     },
     {
       id: 'custom-alerts',
       label: 'Custom Alerts',
       href: '/profile/custom-alerts',
       icon: <Bell className="w-5 h-5" />,
-      isActive: true,
     },
     {
       id: 'catch-log',
       label: 'Catch Log',
       href: '/profile/catch-log',
       icon: <Anchor className="w-5 h-5" />,
-      isActive: true,
+    },
+  ]
+
+  const adminItems: NavItem[] = [
+    {
+      id: 'admin-email',
+      label: 'Send Email',
+      href: '/admin/send-email',
+      icon: <Mail className="w-5 h-5" />,
     },
     {
-      id: 'favorite-spots',
-      label: 'Favorite Spots',
-      href: '#',
-      icon: <MapPin className="w-5 h-5" />,
-      isActive: false,
+      id: 'admin-regulations',
+      label: 'Regulations',
+      href: '/admin/regulations',
+      icon: <Settings className="w-5 h-5" />,
     },
     {
-      id: 'species-id',
-      label: 'Species ID',
-      href: '#',
-      icon: <Fish className="w-5 h-5" />,
-      isActive: false,
+      id: 'admin-cache',
+      label: 'Cache',
+      href: '/admin/cache',
+      icon: <Database className="w-5 h-5" />,
     },
   ]
 
@@ -92,46 +129,62 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {navItems.map(item => (
-              <li key={item.id} className="relative">
-                {item.isActive ? (
-                  <Link
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                      pathname === item.href
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                    }`}
-                  >
-                    {item.icon}
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                ) : (
-                  <div
-                    onMouseEnter={() => setHoveredItem(item.id)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-500 cursor-not-allowed relative"
-                  >
-                    {item.icon}
-                    <span className="font-medium">{item.label}</span>
-
-                    {/* Coming Soon Tooltip */}
-                    {hoveredItem === item.id && (
-                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50">
-                        <div className="bg-gray-800 text-white text-sm px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap border border-gray-700">
-                          <span className="font-medium">Coming Soon</span>
-                          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-gray-800 border-l border-t border-gray-700 rotate-45"></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+              <li key={item.id}>
+                <Link
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    pathname === item.href
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="font-medium">{item.label}</span>
+                </Link>
               </li>
             ))}
           </ul>
+
+          {/* Admin Section - Only visible to admins */}
+          {isAdmin && (
+            <div className="mt-6 pt-4 border-t border-gray-800">
+              <button
+                onClick={() => setAdminExpanded(!adminExpanded)}
+                className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                <span>Admin</span>
+                {adminExpanded ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </button>
+              {adminExpanded && (
+                <ul className="mt-2 space-y-1">
+                  {adminItems.map(item => (
+                    <li key={item.id}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm ${
+                          pathname === item.href
+                            ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                        }`}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </nav>
 
         {/* Auth Section */}
