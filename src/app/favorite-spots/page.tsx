@@ -1,0 +1,187 @@
+'use client'
+
+import { useState } from 'react'
+import { AppShell } from '../components/layout'
+import DashboardHeader from '../components/forecast/dashboard-header'
+import { Heart, MapPin, Plus, MoreVertical, Navigation, Trash2 } from 'lucide-react'
+
+interface FavoriteSpot {
+  id: string
+  name: string
+  location: string
+  coordinates: { lat: number; lon: number }
+  lastScore?: number
+  notes?: string
+}
+
+// Mock data - would come from database
+const MOCK_SPOTS: FavoriteSpot[] = [
+  {
+    id: '1',
+    name: 'Breakwater Morning Spot',
+    location: 'Victoria, Sidney',
+    coordinates: { lat: 48.4128, lon: -123.3875 },
+    lastScore: 7.8,
+    notes: 'Best during incoming tide, early morning',
+  },
+  {
+    id: '2',
+    name: 'Oak Bay Reef',
+    location: 'Victoria, Sidney',
+    coordinates: { lat: 48.4264, lon: -123.3017 },
+    lastScore: 6.5,
+    notes: 'Good for rockfish on slack tide',
+  },
+  {
+    id: '3',
+    name: 'Sooke Point',
+    location: 'Sooke, Port Renfrew',
+    coordinates: { lat: 48.3722, lon: -123.7356 },
+    lastScore: 8.2,
+  },
+]
+
+export default function FavoriteSpotsPage() {
+  const [spots, setSpots] = useState<FavoriteSpot[]>(MOCK_SPOTS)
+  const [activeSpot, setActiveSpot] = useState<string | null>(null)
+
+  const getScoreColor = (score: number) => {
+    if (score >= 8) return 'text-green-400'
+    if (score >= 6) return 'text-blue-400'
+    if (score >= 4) return 'text-yellow-400'
+    return 'text-red-400'
+  }
+
+  const handleDelete = (id: string) => {
+    setSpots(spots.filter(s => s.id !== id))
+  }
+
+  const handleNavigate = (spot: FavoriteSpot) => {
+    // Navigate to forecast with this location
+    window.location.href = `/?lat=${spot.coordinates.lat}&lon=${spot.coordinates.lon}&hotspot=${encodeURIComponent(spot.name)}`
+  }
+
+  return (
+    <AppShell>
+      <DashboardHeader
+        title="Favorite Spots"
+        showTimeframe={false}
+        showSetLocation={false}
+        showCustomize={false}
+      />
+
+      <div className="space-y-6">
+        {/* Add New Spot Button */}
+        <button className="w-full p-4 border-2 border-dashed border-gray-700 rounded-xl hover:border-blue-500/50 hover:bg-blue-500/5 transition-colors group">
+          <div className="flex items-center justify-center gap-2 text-gray-400 group-hover:text-blue-400">
+            <Plus className="w-5 h-5" />
+            <span className="font-medium">Add New Favorite Spot</span>
+          </div>
+        </button>
+
+        {/* Spots List */}
+        <div className="space-y-3">
+          {spots.map(spot => (
+            <div
+              key={spot.id}
+              className="bg-gray-800/50 rounded-xl border border-gray-700/50 p-4 hover:border-gray-600/50 transition-colors"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Heart className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">{spot.name}</h3>
+                    <div className="flex items-center gap-1 text-sm text-gray-400 mt-0.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{spot.location}</span>
+                    </div>
+                    {spot.notes && (
+                      <p className="text-sm text-gray-500 mt-2">{spot.notes}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  {/* Score */}
+                  {spot.lastScore && (
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">Last Score</p>
+                      <p className={`text-lg font-bold ${getScoreColor(spot.lastScore)}`}>
+                        {spot.lastScore.toFixed(1)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setActiveSpot(activeSpot === spot.id ? null : spot.id)}
+                      className="p-1.5 hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <MoreVertical className="w-4 h-4 text-gray-400" />
+                    </button>
+
+                    {activeSpot === spot.id && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setActiveSpot(null)}
+                        />
+                        <div className="absolute right-0 mt-1 w-40 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              handleNavigate(spot)
+                              setActiveSpot(null)
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 flex items-center gap-2"
+                          >
+                            <Navigation className="w-4 h-4" />
+                            View Forecast
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleDelete(spot.id)
+                              setActiveSpot(null)
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Remove
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Coordinates */}
+              <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                  {spot.coordinates.lat.toFixed(4)}°N, {Math.abs(spot.coordinates.lon).toFixed(4)}°W
+                </span>
+                <button
+                  onClick={() => handleNavigate(spot)}
+                  className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+                >
+                  View Forecast →
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {spots.length === 0 && (
+          <div className="text-center py-12">
+            <Heart className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">No favorite spots yet</h3>
+            <p className="text-gray-400">Save your favorite fishing locations for quick access</p>
+          </div>
+        )}
+      </div>
+    </AppShell>
+  )
+}

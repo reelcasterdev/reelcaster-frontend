@@ -39,7 +39,7 @@ export default function ModernLoadingState({ forecastDays }: ModernLoadingStateP
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-rc-bg-darkest relative overflow-hidden">
       {/* Animated background waves */}
       <div className="absolute inset-0 opacity-5">
         <svg className="w-full h-full" viewBox="0 0 1200 800" fill="none">
@@ -84,20 +84,20 @@ export default function ModernLoadingState({ forecastDays }: ModernLoadingStateP
       {/* Main loading content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
         <div className="max-w-lg w-full">
-          <div className="bg-slate-800/95 backdrop-blur-2xl rounded-3xl border border-slate-700/50 p-10 shadow-2xl">
-            
+          <div className="bg-rc-bg-dark backdrop-blur-2xl rounded-3xl border border-rc-bg-light p-10 shadow-2xl">
+
             {/* Animated fishing rod and fish */}
             <div className="flex justify-center mb-10">
               <div className="relative w-32 h-32">
                 {/* Outer spinning ring */}
-                <div className="absolute inset-0 border-4 border-slate-700/30 border-t-blue-500 border-r-cyan-400 rounded-full animate-spin" />
-                
+                <div className="absolute inset-0 border-4 border-rc-bg-light/30 border-t-blue-500 border-r-cyan-400 rounded-full animate-spin" />
+
                 {/* Middle ring */}
-                <div 
-                  className="absolute inset-2 border-2 border-slate-600/40 border-b-blue-400 rounded-full animate-spin" 
+                <div
+                  className="absolute inset-2 border-2 border-rc-bg-light/40 border-b-blue-400 rounded-full animate-spin"
                   style={{ animationDirection: 'reverse', animationDuration: '3s' }}
                 />
-                
+
                 {/* Inner glowing circle */}
                 <div className="absolute inset-6 bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-600 rounded-full animate-pulse shadow-lg shadow-blue-500/25 flex items-center justify-center">
                   {/* Fishing hook and fish icon */}
@@ -108,7 +108,7 @@ export default function ModernLoadingState({ forecastDays }: ModernLoadingStateP
                 </div>
 
                 {/* Floating fish */}
-                <div 
+                <div
                   className="absolute -top-2 -right-2 text-blue-300 animate-bounce"
                   style={{ animationDelay: '0.5s' }}
                 >
@@ -127,12 +127,12 @@ export default function ModernLoadingState({ forecastDays }: ModernLoadingStateP
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
                 FISHING FORECAST
               </h1>
-              
+
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-rc-text">
                   Preparing Your Forecast
                 </h2>
-                <p className="text-slate-300">
+                <p className="text-rc-text-muted">
                   Getting {forecastDays}-day forecast with 15-minute precision
                 </p>
               </div>
@@ -143,11 +143,11 @@ export default function ModernLoadingState({ forecastDays }: ModernLoadingStateP
               {loadingSteps.map((step, index) => (
                 <div key={index} className="flex items-center space-x-4">
                   <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500 ${
-                    index < currentStep 
-                      ? 'bg-green-500 text-white' 
-                      : index === currentStep 
-                      ? 'bg-blue-500 text-white animate-pulse' 
-                      : 'bg-slate-600 text-slate-400'
+                    index < currentStep
+                      ? 'bg-green-500 text-white'
+                      : index === currentStep
+                      ? 'bg-blue-500 text-white animate-pulse'
+                      : 'bg-rc-bg-light text-rc-text-muted'
                   }`}>
                     {index < currentStep ? (
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -159,9 +159,9 @@ export default function ModernLoadingState({ forecastDays }: ModernLoadingStateP
                       <span className="text-xs font-bold">{index + 1}</span>
                     )}
                   </div>
-                  
+
                   <span className={`text-sm font-medium transition-colors duration-300 ${
-                    index <= currentStep ? 'text-white' : 'text-slate-500'
+                    index <= currentStep ? 'text-rc-text' : 'text-rc-text-muted'
                   }`}>
                     {step}
                   </span>
@@ -172,20 +172,20 @@ export default function ModernLoadingState({ forecastDays }: ModernLoadingStateP
             {/* Animated progress bar */}
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Progress</span>
+                <span className="text-rc-text-muted">Progress</span>
                 <span className="text-blue-400 font-medium">{Math.min(progress, 100).toFixed(0)}%</span>
               </div>
-              
-              <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
-                <div 
+
+              <div className="w-full bg-rc-bg-light rounded-full h-3 overflow-hidden">
+                <div
                   className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 rounded-full transition-all duration-300 ease-out relative"
                   style={{ width: `${Math.min(progress, 100)}%` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
                 </div>
               </div>
-              
-              <p className="text-xs text-slate-400 text-center mt-3">
+
+              <p className="text-xs text-rc-text-muted text-center mt-3">
                 Analyzing weather patterns and marine conditions...
               </p>
             </div>

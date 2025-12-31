@@ -334,6 +334,7 @@ export interface OpenMeteoDailyForecast {
     icon: string
     windSpeed: number
     precipitation: number
+    waveHeight?: number  // meters (from marine API)
   }>
   twoHourForecasts: MinutelyForecast[]
 }
@@ -994,6 +995,7 @@ export const generateOpenMeteoDailyForecasts = (
         icon: weather.icon,
         windSpeed: minuteData.windSpeed,
         precipitation: minuteData.precipitation,
+        waveHeight: minuteData.waveHeight,  // From marine API
       }
     })
 

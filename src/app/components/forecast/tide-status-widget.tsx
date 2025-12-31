@@ -25,8 +25,8 @@ interface TideStatusWidgetProps {
 export function TideStatusWidget({ tideData, className, compact = false }: TideStatusWidgetProps) {
   if (!tideData) {
     return (
-      <div className={cn("bg-slate-800 rounded-xl p-6 border border-slate-700", className)}>
-        <div className="flex items-center gap-2 text-slate-400">
+      <div className={cn("bg-rc-bg-darkest rounded-xl p-6 border border-rc-bg-light", className)}>
+        <div className="flex items-center gap-2 text-rc-text-muted">
           <Waves className="h-4 w-4" />
           <span className="text-sm">No tide data available</span>
         </div>
@@ -57,11 +57,11 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
 
   if (compact) {
     return (
-      <div className={cn("bg-slate-800 rounded-xl p-3 border border-slate-700", className)}>
+      <div className={cn("bg-rc-bg-darkest rounded-xl p-3 border border-rc-bg-light", className)}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Waves className="h-4 w-4 text-slate-400" />
-            <ConvertibleValue value={currentHeight} type="height" sourceUnit="m" className="text-sm font-medium text-white" />
+            <Waves className="h-4 w-4 text-rc-text-muted" />
+            <ConvertibleValue value={currentHeight} type="height" sourceUnit="m" className="text-sm font-medium text-rc-text" />
             {isRising ? (
               <TrendingUp className="h-3 w-3 text-green-400" />
             ) : (
@@ -73,7 +73,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
             <span className={cn("text-xs font-semibold", quality.color)}>{quality.label}</span>
           </div>
         </div>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-rc-text-muted mt-1">
           {nextTide.type === 'high' ? 'High' : 'Low'} in {Math.floor(timeToNextTide)}min
         </p>
       </div>
@@ -81,11 +81,11 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
   }
 
   return (
-    <div className={cn("bg-slate-800 rounded-xl p-6 border border-slate-700", className)}>
+    <div className={cn("bg-rc-bg-darkest rounded-xl p-6 border border-rc-bg-light", className)}>
       <div className="space-y-4">
         {/* Header with current status */}
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Tide Status</h2>
+          <h2 className="text-xl font-semibold text-rc-text">Tide Status</h2>
           <div className="flex items-center gap-2">
             <div className={cn("h-2 w-2 rounded-full", quality.bgColor)} />
             <span className={cn("text-sm font-semibold", quality.color)}>{quality.label}</span>
@@ -95,9 +95,9 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         {/* Current height and direction */}
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <div className="text-slate-400 text-sm mb-1">Current Height</div>
+            <div className="text-rc-text-muted text-sm mb-1">Current Height</div>
             <div className="flex items-center gap-2">
-              <ConvertibleValue value={currentHeight} type="height" sourceUnit="m" className="text-white text-2xl font-bold" />
+              <ConvertibleValue value={currentHeight} type="height" sourceUnit="m" className="text-rc-text text-2xl font-bold" />
               {isRising ? (
                 <TrendingUp className="h-5 w-5 text-green-400" />
               ) : (
@@ -106,42 +106,42 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
             </div>
           </div>
           <div>
-            <div className="text-slate-400 text-sm mb-1">Change Rate</div>
+            <div className="text-rc-text-muted text-sm mb-1">Change Rate</div>
             <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-slate-400" />
-              <ConvertibleValue value={changeRate} type="height" sourceUnit="m" precision={2} className="text-white text-xl font-semibold" />
-              <span className="text-slate-400 text-sm">/hr</span>
+              <Activity className="h-4 w-4 text-rc-text-muted" />
+              <ConvertibleValue value={changeRate} type="height" sourceUnit="m" precision={2} className="text-rc-text text-xl font-semibold" />
+              <span className="text-rc-text-muted text-sm">/hr</span>
             </div>
           </div>
         </div>
 
         {/* Next tide information */}
-        <div className="p-3 rounded-lg bg-slate-900/50 border border-slate-700">
+        <div className="p-3 rounded-lg bg-rc-bg-dark/50 border border-rc-bg-light">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-slate-400" />
-              <span className="text-sm text-slate-400">Next Tide</span>
+              <Clock className="h-4 w-4 text-rc-text-muted" />
+              <span className="text-sm text-rc-text-muted">Next Tide</span>
             </div>
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium text-rc-text">
               {nextTide.type === 'high' ? 'High' : 'Low'} Tide
             </span>
           </div>
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-sm text-white">
+            <span className="text-sm text-rc-text">
               {format(new Date(nextTide.timestamp * 1000), 'HH:mm')}
             </span>
             {nextTide.height > 0 && (
-              <ConvertibleValue value={nextTide.height} type="height" sourceUnit="m" className="text-sm text-slate-400" />
+              <ConvertibleValue value={nextTide.height} type="height" sourceUnit="m" className="text-sm text-rc-text-muted" />
             )}
           </div>
           <div className="mt-2">
-            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-              <div 
+            <div className="h-2 bg-rc-bg-light rounded-full overflow-hidden">
+              <div
                 className={cn("h-full transition-all", quality.bgColor)}
                 style={{ width: `${Math.max(5, 100 - (timeToNextTide / 240) * 100)}%` }}
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-rc-text-muted mt-1">
               {Math.floor(timeToNextTide)} minutes remaining
             </p>
           </div>
@@ -152,18 +152,18 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
           <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Gauge className="h-4 w-4 text-slate-400" />
-                <p className="text-sm text-slate-400">Current Speed</p>
+                <Gauge className="h-4 w-4 text-rc-text-muted" />
+                <p className="text-sm text-rc-text-muted">Current Speed</p>
               </div>
-              <ConvertibleValue value={currentSpeed} type="wind" sourceUnit="knots" precision={1} className="text-white text-xl font-semibold" />
+              <ConvertibleValue value={currentSpeed} type="wind" sourceUnit="knots" precision={1} className="text-rc-text text-xl font-semibold" />
             </div>
             {currentDirection !== undefined && (
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Compass className="h-4 w-4 text-slate-400" />
-                  <p className="text-sm text-slate-400">Direction</p>
+                  <Compass className="h-4 w-4 text-rc-text-muted" />
+                  <p className="text-sm text-rc-text-muted">Direction</p>
                 </div>
-                <p className="text-white text-xl font-semibold">{Math.round(currentDirection)}°</p>
+                <p className="text-rc-text text-xl font-semibold">{Math.round(currentDirection)}°</p>
               </div>
             )}
           </div>
@@ -172,24 +172,24 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         {/* Additional information */}
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <div className="text-slate-400 text-sm mb-1">Tidal Range</div>
-            <ConvertibleValue value={tidalRange} type="height" sourceUnit="m" className="text-white text-xl font-semibold" />
+            <div className="text-rc-text-muted text-sm mb-1">Tidal Range</div>
+            <ConvertibleValue value={tidalRange} type="height" sourceUnit="m" className="text-rc-text text-xl font-semibold" />
           </div>
           {waterTemp !== undefined && (
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Droplets className="h-4 w-4 text-slate-400" />
-                <p className="text-sm text-slate-400">Water Temp</p>
+                <Droplets className="h-4 w-4 text-rc-text-muted" />
+                <p className="text-sm text-rc-text-muted">Water Temp</p>
               </div>
-              <ConvertibleValue value={waterTemp} type="temp" sourceUnit="C" precision={1} className="text-white text-xl font-semibold" />
+              <ConvertibleValue value={waterTemp} type="temp" sourceUnit="C" precision={1} className="text-rc-text text-xl font-semibold" />
             </div>
           )}
         </div>
 
         {/* Station information */}
         {tideData.station && (
-          <div className="pt-3 border-t border-slate-700">
-            <p className="text-xs text-slate-500">
+          <div className="pt-3 border-t border-rc-bg-light">
+            <p className="text-xs text-rc-text-muted">
               Station: {tideData.station.name}
             </p>
           </div>
