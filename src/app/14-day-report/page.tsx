@@ -71,7 +71,7 @@ export default function FourteenDayReportPage() {
       case 'sunny':
         return <Sun className="w-5 h-5 text-yellow-400" />
       case 'cloudy':
-        return <Cloud className="w-5 h-5 text-gray-400" />
+        return <Cloud className="w-5 h-5 text-rc-text-muted" />
       case 'rainy':
         return <CloudRain className="w-5 h-5 text-blue-400" />
     }
@@ -89,30 +89,31 @@ export default function FourteenDayReportPage() {
 
   return (
     <AppShell>
-      <DashboardHeader
-        title="14-Day Report"
-        showTimeframe={false}
-        showSetLocation={true}
-        showCustomize={false}
-      />
+      <div className="p-4 lg:p-6">
+        <DashboardHeader
+          title="14-Day Report"
+          showTimeframe={false}
+          showSetLocation={true}
+          showCustomize={false}
+        />
 
-      <div className="space-y-6">
+        <div className="space-y-6">
         {/* Actions */}
         <div className="flex items-center justify-between">
-          <p className="text-gray-400 text-sm">
+          <p className="text-rc-text-muted text-sm">
             Extended forecast for Victoria, Sidney
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 hover:bg-gray-700 border border-gray-700/50 rounded-lg text-sm text-gray-300 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-lg text-sm text-rc-text-light transition-colors"
             >
               <Download className="w-4 h-4" />
               Export
             </button>
             <button
               onClick={handleShare}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 hover:bg-gray-700 border border-gray-700/50 rounded-lg text-sm text-gray-300 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-lg text-sm text-rc-text-light transition-colors"
             >
               <Share2 className="w-4 h-4" />
               Share
@@ -121,9 +122,9 @@ export default function FourteenDayReportPage() {
         </div>
 
         {/* Forecast Table */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700/50 overflow-hidden">
+        <div className="bg-rc-bg-dark rounded-xl border border-rc-bg-light overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-900/50 border-b border-gray-700/50 text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-rc-bg-darkest border-b border-rc-bg-light text-xs font-medium text-rc-text-muted uppercase tracking-wider">
             <div className="col-span-2">Date</div>
             <div className="col-span-2 text-center">Score</div>
             <div className="col-span-2 text-center">Weather</div>
@@ -137,16 +138,16 @@ export default function FourteenDayReportPage() {
             <div key={index}>
               <button
                 onClick={() => setExpandedDay(expandedDay === index ? null : index)}
-                className={`w-full grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-gray-700/20 transition-colors ${
-                  index !== forecasts.length - 1 ? 'border-b border-gray-700/30' : ''
+                className={`w-full grid grid-cols-12 gap-4 px-4 py-4 items-center hover:bg-rc-bg-light/20 transition-colors ${
+                  index !== forecasts.length - 1 ? 'border-b border-rc-bg-light/50' : ''
                 }`}
               >
                 {/* Date */}
                 <div className="col-span-2 text-left">
-                  <div className="font-medium text-white">
+                  <div className="font-medium text-rc-text">
                     {index === 0 ? 'Today' : day.dayName}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-rc-text-muted">
                     {day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </div>
                 </div>
@@ -168,23 +169,23 @@ export default function FourteenDayReportPage() {
 
                 {/* Temp */}
                 <div className="col-span-2 text-center">
-                  <span className="text-white">{day.highTemp}°</span>
-                  <span className="text-gray-500"> / {day.lowTemp}°</span>
+                  <span className="text-rc-text">{day.highTemp}°</span>
+                  <span className="text-rc-text-muted"> / {day.lowTemp}°</span>
                 </div>
 
                 {/* Wind */}
                 <div className="col-span-2 text-center">
-                  <span className="text-white">{day.windSpeed}</span>
-                  <span className="text-gray-500"> km/h {day.windDir}</span>
+                  <span className="text-rc-text">{day.windSpeed}</span>
+                  <span className="text-rc-text-muted"> km/h {day.windDir}</span>
                 </div>
 
                 {/* Precip */}
                 <div className="col-span-2 flex items-center justify-center gap-2">
-                  <span className={day.precip > 50 ? 'text-blue-400' : 'text-gray-300'}>
+                  <span className={day.precip > 50 ? 'text-blue-400' : 'text-rc-text-light'}>
                     {day.precip}%
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-gray-500 transition-transform ${
+                    className={`w-4 h-4 text-rc-text-muted transition-transform ${
                       expandedDay === index ? 'rotate-180' : ''
                     }`}
                   />
@@ -193,23 +194,23 @@ export default function FourteenDayReportPage() {
 
               {/* Expanded Details */}
               {expandedDay === index && (
-                <div className="px-4 py-4 bg-gray-900/30 border-b border-gray-700/30">
+                <div className="px-4 py-4 bg-rc-bg-darkest/50 border-b border-rc-bg-light/50">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">Best Time</p>
-                      <p className="text-white font-medium">6:00 AM - 9:00 AM</p>
+                    <div className="bg-rc-bg-dark rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">Best Time</p>
+                      <p className="text-rc-text font-medium">6:00 AM - 9:00 AM</p>
                     </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">High Tide</p>
-                      <p className="text-white font-medium">{day.tideEvents[0].time}</p>
+                    <div className="bg-rc-bg-dark rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">High Tide</p>
+                      <p className="text-rc-text font-medium">{day.tideEvents[0].time}</p>
                     </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">Low Tide</p>
-                      <p className="text-white font-medium">{day.tideEvents[1].time}</p>
+                    <div className="bg-rc-bg-dark rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">Low Tide</p>
+                      <p className="text-rc-text font-medium">{day.tideEvents[1].time}</p>
                     </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">Visibility</p>
-                      <p className="text-white font-medium">Good</p>
+                    <div className="bg-rc-bg-dark rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">Visibility</p>
+                      <p className="text-rc-text font-medium">Good</p>
                     </div>
                   </div>
                 </div>
@@ -219,37 +220,38 @@ export default function FourteenDayReportPage() {
         </div>
 
         {/* Summary */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700/50 p-4">
+        <div className="bg-rc-bg-dark rounded-xl border border-rc-bg-light p-4">
           <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-blue-400" />
-            <h3 className="font-semibold text-white">14-Day Summary</h3>
+            <Calendar className="w-5 h-5 text-rc-text-light" />
+            <h3 className="font-semibold text-rc-text">14-Day Summary</h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-400">Best Days</p>
+              <p className="text-sm text-rc-text-muted">Best Days</p>
               <p className="text-xl font-bold text-green-400">
                 {forecasts.filter(d => d.score >= 8).length}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Good Days</p>
+              <p className="text-sm text-rc-text-muted">Good Days</p>
               <p className="text-xl font-bold text-blue-400">
                 {forecasts.filter(d => d.score >= 6 && d.score < 8).length}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Avg Score</p>
-              <p className="text-xl font-bold text-white">
+              <p className="text-sm text-rc-text-muted">Avg Score</p>
+              <p className="text-xl font-bold text-rc-text">
                 {(forecasts.reduce((sum, d) => sum + d.score, 0) / forecasts.length).toFixed(1)}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Best Day</p>
+              <p className="text-sm text-rc-text-muted">Best Day</p>
               <p className="text-xl font-bold text-green-400">
                 {forecasts.reduce((best, d) => d.score > best.score ? d : best).dayName}
               </p>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </AppShell>

@@ -39,15 +39,15 @@ export default function SpeciesRegulations({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Open':
-        return 'bg-green-500/20 text-green-400 border-green-500/30'
+        return 'bg-rc-bg-light text-green-400 border-rc-bg-light'
       case 'Closed':
-        return 'bg-red-500/20 text-red-400 border-red-500/30'
+        return 'bg-rc-bg-light text-red-400 border-rc-bg-light'
       case 'Non Retention':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+        return 'bg-rc-bg-light text-orange-400 border-rc-bg-light'
       case 'Restricted':
-        return 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+        return 'bg-rc-bg-light text-yellow-400 border-rc-bg-light'
       default:
-        return 'bg-rc-bg-dark text-rc-text-muted border-rc-bg-light'
+        return 'bg-rc-bg-light text-rc-text-muted border-rc-bg-light'
     }
   }
 
@@ -56,18 +56,18 @@ export default function SpeciesRegulations({
   }
 
   return (
-    <div className="bg-rc-bg-darkest rounded-xl p-6 border border-rc-bg-light">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-rc-text">Species Regulations</h2>
+    <div className="bg-rc-bg-darkest rounded-xl p-4 border border-rc-bg-light">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-rc-text">Species Regulations</h2>
         {areaUrl && (
           <a
             href={areaUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
           >
             <span>Official DFO Page</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3 h-3" />
           </a>
         )}
       </div>
@@ -79,45 +79,45 @@ export default function SpeciesRegulations({
           officialUrl={areaUrl}
         />
       )}
-      
-      <div className="space-y-2">
+
+      <div className="space-y-1.5">
         {displayedSpecies.map((fish) => (
           <div key={fish.id} className="border border-rc-bg-light rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSpecies(fish.id)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-rc-bg-dark/50 transition-colors"
+              className="w-full px-3 py-2 flex items-center justify-between hover:bg-rc-bg-dark/50 transition-colors"
             >
-              <span className="text-rc-text-light font-medium text-left">{fish.name}</span>
+              <span className="text-rc-text-light font-medium text-left text-sm">{fish.name}</span>
               <div className="flex items-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(fish.status)}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(fish.status)}`}>
                   {fish.status}
                 </span>
                 {expandedSpecies === fish.id ? (
-                  <ChevronUp className="w-4 h-4 text-rc-text-muted" />
+                  <ChevronUp className="w-3.5 h-3.5 text-rc-text-muted" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-rc-text-muted" />
+                  <ChevronDown className="w-3.5 h-3.5 text-rc-text-muted" />
                 )}
               </div>
             </button>
 
             {expandedSpecies === fish.id && (
-              <div className="px-4 py-3 bg-rc-bg-dark/30 border-t border-rc-bg-light">
-                <div className="space-y-2 text-sm">
+              <div className="px-3 py-2 bg-rc-bg-dark/30 border-t border-rc-bg-light">
+                <div className="space-y-1.5 text-xs">
                   <div className="flex">
-                    <span className="text-rc-text-muted w-24">Daily Limit:</span>
+                    <span className="text-rc-text-muted w-20">Daily Limit:</span>
                     <span className="text-rc-text-light">{fish.dailyLimit}</span>
                   </div>
 
                   {fish.annualLimit && (
                     <div className="flex">
-                      <span className="text-rc-text-muted w-24">Annual Limit:</span>
+                      <span className="text-rc-text-muted w-20">Annual Limit:</span>
                       <span className="text-rc-text-light">{fish.annualLimit}</span>
                     </div>
                   )}
 
                   {(fish.minSize || fish.maxSize) && (
                     <div className="flex">
-                      <span className="text-rc-text-muted w-24">Size Limit:</span>
+                      <span className="text-rc-text-muted w-20">Size Limit:</span>
                       <span className="text-rc-text-light">
                         {fish.minSize && `Min: ${fish.minSize}`}
                         {fish.minSize && fish.maxSize && ', '}
@@ -127,21 +127,21 @@ export default function SpeciesRegulations({
                   )}
 
                   <div className="flex">
-                    <span className="text-rc-text-muted w-24">Gear:</span>
+                    <span className="text-rc-text-muted w-20">Gear:</span>
                     <span className="text-rc-text-light">{fish.gear}</span>
                   </div>
 
                   <div className="flex">
-                    <span className="text-rc-text-muted w-24">Season:</span>
+                    <span className="text-rc-text-muted w-20">Season:</span>
                     <span className="text-rc-text-light">{fish.season}</span>
                   </div>
 
                   {fish.notes && fish.notes.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-rc-bg-light">
+                    <div className="mt-2 pt-2 border-t border-rc-bg-light">
                       <span className="text-rc-text-muted block mb-1">Important Notes:</span>
-                      <ul className="list-disc list-inside space-y-1">
+                      <ul className="list-disc list-inside space-y-0.5">
                         {fish.notes.map((note, index) => (
-                          <li key={index} className="text-rc-text-light text-xs pl-2">{note}</li>
+                          <li key={index} className="text-rc-text-light text-xs pl-1">{note}</li>
                         ))}
                       </ul>
                     </div>
@@ -155,14 +155,14 @@ export default function SpeciesRegulations({
         {species.length > 5 && (
           <button
             onClick={() => setShowAllSpecies(!showAllSpecies)}
-            className="w-full py-3 text-center text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium border border-rc-bg-light rounded-lg hover:bg-rc-bg-dark/50"
+            className="w-full py-2 text-center text-blue-400 hover:text-blue-300 transition-colors text-xs font-medium border border-rc-bg-light rounded-lg hover:bg-rc-bg-dark/50"
           >
             {showAllSpecies ? 'Show Less' : `Show ${species.length - 5} More Species`}
           </button>
         )}
 
         {species.length === 0 && (
-          <div className="text-center py-8 text-rc-text-muted">
+          <div className="text-center py-6 text-rc-text-muted text-sm">
             No regulation data available for this location
           </div>
         )}

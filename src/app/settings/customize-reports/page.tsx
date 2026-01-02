@@ -106,23 +106,24 @@ export default function CustomizeReportsPage() {
 
   return (
     <AppShell>
-      <DashboardHeader
-        title="Customize Reports"
-        showTimeframe={false}
-        showSetLocation={false}
-        showCustomize={false}
-      />
+      <div className="p-4 lg:p-6">
+        <DashboardHeader
+          title="Customize Reports"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
 
-      <div className="space-y-6">
+        <div className="space-y-6">
         {/* Header Info */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700/50 p-4">
+        <div className="bg-rc-bg-dark rounded-xl border border-rc-bg-light p-4">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Settings className="w-5 h-5 text-blue-400" />
+            <div className="p-2 bg-rc-bg-light rounded-lg">
+              <Settings className="w-5 h-5 text-rc-text-light" />
             </div>
             <div>
-              <h2 className="font-semibold text-white">Report Widgets</h2>
-              <p className="text-sm text-gray-400 mt-1">
+              <h2 className="font-semibold text-rc-text">Report Widgets</h2>
+              <p className="text-sm text-rc-text-muted mt-1">
                 Choose which widgets appear on your forecast dashboard. You can enable or
                 disable widgets to customize your view.
               </p>
@@ -132,13 +133,13 @@ export default function CustomizeReportsPage() {
 
         {/* Summary */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">
+          <span className="text-rc-text-muted">
             {enabledCount} of {widgets.length} widgets enabled
           </span>
           <div className="flex items-center gap-3">
             <button
               onClick={resetToDefault}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-gray-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-rc-text-muted hover:text-rc-text transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
               Reset to default
@@ -162,20 +163,20 @@ export default function CustomizeReportsPage() {
             .map(widget => (
               <div
                 key={widget.id}
-                className={`bg-gray-800/50 rounded-xl border p-4 transition-colors ${
-                  widget.enabled ? 'border-gray-700/50' : 'border-gray-700/30 opacity-60'
+                className={`bg-rc-bg-dark rounded-xl border p-4 transition-colors ${
+                  widget.enabled ? 'border-rc-bg-light' : 'border-rc-bg-light/50 opacity-60'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   {/* Drag Handle (placeholder for future drag & drop) */}
-                  <div className="text-gray-600 cursor-grab">
+                  <div className="text-rc-text-muted cursor-grab">
                     <GripVertical className="w-5 h-5" />
                   </div>
 
                   {/* Widget Info */}
                   <div className="flex-1">
-                    <h3 className="font-medium text-white">{widget.name}</h3>
-                    <p className="text-sm text-gray-400">{widget.description}</p>
+                    <h3 className="font-medium text-rc-text">{widget.name}</h3>
+                    <p className="text-sm text-rc-text-muted">{widget.description}</p>
                   </div>
 
                   {/* Toggle Button */}
@@ -184,7 +185,7 @@ export default function CustomizeReportsPage() {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       widget.enabled
                         ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                        : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'
+                        : 'bg-rc-bg-light text-rc-text-muted hover:bg-rc-bg-light/80'
                     }`}
                   >
                     {widget.enabled ? (
@@ -205,12 +206,13 @@ export default function CustomizeReportsPage() {
         </div>
 
         {/* Preview Note */}
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-          <p className="text-sm text-blue-200">
-            <strong>Tip:</strong> Changes will take effect immediately on your forecast
+        <div className="bg-rc-bg-dark rounded-xl border border-rc-bg-light p-4">
+          <p className="text-sm text-rc-text-muted">
+            <strong className="text-rc-text-light">Tip:</strong> Changes will take effect immediately on your forecast
             dashboard after saving. You can always reset to the default configuration if
             needed.
           </p>
+        </div>
         </div>
       </div>
     </AppShell>

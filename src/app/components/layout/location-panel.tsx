@@ -12,7 +12,6 @@ import {
   type Hotspot,
 } from '@/app/config/locations'
 import {
-  getStatusTextClass,
   getStatusLabel,
   type SpeciesStatus,
 } from '@/app/utils/species-status'
@@ -197,8 +196,14 @@ export default function LocationPanel() {
                   onClick={() => handleSpeciesSelect(s)}
                 >
                   <div className="text-sm font-medium">{s.name}</div>
-                  <div className={`text-xs ${getStatusTextClass(s.status)}`}>
-                    {getStatusLabel(s.status)}
+                  <div className={`text-xs ${
+                    s.status === 'Open' || s.status === 'open' ? 'text-green-400' :
+                    s.status === 'Restricted' || s.status === 'restricted' ? 'text-yellow-400' :
+                    s.status === 'Non Retention' || s.status === 'non-retention' ? 'text-orange-400' :
+                    s.status === 'Closed' || s.status === 'closed' ? 'text-red-400' :
+                    'text-rc-text-muted'
+                  }`}>
+                    {s.status}
                   </div>
                 </SelectableItem>
               </li>

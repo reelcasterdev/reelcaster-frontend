@@ -72,13 +72,13 @@ export default function NotificationsPage() {
   const getTypeIcon = (type: Notification['type']) => {
     switch (type) {
       case 'score':
-        return <Fish className="w-5 h-5 text-blue-400" />
+        return <Fish className="w-5 h-5 text-rc-text-light" />
       case 'regulation':
         return <Calendar className="w-5 h-5 text-yellow-400" />
       case 'weather':
         return <AlertTriangle className="w-5 h-5 text-orange-400" />
       case 'system':
-        return <Bell className="w-5 h-5 text-gray-400" />
+        return <Bell className="w-5 h-5 text-rc-text-muted" />
     }
   }
 
@@ -115,14 +115,15 @@ export default function NotificationsPage() {
 
   return (
     <AppShell>
-      <DashboardHeader
-        title="Notifications"
-        showTimeframe={false}
-        showSetLocation={false}
-        showCustomize={false}
-      />
+      <div className="p-4 lg:p-6">
+        <DashboardHeader
+          title="Notifications"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
 
-      <div className="space-y-6">
+        <div className="space-y-6">
         {/* Actions Bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -130,8 +131,8 @@ export default function NotificationsPage() {
               onClick={() => setFilter('all')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700'
+                  ? 'bg-rc-bg-light text-rc-text'
+                  : 'bg-rc-bg-dark text-rc-text-muted hover:bg-rc-bg-light/50'
               }`}
             >
               All
@@ -140,13 +141,13 @@ export default function NotificationsPage() {
               onClick={() => setFilter('unread')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
                 filter === 'unread'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700'
+                  ? 'bg-rc-bg-light text-rc-text'
+                  : 'bg-rc-bg-dark text-rc-text-muted hover:bg-rc-bg-light/50'
               }`}
             >
               Unread
               {unreadCount > 0 && (
-                <span className="w-5 h-5 flex items-center justify-center bg-blue-500 rounded-full text-xs">
+                <span className="w-5 h-5 flex items-center justify-center bg-rc-text-muted rounded-full text-xs text-rc-bg-darkest">
                   {unreadCount}
                 </span>
               )}
@@ -157,7 +158,7 @@ export default function NotificationsPage() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-rc-text-muted hover:text-rc-text transition-colors"
               >
                 <Check className="w-4 h-4" />
                 Mark all read
@@ -166,7 +167,7 @@ export default function NotificationsPage() {
             {notifications.length > 0 && (
               <button
                 onClick={clearAll}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-400 hover:text-red-400 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-rc-text-muted hover:text-red-400 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 Clear all
@@ -174,7 +175,7 @@ export default function NotificationsPage() {
             )}
             <button
               onClick={() => router.push('/profile/notification-settings')}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm text-rc-text-muted hover:text-rc-text transition-colors"
             >
               <Settings className="w-4 h-4" />
               Settings
@@ -187,16 +188,16 @@ export default function NotificationsPage() {
           {filteredNotifications.map(notification => (
             <div
               key={notification.id}
-              className={`bg-gray-800/50 rounded-xl border p-4 transition-colors ${
+              className={`bg-rc-bg-dark rounded-xl border p-4 transition-colors relative ${
                 notification.read
-                  ? 'border-gray-700/50'
-                  : 'border-blue-500/30 bg-blue-500/5'
+                  ? 'border-rc-bg-light'
+                  : 'border-rc-text-muted/30 bg-rc-bg-dark/80'
               }`}
             >
               <div className="flex items-start gap-3">
                 <div
                   className={`p-2 rounded-lg ${
-                    notification.read ? 'bg-gray-700/50' : 'bg-blue-500/10'
+                    notification.read ? 'bg-rc-bg-light' : 'bg-rc-bg-light'
                   }`}
                 >
                   {getTypeIcon(notification.type)}
@@ -207,16 +208,16 @@ export default function NotificationsPage() {
                     <div>
                       <h3
                         className={`font-medium ${
-                          notification.read ? 'text-gray-300' : 'text-white'
+                          notification.read ? 'text-rc-text-light' : 'text-rc-text'
                         }`}
                       >
                         {notification.title}
                       </h3>
-                      <p className="text-sm text-gray-400 mt-1">{notification.message}</p>
+                      <p className="text-sm text-rc-text-muted mt-1">{notification.message}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                      <span className="text-xs text-rc-text-muted whitespace-nowrap">
                         {formatTime(notification.time)}
                       </span>
 
@@ -227,9 +228,9 @@ export default function NotificationsPage() {
                               activeMenu === notification.id ? null : notification.id
                             )
                           }
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-rc-bg-light rounded transition-colors"
                         >
-                          <MoreVertical className="w-4 h-4 text-gray-500" />
+                          <MoreVertical className="w-4 h-4 text-rc-text-muted" />
                         </button>
 
                         {activeMenu === notification.id && (
@@ -238,14 +239,14 @@ export default function NotificationsPage() {
                               className="fixed inset-0 z-10"
                               onClick={() => setActiveMenu(null)}
                             />
-                            <div className="absolute right-0 mt-1 w-36 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden">
+                            <div className="absolute right-0 mt-1 w-36 bg-rc-bg-darkest border border-rc-bg-light rounded-lg shadow-xl z-20 overflow-hidden">
                               {!notification.read && (
                                 <button
                                   onClick={() => {
                                     markAsRead(notification.id)
                                     setActiveMenu(null)
                                   }}
-                                  className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 flex items-center gap-2"
+                                  className="w-full text-left px-3 py-2 text-sm text-rc-text-light hover:bg-rc-bg-dark flex items-center gap-2"
                                 >
                                   <Check className="w-4 h-4" />
                                   Mark read
@@ -256,7 +257,7 @@ export default function NotificationsPage() {
                                   deleteNotification(notification.id)
                                   setActiveMenu(null)
                                 }}
-                                className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2"
+                                className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-rc-bg-dark flex items-center gap-2"
                               >
                                 <Trash2 className="w-4 h-4" />
                                 Delete
@@ -272,7 +273,7 @@ export default function NotificationsPage() {
 
               {/* Unread indicator */}
               {!notification.read && (
-                <div className="absolute top-4 right-4 w-2 h-2 bg-blue-500 rounded-full" />
+                <div className="absolute top-4 right-4 w-2 h-2 bg-green-500 rounded-full" />
               )}
             </div>
           ))}
@@ -281,17 +282,18 @@ export default function NotificationsPage() {
         {/* Empty State */}
         {filteredNotifications.length === 0 && (
           <div className="text-center py-12">
-            <Bell className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">
+            <Bell className="w-12 h-12 text-rc-text-muted mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-rc-text mb-2">
               {filter === 'unread' ? 'No unread notifications' : 'No notifications'}
             </h3>
-            <p className="text-gray-400">
+            <p className="text-rc-text-muted">
               {filter === 'unread'
                 ? "You're all caught up!"
                 : 'Notifications about fishing conditions will appear here'}
             </p>
           </div>
         )}
+        </div>
       </div>
     </AppShell>
   )

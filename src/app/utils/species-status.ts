@@ -15,7 +15,7 @@ const STATUS_STYLES: Record<SpeciesStatus, SpeciesStatusStyle> = {
     label: 'Open',
   },
   restricted: {
-    textClass: 'text-red-400',
+    textClass: 'text-yellow-400',
     label: 'Restricted',
   },
   'non-retention': {
@@ -23,7 +23,7 @@ const STATUS_STYLES: Record<SpeciesStatus, SpeciesStatusStyle> = {
     label: 'Non Retention',
   },
   closed: {
-    textClass: 'text-red-500',
+    textClass: 'text-red-400',
     label: 'Closed',
   },
 }
