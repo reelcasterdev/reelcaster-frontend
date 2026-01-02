@@ -49,7 +49,7 @@ export default function RegulationsWarningBanner({
               ? 'Regulation Data May Be Outdated'
               : 'Regulation Review Due'}
           </p>
-          <p className="text-sm text-slate-300 mb-2">
+          <p className="text-sm text-rc-text-light mb-2">
             {isOutdated
               ? `Last verified ${daysSinceVerification} days ago. `
               : 'This data is scheduled for review. '}

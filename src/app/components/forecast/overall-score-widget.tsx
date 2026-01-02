@@ -25,13 +25,13 @@ export default function OverallScoreWidget({
     return 'text-red-400'
   }
 
-  // Get segment colors for the indicator
+  // Get segment colors for the indicator (10 segments for 0-10 scale)
   const getSegmentColor = (index: number) => {
-    const segmentThreshold = ((index + 1) / 5) * maxScore
-    if (normalizedScore >= segmentThreshold) {
-      if (segmentThreshold <= 4) return 'bg-red-500'
-      if (segmentThreshold <= 6) return 'bg-yellow-500'
-      if (segmentThreshold <= 8) return 'bg-blue-500'
+    const segmentValue = index + 1 // 1-10
+    if (normalizedScore >= segmentValue) {
+      if (segmentValue <= 4) return 'bg-red-500'
+      if (segmentValue <= 6) return 'bg-yellow-500'
+      if (segmentValue <= 8) return 'bg-blue-500'
       return 'bg-green-500'
     }
     return 'bg-rc-bg-light'
@@ -56,12 +56,12 @@ export default function OverallScoreWidget({
         </div>
       </div>
 
-      {/* Score Indicator Segments */}
+      {/* Score Indicator Segments - 10 beads for 0-10 scale */}
       <div className="flex gap-1 mb-4">
-        {[0, 1, 2, 3, 4].map(index => (
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(index => (
           <div
             key={index}
-            className={`flex-1 h-2 rounded-sm transition-colors ${getSegmentColor(index)}`}
+            className={`flex-1 h-2 rounded-full transition-colors ${getSegmentColor(index)}`}
           />
         ))}
       </div>

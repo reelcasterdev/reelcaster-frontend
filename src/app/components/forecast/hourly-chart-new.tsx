@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from 'recharts'
 import { ChartTooltip } from '@/components/ui/chart'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
+import { useUnitPreferences } from '@/contexts/unit-preferences-context'
+import { convertHeight } from '@/app/utils/unit-conversions'
 
 interface HourlyChartNewProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -22,6 +24,7 @@ const LAYER_TABS: { id: LayerType; label: string }[] = [
 
 export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyChartNewProps) {
   const [activeLayer, setActiveLayer] = useState<LayerType>('score')
+  const { heightUnit } = useUnitPreferences()
 
   const selectedForecast = forecasts[selectedDay]
 
@@ -35,7 +38,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
       case 'temp':
         return 30
       case 'wave':
-        return 2
+        return heightUnit === 'ft' ? 7 : 2 // 2m ≈ 6.5ft
       default:
         return 10
     }
@@ -55,19 +58,21 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
 
         // Use actual wave height from marine API, fallback to estimate from wind
         const windSpeed = score.windSpeed || 10
-        const waveHeight = score.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
+        const waveHeightMeters = score.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
+        // Convert to user's preferred unit
+        const waveHeight = convertHeight(waveHeightMeters, 'm', heightUnit)
 
         return {
           time: displayHour,
           score: score.score,
           wind: windSpeed,
           temp: score.temp || 15,
-          wave: Math.round(waveHeight * 10) / 10, // Round to 1 decimal
+          wave: Math.round(waveHeight * 100) / 100, // Round to 2 decimals for better precision
           timestamp: score.timestamp,
           background: maxValue, // Full height track
         }
       })
-  }, [selectedForecast])
+  }, [selectedForecast, heightUnit])
 
   // Calculate Y-axis max: 20% higher than the highest value
   const yAxisMax = useMemo(() => {
@@ -111,8 +116,11 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
       return '#3b82f6'
     }
     if (layer === 'wave') {
-      if (value <= 0.5) return '#22c55e'
-      if (value <= 1.0) return '#a3a322'
+      // Thresholds in user's unit (ft: 1.6/3.3, m: 0.5/1.0)
+      const goodThreshold = heightUnit === 'ft' ? 1.6 : 0.5
+      const avgThreshold = heightUnit === 'ft' ? 3.3 : 1.0
+      if (value <= goodThreshold) return '#22c55e'
+      if (value <= avgThreshold) return '#a3a322'
       return '#b45454'
     }
     return '#3b82f6'
@@ -124,13 +132,13 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
       const data = payload[0].payload
       const value = data[activeLayer]
       const unit =
-        activeLayer === 'score' ? '/10' : activeLayer === 'wind' ? ' km/h' : activeLayer === 'temp' ? '°C' : 'm'
+        activeLayer === 'score' ? '/10' : activeLayer === 'wind' ? ' km/h' : activeLayer === 'temp' ? '°C' : ` ${heightUnit}`
 
       return (
         <div className="bg-rc-bg-darkest border border-rc-bg-light rounded-lg p-3 shadow-lg">
           <p className="text-sm font-medium text-rc-text">{data.time}</p>
           <p className="text-lg font-bold text-rc-text mt-1">
-            {typeof value === 'number' ? value.toFixed(1) : value}
+            {typeof value === 'number' ? value.toFixed(2) : value}
             <span className="text-rc-text-muted text-sm ml-1">{unit}</span>
           </p>
         </div>
@@ -236,7 +244,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
               tickFormatter={(value) => {
                 if (activeLayer === 'wind') return `${Math.round(value)} km/h`
                 if (activeLayer === 'temp') return `${Math.round(value)}°C`
-                if (activeLayer === 'wave') return `${value.toFixed(1)}m`
+                if (activeLayer === 'wave') return `${value.toFixed(1)} ${heightUnit}`
                 return `${Math.round(value)}`
               }}
               width={65}

@@ -47,7 +47,7 @@ export default function SpeciesRegulations({
       case 'Restricted':
         return 'bg-orange-500/20 text-orange-400 border-orange-500/30'
       default:
-        return 'bg-slate-500/20 text-slate-400 border-slate-500/30'
+        return 'bg-rc-bg-dark text-rc-text-muted border-rc-bg-light'
     }
   }
 
@@ -56,9 +56,9 @@ export default function SpeciesRegulations({
   }
 
   return (
-    <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+    <div className="bg-rc-bg-darkest rounded-xl p-6 border border-rc-bg-light">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-white">Species Regulations</h2>
+        <h2 className="text-xl font-semibold text-rc-text">Species Regulations</h2>
         {areaUrl && (
           <a
             href={areaUrl}
@@ -82,43 +82,43 @@ export default function SpeciesRegulations({
       
       <div className="space-y-2">
         {displayedSpecies.map((fish) => (
-          <div key={fish.id} className="border border-slate-700/50 rounded-lg overflow-hidden">
+          <div key={fish.id} className="border border-rc-bg-light rounded-lg overflow-hidden">
             <button
               onClick={() => toggleSpecies(fish.id)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-700/30 transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-rc-bg-dark/50 transition-colors"
             >
-              <span className="text-slate-300 font-medium text-left">{fish.name}</span>
+              <span className="text-rc-text-light font-medium text-left">{fish.name}</span>
               <div className="flex items-center gap-2">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(fish.status)}`}>
                   {fish.status}
                 </span>
                 {expandedSpecies === fish.id ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                  <ChevronUp className="w-4 h-4 text-rc-text-muted" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <ChevronDown className="w-4 h-4 text-rc-text-muted" />
                 )}
               </div>
             </button>
 
             {expandedSpecies === fish.id && (
-              <div className="px-4 py-3 bg-slate-700/20 border-t border-slate-700/50">
+              <div className="px-4 py-3 bg-rc-bg-dark/30 border-t border-rc-bg-light">
                 <div className="space-y-2 text-sm">
                   <div className="flex">
-                    <span className="text-slate-400 w-24">Daily Limit:</span>
-                    <span className="text-slate-300">{fish.dailyLimit}</span>
+                    <span className="text-rc-text-muted w-24">Daily Limit:</span>
+                    <span className="text-rc-text-light">{fish.dailyLimit}</span>
                   </div>
 
                   {fish.annualLimit && (
                     <div className="flex">
-                      <span className="text-slate-400 w-24">Annual Limit:</span>
-                      <span className="text-slate-300">{fish.annualLimit}</span>
+                      <span className="text-rc-text-muted w-24">Annual Limit:</span>
+                      <span className="text-rc-text-light">{fish.annualLimit}</span>
                     </div>
                   )}
 
                   {(fish.minSize || fish.maxSize) && (
                     <div className="flex">
-                      <span className="text-slate-400 w-24">Size Limit:</span>
-                      <span className="text-slate-300">
+                      <span className="text-rc-text-muted w-24">Size Limit:</span>
+                      <span className="text-rc-text-light">
                         {fish.minSize && `Min: ${fish.minSize}`}
                         {fish.minSize && fish.maxSize && ', '}
                         {fish.maxSize && `Max: ${fish.maxSize}`}
@@ -127,21 +127,21 @@ export default function SpeciesRegulations({
                   )}
 
                   <div className="flex">
-                    <span className="text-slate-400 w-24">Gear:</span>
-                    <span className="text-slate-300">{fish.gear}</span>
+                    <span className="text-rc-text-muted w-24">Gear:</span>
+                    <span className="text-rc-text-light">{fish.gear}</span>
                   </div>
 
                   <div className="flex">
-                    <span className="text-slate-400 w-24">Season:</span>
-                    <span className="text-slate-300">{fish.season}</span>
+                    <span className="text-rc-text-muted w-24">Season:</span>
+                    <span className="text-rc-text-light">{fish.season}</span>
                   </div>
 
                   {fish.notes && fish.notes.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-slate-700/50">
-                      <span className="text-slate-400 block mb-1">Important Notes:</span>
+                    <div className="mt-3 pt-3 border-t border-rc-bg-light">
+                      <span className="text-rc-text-muted block mb-1">Important Notes:</span>
                       <ul className="list-disc list-inside space-y-1">
                         {fish.notes.map((note, index) => (
-                          <li key={index} className="text-slate-300 text-xs pl-2">{note}</li>
+                          <li key={index} className="text-rc-text-light text-xs pl-2">{note}</li>
                         ))}
                       </ul>
                     </div>
@@ -155,14 +155,14 @@ export default function SpeciesRegulations({
         {species.length > 5 && (
           <button
             onClick={() => setShowAllSpecies(!showAllSpecies)}
-            className="w-full py-3 text-center text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium border border-slate-700/50 rounded-lg hover:bg-slate-700/20"
+            className="w-full py-3 text-center text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium border border-rc-bg-light rounded-lg hover:bg-rc-bg-dark/50"
           >
             {showAllSpecies ? 'Show Less' : `Show ${species.length - 5} More Species`}
           </button>
         )}
 
         {species.length === 0 && (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-rc-text-muted">
             No regulation data available for this location
           </div>
         )}

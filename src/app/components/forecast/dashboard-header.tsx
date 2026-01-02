@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, MapPin, Settings } from 'lucide-react'
-import { AlgorithmVersionDropdown, type AlgorithmVersion } from './algorithm-version-toggle'
+import { ChevronDown, MapPin, Settings, Beaker } from 'lucide-react'
+import { type AlgorithmVersion } from './algorithm-version-toggle'
 import { ReportIcon } from '@/app/components/common/report-icon'
+import LocationSelectorModal from './location-selector-modal'
 
 interface DashboardHeaderProps {
   title?: string
@@ -12,7 +13,6 @@ interface DashboardHeaderProps {
   showSetLocation?: boolean
   showCustomize?: boolean
   showAlgorithm?: boolean
-  onSetLocation?: () => void
   onAlgorithmChange?: (version: AlgorithmVersion) => void
 }
 
@@ -23,24 +23,58 @@ const TIMEFRAME_OPTIONS = [
   { value: '14-day', label: '14 Days' },
 ]
 
+const ALGORITHM_OPTIONS = [
+  { value: 'v2' as AlgorithmVersion, label: 'V2 (Physics-Based)' },
+  { value: 'v1' as AlgorithmVersion, label: 'V1 (Legacy)' },
+]
+
 export default function DashboardHeader({
   title = 'Reports',
   showTimeframe = true,
   showSetLocation = true,
   showCustomize = true,
   showAlgorithm = false,
-  onSetLocation,
   onAlgorithmChange,
 }: DashboardHeaderProps) {
   const router = useRouter()
   const [timeframe, setTimeframe] = useState<string>('')
   const [isTimeframeOpen, setIsTimeframeOpen] = useState(false)
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
+
+  // Algorithm dropdown state
+  const [algorithmVersion, setAlgorithmVersion] = useState<AlgorithmVersion>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('algorithm-version')
+      if (saved === 'v1' || saved === 'v2') return saved
+    }
+    return 'v2'
+  })
+  const [isAlgorithmOpen, setIsAlgorithmOpen] = useState(false)
+
+  // Sync algorithm version on mount
+  useEffect(() => {
+    if (onAlgorithmChange) {
+      const saved = localStorage.getItem('algorithm-version')
+      if (saved === 'v1' || saved === 'v2') {
+        onAlgorithmChange(saved)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleCustomize = () => {
     router.push('/settings/customize-reports')
   }
 
+  const handleAlgorithmChange = (version: AlgorithmVersion) => {
+    setAlgorithmVersion(version)
+    localStorage.setItem('algorithm-version', version)
+    onAlgorithmChange?.(version)
+    setIsAlgorithmOpen(false)
+  }
+
   const selectedTimeframeLabel = TIMEFRAME_OPTIONS.find(t => t.value === timeframe)?.label || 'Not selected'
+  const selectedAlgorithmLabel = ALGORITHM_OPTIONS.find(a => a.value === algorithmVersion)?.label || 'V2'
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -54,12 +88,50 @@ export default function DashboardHeader({
 
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        {/* Algorithm Version Dropdown */}
-        {showAlgorithm && onAlgorithmChange && (
-          <AlgorithmVersionDropdown onVersionChange={onAlgorithmChange} />
+        {/* Algorithm Version Dropdown - Pill Shape */}
+        {showAlgorithm && (
+          <div className="relative">
+            <button
+              onClick={() => setIsAlgorithmOpen(!isAlgorithmOpen)}
+              className="flex items-center bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-full text-sm transition-colors"
+            >
+              <span className="flex items-center gap-2 px-4 py-2 text-rc-text-muted border-r border-rc-bg-light">
+                <Beaker className="w-4 h-4" />
+                <span className="hidden sm:inline">Algorithm</span>
+              </span>
+              <span className="flex items-center gap-2 px-4 py-2 text-rc-text">
+                {selectedAlgorithmLabel}
+                <ChevronDown className={`w-4 h-4 text-rc-text-muted transition-transform ${isAlgorithmOpen ? 'rotate-180' : ''}`} />
+              </span>
+            </button>
+
+            {isAlgorithmOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setIsAlgorithmOpen(false)}
+                />
+                <div className="absolute right-0 mt-1 w-48 bg-rc-bg-light border border-rc-bg-dark rounded-lg shadow-xl z-20 overflow-hidden">
+                  {ALGORITHM_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleAlgorithmChange(option.value)}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        algorithmVersion === option.value
+                          ? 'bg-blue-600 text-rc-text'
+                          : 'text-rc-text-light hover:bg-rc-bg-dark'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         )}
 
-        {/* Timeframe Dropdown */}
+        {/* Timeframe Dropdown - Pill Shape */}
         {showTimeframe && (
           <div className="relative">
             <button
@@ -102,28 +174,40 @@ export default function DashboardHeader({
           </div>
         )}
 
-        {/* Set Location Button */}
+        {/* Set Location Button - Pill Shape */}
         {showSetLocation && (
           <button
-            onClick={onSetLocation}
-            className="flex items-center gap-2 px-4 py-2 bg-rc-bg-light hover:bg-rc-bg-dark border border-rc-bg-light rounded-lg text-sm text-rc-text transition-colors"
+            onClick={() => setIsLocationModalOpen(true)}
+            className="flex items-center bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-full text-sm transition-colors"
           >
-            <MapPin className="w-4 h-4" />
-            <span className="hidden sm:inline">Set Location</span>
+            <span className="flex items-center gap-2 px-4 py-2 text-rc-text">
+              <MapPin className="w-4 h-4" />
+              <span className="hidden sm:inline">Set Location</span>
+            </span>
           </button>
         )}
 
-        {/* Customize Reports Button */}
+        {/* Customize Reports Button - Pill Shape */}
         {showCustomize && (
           <button
             onClick={handleCustomize}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium text-rc-text transition-colors"
+            className="flex items-center bg-green-600 hover:bg-green-500 rounded-full text-sm font-medium transition-colors"
           >
-            <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">Customize Reports</span>
+            <span className="flex items-center gap-2 px-4 py-2 text-rc-text">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Customize Reports</span>
+            </span>
           </button>
         )}
       </div>
+
+      {/* Location Selector Modal */}
+      <Suspense fallback={null}>
+        <LocationSelectorModal
+          isOpen={isLocationModalOpen}
+          onClose={() => setIsLocationModalOpen(false)}
+        />
+      </Suspense>
     </header>
   )
 }

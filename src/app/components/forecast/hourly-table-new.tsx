@@ -5,6 +5,8 @@ import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { CHSWaterData } from '../../utils/chsTideApi'
 import { ChevronUp, ChevronDown, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { useUnitPreferences } from '@/contexts/unit-preferences-context'
+import { convertWind, convertTemp, convertHeight, formatWind, formatTemp, formatHeight } from '@/app/utils/unit-conversions'
 
 interface HourlyTableNewProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -24,6 +26,7 @@ export default function HourlyTableNew({
 }: HourlyTableNewProps) {
   const [sortField, setSortField] = useState<SortField | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const { windUnit, tempUnit, heightUnit, cycleUnit } = useUnitPreferences()
 
   const selectedForecast = forecasts[selectedDay]
 
@@ -163,8 +166,23 @@ export default function HourlyTableNew({
     </div>
   )
 
-  // Convert wind speed to knots
-  const toKnots = (kph: number) => (kph / 1.852).toFixed(0)
+  // Format wind with current unit preference (source is kph)
+  const formatWindValue = (kph: number) => {
+    const converted = convertWind(kph, 'kph', windUnit)
+    return formatWind(converted, windUnit, 0)
+  }
+
+  // Format temperature with current unit preference (source is C)
+  const formatTempValue = (celsius: number) => {
+    const converted = convertTemp(celsius, 'C', tempUnit)
+    return formatTemp(converted, tempUnit, 0)
+  }
+
+  // Format height with current unit preference (source is m)
+  const formatHeightValue = (meters: number) => {
+    const converted = convertHeight(meters, 'm', heightUnit)
+    return formatHeight(converted, heightUnit, 1)
+  }
 
   return (
     <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden">
@@ -241,10 +259,14 @@ export default function HourlyTableNew({
 
                 {/* Wind */}
                 <td className="px-4 py-3">
-                  <span className="text-sm text-rc-text">
-                    {toKnots(row.windSpeed)}knots{' '}
+                  <button
+                    onClick={() => cycleUnit('wind')}
+                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
+                    title="Click to change wind unit"
+                  >
+                    {formatWindValue(row.windSpeed)}{' '}
                     <span className="text-rc-text-muted">{row.windDir}</span>
-                  </span>
+                  </button>
                 </td>
 
                 {/* Tide */}
@@ -252,13 +274,17 @@ export default function HourlyTableNew({
                   <div className="flex items-center gap-1">
                     {row.tideHeight !== null ? (
                       <>
-                        <span className="text-sm text-rc-text">
-                          {row.tideHeight.toFixed(1)}
-                        </span>
+                        <button
+                          onClick={() => cycleUnit('height')}
+                          className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
+                          title="Click to change height unit"
+                        >
+                          {formatHeightValue(row.tideHeight)}
+                        </button>
                         {row.tideRising ? (
                           <ArrowUpRight className="w-4 h-4 text-green-500" />
                         ) : (
-                          <ArrowDownRight className="w-4 h-4 text-green-500" />
+                          <ArrowDownRight className="w-4 h-4 text-red-500" />
                         )}
                       </>
                     ) : (
@@ -269,9 +295,13 @@ export default function HourlyTableNew({
 
                 {/* Temp */}
                 <td className="px-4 py-3">
-                  <span className="text-sm text-rc-text">
-                    {Math.round(row.temp)}°
-                  </span>
+                  <button
+                    onClick={() => cycleUnit('temp')}
+                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
+                    title="Click to change temperature unit"
+                  >
+                    {formatTempValue(row.temp)}
+                  </button>
                 </td>
               </tr>
             ))}
