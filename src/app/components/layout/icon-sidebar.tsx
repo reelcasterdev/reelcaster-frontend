@@ -29,6 +29,22 @@ interface NavItemCardProps {
 function NavItemCard({ item, isActive }: NavItemCardProps) {
   const Icon = item.icon
 
+  if (item.disabled) {
+    return (
+      <li>
+        <div
+          className="flex flex-col items-center justify-center p-3 rounded-xl cursor-not-allowed opacity-40"
+          title="Coming soon"
+        >
+          <Icon className="w-6 h-6 mb-2" />
+          <span className="text-xs font-medium text-center leading-tight text-rc-text-muted">
+            {item.label}
+          </span>
+        </div>
+      </li>
+    )
+  }
+
   return (
     <li>
       <Link

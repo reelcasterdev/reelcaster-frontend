@@ -16,6 +16,22 @@ export default function MobileTabBar() {
             const isActive = isRouteActive(item.href, pathname)
             const label = item.mobileLabel || item.label
 
+            if (item.disabled) {
+              return (
+                <li key={item.id} className="flex-1">
+                  <div
+                    className="flex flex-col items-center justify-center h-full py-1 opacity-40 cursor-not-allowed"
+                    title="Coming soon"
+                  >
+                    <div className="p-1.5 rounded-lg">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] mt-0.5 font-medium text-rc-text-muted">{label}</span>
+                  </div>
+                </li>
+              )
+            }
+
             return (
               <li key={item.id} className="flex-1">
                 <Link

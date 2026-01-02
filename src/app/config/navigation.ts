@@ -22,6 +22,8 @@ export interface NavItem {
   mobileLabel?: string
   href: string
   icon: IconComponent
+  /** Whether the item is disabled (coming soon) */
+  disabled?: boolean
 }
 
 /**
@@ -40,6 +42,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'Spots',
     href: '/favorite-spots',
     icon: Heart,
+    disabled: true,
   },
   {
     id: 'species-id',
@@ -47,6 +50,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'Species',
     href: '/species-id',
     icon: Fish,
+    disabled: true,
   },
   {
     id: '14-day-report',
@@ -54,6 +58,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: '14 Day',
     href: '/14-day-report',
     icon: Calendar,
+    disabled: true,
   },
   {
     id: 'notifications',
@@ -61,6 +66,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'Alerts',
     href: '/notifications',
     icon: Bell,
+    disabled: true,
   },
   {
     id: 'dfo-notices',
@@ -68,6 +74,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'DFO',
     href: '/dfo-notices',
     icon: AlertCircle,
+    disabled: true,
   },
 ]
 
