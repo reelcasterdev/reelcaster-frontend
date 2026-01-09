@@ -88,7 +88,7 @@ export default function FourteenDayReportPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell showLocationPanel={false}>
       <div className="p-4 lg:p-6">
         <DashboardHeader
           title="14-Day Report"

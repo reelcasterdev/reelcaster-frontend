@@ -26,13 +26,13 @@ export default function AppShell({
 
   return (
     <div className="min-h-screen bg-rc-bg-darkest text-rc-text">
-      {/* Desktop Icon Sidebar */}
+      
       <IconSidebar
         isLocationPanelCollapsed={isLocationPanelCollapsed}
         onToggleLocationPanel={toggleLocationPanel}
       />
 
-      {/* Desktop Location Panel */}
+      
       {showLocationPanel && (
         <div
           className={`hidden lg:block transition-all duration-300 ease-in-out ${

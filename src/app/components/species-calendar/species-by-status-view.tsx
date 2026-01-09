@@ -19,36 +19,16 @@ type StatusType = 'Open' | 'Closed' | 'Non Retention' | 'Restricted'
 export default function SpeciesByStatusView({ speciesByStatus, searchQuery = '' }: SpeciesByStatusViewProps) {
   const [activeTab, setActiveTab] = useState<StatusType>('Open')
 
-  const getStatusColor = (status: StatusType) => {
+  const getStatusTextColor = (status: StatusType) => {
     switch (status) {
       case 'Open':
-        return {
-          bg: 'bg-green-500/20',
-          text: 'text-green-400',
-          border: 'border-green-500/30',
-          activeBg: 'bg-green-500/30',
-        }
+        return 'text-emerald-400'
       case 'Closed':
-        return {
-          bg: 'bg-red-500/20',
-          text: 'text-red-400',
-          border: 'border-red-500/30',
-          activeBg: 'bg-red-500/30',
-        }
+        return 'text-red-400'
       case 'Non Retention':
-        return {
-          bg: 'bg-yellow-500/20',
-          text: 'text-yellow-400',
-          border: 'border-yellow-500/30',
-          activeBg: 'bg-yellow-500/30',
-        }
+        return 'text-amber-400'
       case 'Restricted':
-        return {
-          bg: 'bg-orange-500/20',
-          text: 'text-orange-400',
-          border: 'border-orange-500/30',
-          activeBg: 'bg-orange-500/30',
-        }
+        return 'text-orange-400'
     }
   }
 
@@ -74,7 +54,7 @@ export default function SpeciesByStatusView({ speciesByStatus, searchQuery = '' 
       {/* Status Tabs */}
       <div className="flex flex-wrap gap-2">
         {statuses.map((status) => {
-          const colors = getStatusColor(status)
+          const textColor = getStatusTextColor(status)
           const count = getStatusCount(status)
           const isActive = activeTab === status
 
@@ -83,15 +63,15 @@ export default function SpeciesByStatusView({ speciesByStatus, searchQuery = '' 
               key={status}
               onClick={() => setActiveTab(status)}
               className={`
-                px-4 py-2.5 rounded-lg border transition-all duration-200
+                px-4 py-2 rounded-lg border transition-all duration-200 text-sm
                 ${isActive
-                  ? `${colors.activeBg} ${colors.text} ${colors.border}`
-                  : `${colors.bg} ${colors.text} ${colors.border} hover:${colors.activeBg}`
+                  ? `bg-rc-bg-light border-rc-bg-light ${textColor}`
+                  : `bg-rc-bg-dark border-rc-bg-light text-rc-text-muted hover:bg-rc-bg-light hover:text-rc-text-light`
                 }
               `}
             >
               <span className="font-medium">{status}</span>
-              <span className="ml-2 text-sm opacity-80">({count})</span>
+              <span className="ml-2 opacity-70">({count})</span>
             </button>
           )
         })}
@@ -101,7 +81,7 @@ export default function SpeciesByStatusView({ speciesByStatus, searchQuery = '' 
       <div className="space-y-3">
         {filteredSpecies.length > 0 ? (
           <>
-            <div className="text-slate-400 text-sm">
+            <div className="text-rc-text-muted text-sm">
               Showing {filteredSpecies.length} {filteredSpecies.length === 1 ? 'species' : 'species'}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -111,8 +91,8 @@ export default function SpeciesByStatusView({ speciesByStatus, searchQuery = '' 
             </div>
           </>
         ) : (
-          <div className="text-center py-12 bg-slate-800/50 rounded-lg border border-slate-700">
-            <p className="text-slate-400 text-lg">
+          <div className="text-center py-12 bg-rc-bg-dark/50 rounded-lg border border-rc-bg-light">
+            <p className="text-rc-text-muted text-lg">
               {searchQuery
                 ? `No species found matching "${searchQuery}"`
                 : `No ${activeTab.toLowerCase()} species in this location`

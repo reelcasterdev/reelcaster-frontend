@@ -15,7 +15,7 @@ export default function LocationSelector({
 }: LocationSelectorProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2 text-slate-400">
+      <div className="flex items-center gap-2 text-rc-text-muted">
         <MapPin className="w-5 h-5" />
         <span className="text-sm font-medium">Location:</span>
       </div>
@@ -29,7 +29,7 @@ export default function LocationSelector({
               ${
                 selectedLocation === location
                   ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                  : 'bg-slate-700/30 text-slate-300 border-slate-700 hover:bg-slate-700/50 hover:text-slate-200'
+                  : 'bg-rc-bg-light/30 text-rc-text-light border-rc-bg-light hover:bg-rc-bg-light/50 hover:text-rc-text'
               }
             `}
           >

@@ -62,7 +62,7 @@ export default function FavoriteSpotsPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell showLocationPanel={false}>
       <div className="p-4 lg:p-6">
         <DashboardHeader
           title="Favorite Spots"
