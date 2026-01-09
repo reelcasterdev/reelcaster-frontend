@@ -130,7 +130,7 @@ export default function RegulationsAdminPage() {
             <button
               onClick={triggerScrape}
               disabled={scraping}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-rc-text rounded-lg transition-colors"
             >
               <RefreshCw className={`w-4 h-4 ${scraping ? 'animate-spin' : ''}`} />
               {scraping ? 'Scraping...' : 'Trigger Scrape'}
@@ -146,13 +146,13 @@ export default function RegulationsAdminPage() {
           {loading ? (
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-4" />
-            <p className="text-slate-400">Loading scraped regulations...</p>
+            <p className="text-rc-text-muted">Loading scraped regulations...</p>
           </div>
         ) : scrapedRegulations.length === 0 ? (
-          <div className="bg-slate-800 rounded-xl p-12 text-center">
-            <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg mb-2">No pending regulations to review</p>
-            <p className="text-slate-500 text-sm">
+          <div className="bg-rc-bg-dark rounded-xl p-12 text-center">
+            <AlertCircle className="w-12 h-12 text-rc-text-muted mx-auto mb-4" />
+            <p className="text-rc-text-muted text-lg mb-2">No pending regulations to review</p>
+            <p className="text-rc-text-muted text-sm">
               Trigger a scrape to check for updates from DFO
             </p>
           </div>
@@ -161,14 +161,14 @@ export default function RegulationsAdminPage() {
             {scrapedRegulations.map((reg) => (
               <div
                 key={reg.id}
-                className="bg-slate-800 border border-slate-700 rounded-xl p-6"
+                className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-6"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h2 className="text-xl font-semibold text-white mb-1">
+                    <h2 className="text-xl font-semibold text-rc-text mb-1">
                       Area {reg.area_id}
                     </h2>
-                    <p className="text-slate-400 text-sm">
+                    <p className="text-rc-text-muted text-sm">
                       Scraped: {new Date(reg.scrape_timestamp).toLocaleString()}
                     </p>
                   </div>
@@ -177,14 +177,14 @@ export default function RegulationsAdminPage() {
                       <>
                         <button
                           onClick={() => approveRegulation(reg.id)}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-rc-text rounded-lg transition-colors"
                         >
                           <CheckCircle className="w-4 h-4" />
                           Approve
                         </button>
                         <button
                           onClick={() => rejectRegulation(reg.id)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-rc-text rounded-lg transition-colors"
                         >
                           <XCircle className="w-4 h-4" />
                           Reject
@@ -222,9 +222,9 @@ export default function RegulationsAdminPage() {
                       </div>
                     )}
 
-                    <div className="bg-slate-700/50 rounded-lg p-4">
-                      <p className="text-slate-400 text-sm font-medium mb-2">Scraped Data:</p>
-                      <pre className="text-slate-300 text-xs overflow-auto max-h-64">
+                    <div className="bg-rc-bg-light/50 rounded-lg p-4">
+                      <p className="text-rc-text-muted text-sm font-medium mb-2">Scraped Data:</p>
+                      <pre className="text-rc-text-light text-xs overflow-auto max-h-64">
                         {JSON.stringify(reg.scraped_data, null, 2)}
                       </pre>
                     </div>
@@ -235,23 +235,23 @@ export default function RegulationsAdminPage() {
           </div>
         )}
 
-        <div className="mt-8 bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">How It Works</h3>
-          <div className="space-y-3 text-slate-300 text-sm">
+        <div className="mt-8 bg-rc-bg-dark/50 border border-rc-bg-light/50 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-rc-text mb-4">How It Works</h3>
+          <div className="space-y-3 text-rc-text-light text-sm">
             <p>
-              <strong className="text-white">1. Automated Scraping:</strong> Every Sunday at 2 AM,
+              <strong className="text-rc-text">1. Automated Scraping:</strong> Every Sunday at 2 AM,
               the system automatically scrapes DFO regulation pages.
             </p>
             <p>
-              <strong className="text-white">2. Change Detection:</strong> The scraper compares
+              <strong className="text-rc-text">2. Change Detection:</strong> The scraper compares
               new data with existing regulations and highlights any changes.
             </p>
             <p>
-              <strong className="text-white">3. Manual Review:</strong> Changes require admin
+              <strong className="text-rc-text">3. Manual Review:</strong> Changes require admin
               approval before being published to users.
             </p>
             <p>
-              <strong className="text-white">4. Version History:</strong> All changes are logged
+              <strong className="text-rc-text">4. Version History:</strong> All changes are logged
               in the database for audit trails.
             </p>
           </div>

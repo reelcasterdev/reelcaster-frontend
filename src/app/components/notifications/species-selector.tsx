@@ -3,62 +3,16 @@
 import React from 'react';
 import { Fish, Check } from 'lucide-react';
 
+// Centralized species config
+import { FISH_SPECIES } from '@/app/config/species';
+
 interface SpeciesSelectorProps {
   selectedSpecies: string[];
   onChange: (species: string[]) => void;
 }
 
-// Species list based on speciesAlgorithms.ts
-const SPECIES_OPTIONS = [
-  {
-    id: 'chinook-salmon',
-    name: 'Chinook Salmon',
-    scientificName: 'Oncorhynchus tshawytscha',
-    description: 'Spring, Summer, Fall runs',
-  },
-  {
-    id: 'coho-salmon',
-    name: 'Coho Salmon',
-    scientificName: 'Oncorhynchus kisutch',
-    description: 'Summer, Fall runs',
-  },
-  {
-    id: 'chum-salmon',
-    name: 'Chum Salmon',
-    scientificName: 'Oncorhynchus keta',
-    description: 'Fall runs',
-  },
-  {
-    id: 'pink-salmon',
-    name: 'Pink Salmon',
-    scientificName: 'Oncorhynchus gorbuscha',
-    description: 'Summer runs (odd years)',
-  },
-  {
-    id: 'sockeye-salmon',
-    name: 'Sockeye Salmon',
-    scientificName: 'Oncorhynchus nerka',
-    description: 'Summer runs',
-  },
-  {
-    id: 'halibut',
-    name: 'Pacific Halibut',
-    scientificName: 'Hippoglossus stenolepis',
-    description: 'Year-round, bottom fishing',
-  },
-  {
-    id: 'lingcod',
-    name: 'Lingcod',
-    scientificName: 'Ophiodon elongatus',
-    description: 'Year-round, bottom fishing',
-  },
-  {
-    id: 'rockfish',
-    name: 'Rockfish',
-    scientificName: 'Sebastes spp.',
-    description: 'Various species, year-round',
-  },
-];
+// Use centralized config (excludes shellfish for notification purposes)
+const SPECIES_OPTIONS = FISH_SPECIES.filter(s => s.category !== 'shellfish');
 
 const SpeciesSelector: React.FC<SpeciesSelectorProps> = ({ selectedSpecies, onChange }) => {
   const handleToggle = (speciesId: string) => {

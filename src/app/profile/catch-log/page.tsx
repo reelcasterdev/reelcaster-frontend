@@ -27,17 +27,8 @@ import {
 } from '@/lib/offline-catch-store'
 import { startSyncManager, triggerSync } from '@/lib/catch-sync-manager'
 
-// Species list for filtering
-const SPECIES_OPTIONS = [
-  { id: 'chinook-salmon', name: 'Chinook Salmon' },
-  { id: 'coho-salmon', name: 'Coho Salmon' },
-  { id: 'chum-salmon', name: 'Chum Salmon' },
-  { id: 'pink-salmon', name: 'Pink Salmon' },
-  { id: 'sockeye-salmon', name: 'Sockeye Salmon' },
-  { id: 'halibut', name: 'Pacific Halibut' },
-  { id: 'lingcod', name: 'Lingcod' },
-  { id: 'rockfish', name: 'Rockfish' },
-]
+// Centralized species config
+import { SPECIES_OPTIONS } from '@/app/config/species'
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString)

@@ -59,7 +59,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'Spots',
     href: '/favorite-spots',
     icon: Heart,
-    disabled: true,
+    // disabled: true,
   },
   {
     id: 'species-id',
@@ -67,7 +67,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'Species',
     href: '/species-id',
     icon: Fish,
-    disabled: true,
+    // disabled: true,
   },
   {
     id: '14-day-report',
@@ -75,7 +75,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: '14 Day',
     href: '/14-day-report',
     icon: Calendar,
-    disabled: true,
+    // disabled: true,
   },
   {
     id: 'custom-alerts',
@@ -97,7 +97,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'Alerts',
     href: '/notifications',
     icon: Bell,
-    disabled: true,
+    // disabled: true,
   },
   {
     id: 'dfo-notices',
@@ -105,7 +105,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'DFO',
     href: '/dfo-notices',
     icon: AlertCircle,
-    disabled: true,
+    // disabled: true,
   },
   {
     id: 'profile',
