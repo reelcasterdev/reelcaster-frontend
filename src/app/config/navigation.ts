@@ -1,6 +1,5 @@
 import {
   Heart,
-  Fish,
   Calendar,
   Bell,
   AlertCircle,

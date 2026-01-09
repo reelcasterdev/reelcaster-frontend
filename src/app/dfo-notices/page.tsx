@@ -5,11 +5,10 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { AppShell } from '../components/layout'
 import DashboardHeader from '../components/forecast/dashboard-header'
-import { Badge } from '@/components/ui/badge'
+import { PageLoadingSpinner } from '../components/common/loading-spinner'
+import { EmptyState } from '../components/common/empty-state'
 import {
   AlertCircle,
-  AlertTriangle,
-  Info,
   ExternalLink,
   ChevronDown,
   ChevronUp,
@@ -46,50 +45,44 @@ interface DFONotice {
 
 interface NoticeTypeInfo {
   label: string
-  emoji: string
+  color: string
 }
 
-/** Get badge component for priority level */
-function PriorityBadge({ priority }: { priority: PriorityLevel }) {
+/** Get priority text color */
+function getPriorityColor(priority: PriorityLevel): string {
   switch (priority) {
     case 'critical':
-      return (
-        <Badge variant="destructive" className="gap-1">
-          <AlertCircle className="h-3 w-3" />
-          Critical
-        </Badge>
-      )
+      return 'text-red-400'
     case 'high':
-      return (
-        <Badge variant="default" className="gap-1 bg-orange-500">
-          <AlertTriangle className="h-3 w-3" />
-          High Priority
-        </Badge>
-      )
+      return 'text-orange-400'
     case 'medium':
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <Info className="h-3 w-3" />
-          Medium
-        </Badge>
-      )
+      return 'text-amber-400'
     default:
-      return (
-        <Badge variant="outline" className="gap-1">
-          <Info className="h-3 w-3" />
-          Low
-        </Badge>
-      )
+      return 'text-rc-text-muted'
+  }
+}
+
+/** Get priority label */
+function getPriorityLabel(priority: PriorityLevel): string {
+  switch (priority) {
+    case 'critical':
+      return 'Critical'
+    case 'high':
+      return 'High Priority'
+    case 'medium':
+      return 'Medium'
+    default:
+      return 'Low'
   }
 }
 
 /** Get type info for a notice */
 function getNoticeTypeInfo(notice: DFONotice): NoticeTypeInfo {
-  if (notice.is_biotoxin_alert) return { label: 'Biotoxin Alert', emoji: '⚠️' }
-  if (notice.is_sanitary_closure) return { label: 'Sanitary Closure', emoji: '⚠️' }
-  if (notice.is_closure) return { label: 'Closure', emoji: '🚫' }
-  if (notice.is_opening) return { label: 'Opening', emoji: '✅' }
-  return { label: 'Information', emoji: '📋' }
+  if (notice.is_biotoxin_alert) return { label: 'Biotoxin Alert', color: 'text-red-400' }
+  if (notice.is_sanitary_closure) return { label: 'Sanitary Closure', color: 'text-red-400' }
+  if (notice.is_closure) return { label: 'Closure', color: 'text-amber-400' }
+  if (notice.is_opening) return { label: 'Opening', color: 'text-emerald-400' }
+  return { label: 'Information', color: 'text-rc-text-muted' }
 }
 
 /** Check if notice matches type filter */
@@ -100,16 +93,6 @@ function matchesTypeFilter(notice: DFONotice, filterType: NoticeTypeFilter): boo
   if (filterType === 'biotoxin') return notice.is_biotoxin_alert
   if (filterType === 'sanitary') return notice.is_sanitary_closure
   return true
-}
-
-/** Loading spinner component */
-function LoadingSpinner({ message }: { message?: string }) {
-  return (
-    <div className="flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-      {message && <span className="ml-3 text-rc-text-muted">{message}</span>}
-    </div>
-  )
 }
 
 function DFONoticesContent() {
@@ -198,8 +181,8 @@ function DFONoticesContent() {
   }, [])
 
   return (
-    <AppShell>
-      <div className="flex-1 min-h-screen">
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
         <DashboardHeader
           title="DFO Fishery Notices"
           showTimeframe={false}
@@ -207,8 +190,9 @@ function DFONoticesContent() {
           showCustomize={false}
         />
 
-        {/* Filters Section */}
-        <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-4 mb-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Filters Section */}
+          <div className="bg-rc-bg-dark rounded-xl border border-rc-bg-light p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -255,172 +239,173 @@ function DFONoticesContent() {
             </div>
           </div>
 
-          {/* Active Filters Display */}
-          {(searchQuery || filterPriority !== 'all' || filterType !== 'all') && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-rc-bg-light">
-              <span className="text-xs text-rc-text-muted">Active filters:</span>
-              <div className="flex gap-2 flex-wrap">
-                {searchQuery && (
-                  <Badge variant="secondary" className="text-xs">
-                    Search: {searchQuery}
-                    <button onClick={() => setSearchQuery('')} className="ml-1 hover:text-rc-text">×</button>
-                  </Badge>
-                )}
-                {filterPriority !== 'all' && (
-                  <Badge variant="secondary" className="text-xs">
-                    Priority: {filterPriority}
-                    <button onClick={() => setFilterPriority('all')} className="ml-1 hover:text-rc-text">×</button>
-                  </Badge>
-                )}
-                {filterType !== 'all' && (
-                  <Badge variant="secondary" className="text-xs">
-                    Type: {filterType}
-                    <button onClick={() => setFilterType('all')} className="ml-1 hover:text-rc-text">×</button>
-                  </Badge>
-                )}
+            {/* Active Filters Display */}
+            {(searchQuery || filterPriority !== 'all' || filterType !== 'all') && (
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-rc-bg-light">
+                <span className="text-xs text-rc-text-muted">Active filters:</span>
+                <div className="flex gap-2 flex-wrap">
+                  {searchQuery && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rc-bg-light text-rc-text-light text-xs">
+                      Search: {searchQuery}
+                      <button onClick={() => setSearchQuery('')} className="ml-1 hover:text-rc-text">×</button>
+                    </span>
+                  )}
+                  {filterPriority !== 'all' && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rc-bg-light text-rc-text-light text-xs">
+                      Priority: {filterPriority}
+                      <button onClick={() => setFilterPriority('all')} className="ml-1 hover:text-rc-text">×</button>
+                    </span>
+                  )}
+                  {filterType !== 'all' && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rc-bg-light text-rc-text-light text-xs">
+                      Type: {filterType}
+                      <button onClick={() => setFilterType('all')} className="ml-1 hover:text-rc-text">×</button>
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Summary */}
-        <div className="flex items-center justify-between mb-4">
+          {/* Summary */}
           <p className="text-sm text-rc-text-muted">
             Showing {filteredNotices.length} {filteredNotices.length === 1 ? 'notice' : 'notices'} for Areas {areas.join(', ')}
           </p>
-        </div>
 
-        {/* Notices List */}
-        {loading ? (
-          <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-8">
-            <LoadingSpinner message="Loading notices..." />
-          </div>
-        ) : filteredNotices.length === 0 ? (
-          <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-8 text-center">
-            <AlertCircle className="w-12 h-12 text-rc-text-muted mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-rc-text mb-2">No notices found</h3>
-            <p className="text-sm text-rc-text-muted">
-              {searchQuery || filterPriority !== 'all' || filterType !== 'all'
-                ? 'Try adjusting your filters to see more notices.'
-                : 'There are no recent fishery notices for your selected areas.'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredNotices.map(notice => {
-              const isExpanded = expandedNotices.has(notice.id)
-              const typeInfo = getNoticeTypeInfo(notice)
+          {/* Notices List */}
+          {loading ? (
+            <div className="bg-rc-bg-dark rounded-xl border border-rc-bg-light p-12">
+              <PageLoadingSpinner message="Loading notices..." />
+            </div>
+          ) : filteredNotices.length === 0 ? (
+            <EmptyState
+              icon={AlertCircle}
+              title="No notices found"
+              description={
+                searchQuery || filterPriority !== 'all' || filterType !== 'all'
+                  ? 'Try adjusting your filters to see more notices.'
+                  : 'There are no recent fishery notices for your selected areas.'
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {filteredNotices.map(notice => {
+                const isExpanded = expandedNotices.has(notice.id)
+                const typeInfo = getNoticeTypeInfo(notice)
 
-              return (
-                <div
-                  key={notice.id}
-                  className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-5 hover:border-rc-bg-dark transition-colors"
-                >
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <PriorityBadge priority={notice.priority_level} />
-                        <Badge variant="outline" className="text-xs">
-                          {typeInfo.emoji} {typeInfo.label}
-                        </Badge>
-                        <span className="text-xs text-rc-text-muted">
-                          {notice.notice_number}
-                        </span>
-                      </div>
-                      <h3 className="font-semibold text-rc-text mb-1">
-                        {notice.title}
-                      </h3>
-                      <p className="text-sm text-rc-text-muted">
-                        Issued: {format(new Date(notice.date_issued), 'MMMM d, yyyy')}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => toggleExpanded(notice.id)}
-                      className="p-2 rounded-lg bg-rc-bg-light hover:bg-rc-bg-dark text-rc-text-muted hover:text-rc-text transition-colors"
-                      aria-label={isExpanded ? 'Collapse' : 'Expand'}
-                    >
-                      {isExpanded ? (
-                        <ChevronUp className="h-5 w-5" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Metadata */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {notice.areas.length > 0 && (
-                      <Badge variant="outline" className="text-xs bg-rc-bg-dark">
-                        Areas: {notice.areas.join(', ')}
-                      </Badge>
-                    )}
-                    {notice.subareas.length > 0 && (
-                      <Badge variant="outline" className="text-xs bg-rc-bg-dark">
-                        Subareas: {notice.subareas.slice(0, 3).join(', ')}
-                        {notice.subareas.length > 3 && ` +${notice.subareas.length - 3} more`}
-                      </Badge>
-                    )}
-                    {notice.species.length > 0 && (
-                      <Badge variant="outline" className="text-xs bg-rc-bg-dark">
-                        Species: {notice.species.slice(0, 2).join(', ')}
-                        {notice.species.length > 2 && ` +${notice.species.length - 2} more`}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Expanded Details */}
-                  {isExpanded && (
-                    <div className="mt-5 pt-5 border-t border-rc-bg-light space-y-4">
-                      <div>
-                        <h4 className="text-sm font-semibold text-rc-text mb-1">Category</h4>
-                        <p className="text-sm text-rc-text-muted">{notice.dfo_category}</p>
-                      </div>
-
-                      {notice.species.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-rc-text mb-1">Affected Species</h4>
-                          <p className="text-sm text-rc-text-muted">
-                            {notice.species.join(', ')}
-                          </p>
+                return (
+                  <div
+                    key={notice.id}
+                    className="bg-rc-bg-dark rounded-xl border border-rc-bg-light p-5 hover:border-blue-500/30 transition-colors"
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap text-xs">
+                          <span className={`font-medium ${getPriorityColor(notice.priority_level)}`}>
+                            {getPriorityLabel(notice.priority_level)}
+                          </span>
+                          <span className={`${typeInfo.color}`}>
+                            {typeInfo.label}
+                          </span>
+                          <span className="text-rc-text-muted">
+                            {notice.notice_number}
+                          </span>
                         </div>
-                      )}
-
-                      {notice.subareas.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-rc-text mb-1">All Subareas</h4>
-                          <p className="text-sm text-rc-text-muted">
-                            {notice.subareas.join(', ')}
-                          </p>
-                        </div>
-                      )}
-
-                      <div>
-                        <h4 className="text-sm font-semibold text-rc-text mb-2">Notice Text</h4>
-                        <div className="bg-rc-bg-dark rounded-lg p-4">
-                          <p className="text-sm text-rc-text-muted whitespace-pre-wrap">
-                            {notice.full_text.substring(0, 1000)}
-                            {notice.full_text.length > 1000 && '...'}
-                          </p>
-                        </div>
+                        <h3 className="font-semibold text-rc-text mb-1">
+                          {notice.title}
+                        </h3>
+                        <p className="text-sm text-rc-text-muted">
+                          Issued: {format(new Date(notice.date_issued), 'MMMM d, yyyy')}
+                        </p>
                       </div>
-
-                      <a
-                        href={notice.notice_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium text-rc-text transition-colors"
+                      <button
+                        onClick={() => toggleExpanded(notice.id)}
+                        className="p-2 rounded-lg bg-rc-bg-light hover:bg-rc-bg-light/70 text-rc-text-muted hover:text-rc-text transition-colors"
+                        aria-label={isExpanded ? 'Collapse' : 'Expand'}
                       >
-                        View Full Notice on DFO Website
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
+                        {isExpanded ? (
+                          <ChevronUp className="h-5 w-5" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5" />
+                        )}
+                      </button>
                     </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+
+                    {/* Metadata */}
+                    <div className="flex flex-wrap gap-2 mt-4 text-xs">
+                      {notice.areas.length > 0 && (
+                        <span className="px-2 py-1 rounded-md bg-rc-bg-light text-rc-text-muted">
+                          Areas: {notice.areas.join(', ')}
+                        </span>
+                      )}
+                      {notice.subareas.length > 0 && (
+                        <span className="px-2 py-1 rounded-md bg-rc-bg-light text-rc-text-muted">
+                          Subareas: {notice.subareas.slice(0, 3).join(', ')}
+                          {notice.subareas.length > 3 && ` +${notice.subareas.length - 3} more`}
+                        </span>
+                      )}
+                      {notice.species.length > 0 && (
+                        <span className="px-2 py-1 rounded-md bg-rc-bg-light text-rc-text-muted">
+                          Species: {notice.species.slice(0, 2).join(', ')}
+                          {notice.species.length > 2 && ` +${notice.species.length - 2} more`}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Expanded Details */}
+                    {isExpanded && (
+                      <div className="mt-5 pt-5 border-t border-rc-bg-light space-y-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-rc-text-light mb-1">Category</h4>
+                          <p className="text-sm text-rc-text-muted">{notice.dfo_category}</p>
+                        </div>
+
+                        {notice.species.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-rc-text-light mb-1">Affected Species</h4>
+                            <p className="text-sm text-rc-text-muted">
+                              {notice.species.join(', ')}
+                            </p>
+                          </div>
+                        )}
+
+                        {notice.subareas.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-rc-text-light mb-1">All Subareas</h4>
+                            <p className="text-sm text-rc-text-muted">
+                              {notice.subareas.join(', ')}
+                            </p>
+                          </div>
+                        )}
+
+                        <div>
+                          <h4 className="text-sm font-medium text-rc-text-light mb-2">Notice Text</h4>
+                          <div className="bg-rc-bg-light rounded-lg p-4">
+                            <p className="text-sm text-rc-text-muted whitespace-pre-wrap">
+                              {notice.full_text.substring(0, 1000)}
+                              {notice.full_text.length > 1000 && '...'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <a
+                          href={notice.notice_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium text-white transition-colors"
+                        >
+                          View Full Notice on DFO Website
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </AppShell>
   )
@@ -429,10 +414,8 @@ function DFONoticesContent() {
 export default function DFONoticesPage() {
   return (
     <Suspense fallback={
-      <AppShell>
-        <div className="flex-1 min-h-screen flex items-center justify-center">
-          <LoadingSpinner />
-        </div>
+      <AppShell showLocationPanel={false}>
+        <PageLoadingSpinner message="Loading DFO notices..." />
       </AppShell>
     }>
       <DFONoticesContent />
