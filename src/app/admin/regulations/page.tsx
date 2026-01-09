@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
+import { AppShell } from '@/app/components/layout'
+import DashboardHeader from '@/app/components/forecast/dashboard-header'
 
 interface ScrapedRegulation {
   id: string
@@ -114,27 +116,34 @@ export default function RegulationsAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-white">Fishing Regulations Admin</h1>
-          <button
-            onClick={triggerScrape}
-            disabled={scraping}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${scraping ? 'animate-spin' : ''}`} />
-            {scraping ? 'Scraping...' : 'Trigger Scrape'}
-          </button>
-        </div>
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Fishing Regulations Admin"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
 
-        {error && (
-          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-6">
-            <p className="text-red-400">{error}</p>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-end mb-6">
+            <button
+              onClick={triggerScrape}
+              disabled={scraping}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors"
+            >
+              <RefreshCw className={`w-4 h-4 ${scraping ? 'animate-spin' : ''}`} />
+              {scraping ? 'Scraping...' : 'Trigger Scrape'}
+            </button>
           </div>
-        )}
 
-        {loading ? (
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-6">
+              <p className="text-red-400">{error}</p>
+            </div>
+          )}
+
+          {loading ? (
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-4" />
             <p className="text-slate-400">Loading scraped regulations...</p>
@@ -247,7 +256,8 @@ export default function RegulationsAdminPage() {
             </p>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </AppShell>
   )
 }

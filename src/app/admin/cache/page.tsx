@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import ForecastCacheService from '@/app/utils/forecastCacheService'
-import Sidebar from '@/app/components/common/sidebar'
+import { AppShell } from '@/app/components/layout'
+import DashboardHeader from '@/app/components/forecast/dashboard-header'
 
 interface CacheStats {
   totalEntries: number
@@ -133,33 +134,30 @@ export default function CacheAdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white">
-        <Sidebar />
-        <div className="lg:ml-64 min-h-screen overflow-auto">
-          <div className="max-w-7xl mx-auto p-6 pt-16 lg:pt-6">
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-4 text-slate-300">Loading cache statistics...</p>
-            </div>
+      <AppShell showLocationPanel={false}>
+        <div className="flex-1 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-rc-text-muted">Loading cache statistics...</p>
           </div>
         </div>
-      </div>
+      </AppShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <Sidebar />
-      
-      <div className="lg:ml-64 min-h-screen overflow-auto">
-        <div className="max-w-7xl mx-auto p-6 pt-16 lg:pt-6 space-y-8">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Cache Administration</h1>
-              <p className="text-slate-300 mt-1">Manage forecast cache system</p>
-            </div>
-            
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Cache Administration"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
+
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Action Bar */}
+          <div className="flex justify-end">
             <button
               onClick={loadStats}
               disabled={refreshing}
@@ -365,6 +363,6 @@ export default function CacheAdminPage() {
           )}
         </div>
       </div>
-    </div>
+    </AppShell>
   )
 }

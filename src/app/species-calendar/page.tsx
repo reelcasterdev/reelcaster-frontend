@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Calendar, ExternalLink, AlertCircle } from 'lucide-react'
-import Sidebar from '../components/common/sidebar'
+import { Search, ExternalLink, AlertCircle } from 'lucide-react'
+import { AppShell } from '../components/layout'
+import DashboardHeader from '../components/forecast/dashboard-header'
 import LocationSelector from '../components/species-calendar/location-selector'
 import SpeciesByStatusView from '../components/species-calendar/species-by-status-view'
 import ErrorState from '../components/common/error-state'
@@ -62,21 +63,16 @@ export default function SpeciesCalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex">
-      <Sidebar />
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Species Calendar"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
 
-      <main className="flex-1 lg:ml-64 p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Page Header */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-8 h-8 text-blue-400" />
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Species Calendar</h1>
-            </div>
-            <p className="text-slate-400 text-lg">
-              Explore fishing regulations and availability by species in British Columbia
-            </p>
-          </div>
 
           {/* Controls Section */}
           <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 space-y-4">
@@ -188,7 +184,7 @@ export default function SpeciesCalendarPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }

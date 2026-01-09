@@ -11,18 +11,13 @@ import {
   type FishingLocation,
   type Hotspot,
 } from '@/app/config/locations'
-import {
-  getStatusLabel,
-  type SpeciesStatus,
-} from '@/app/utils/species-status'
-
 /** Selected item background color */
 const SELECTED_BG = 'bg-[#2F2F2F]'
 
 interface FishSpecies {
   id: string
   name: string
-  status: SpeciesStatus
+  status: string
   scientificName?: string
 }
 
@@ -82,7 +77,7 @@ export default function LocationPanel() {
       id: s.id,
       name: s.name,
       scientificName: s.scientificName,
-      status: s.status as SpeciesStatus,
+      status: s.status,
     }))
   }, [currentLocation])
 

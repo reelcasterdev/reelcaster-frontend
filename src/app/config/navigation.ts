@@ -7,6 +7,9 @@ import {
   Mail,
   Settings,
   Database,
+  User,
+  History,
+  Anchor,
   LucideIcon,
 } from 'lucide-react'
 import { ReportIcon } from '@/app/components/common/report-icon'
@@ -37,6 +40,20 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     icon: ReportIcon,
   },
   {
+    id: 'species-calendar',
+    label: 'Species Calendar',
+    mobileLabel: 'Calendar',
+    href: '/species-calendar',
+    icon: Calendar,
+  },
+  {
+    id: 'historical-reports',
+    label: 'Historical Reports',
+    mobileLabel: 'History',
+    href: '/historical-reports',
+    icon: History,
+  },
+  {
     id: 'favorite-spots',
     label: 'Favorite Spots',
     mobileLabel: 'Spots',
@@ -61,6 +78,20 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     disabled: true,
   },
   {
+    id: 'custom-alerts',
+    label: 'Custom Alerts',
+    mobileLabel: 'Alerts',
+    href: '/profile/custom-alerts',
+    icon: Bell,
+  },
+  {
+    id: 'catch-log',
+    label: 'Catch Log',
+    mobileLabel: 'Catches',
+    href: '/profile/catch-log',
+    icon: Anchor,
+  },
+  {
     id: 'notifications',
     label: 'Notification Center',
     mobileLabel: 'Alerts',
@@ -75,6 +106,12 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     href: '/dfo-notices',
     icon: AlertCircle,
     disabled: true,
+  },
+  {
+    id: 'profile',
+    label: 'Profile',
+    href: '/profile',
+    icon: User,
   },
 ]
 

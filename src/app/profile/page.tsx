@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, ArrowLeft, Clock, Gauge } from 'lucide-react'
+import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, Clock, Gauge } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/auth-context'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { UserPreferences, UserPreferencesService } from '@/lib/user-preferences'
-import Sidebar from '../components/common/sidebar'
+import { AppShell } from '../components/layout'
+import DashboardHeader from '../components/forecast/dashboard-header'
 
 // Import the fishing locations and species data
 interface FishingHotspot {
@@ -193,12 +194,14 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg">Loading profile...</p>
+      <AppShell showLocationPanel={false}>
+        <div className="flex-1 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg text-rc-text">Loading profile...</p>
+          </div>
         </div>
-      </div>
+      </AppShell>
     )
   }
 
@@ -206,33 +209,18 @@ export default function ProfilePage() {
   const availableHotspots = currentLocation?.hotspots || []
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      {/* Sidebar */}
-      <Sidebar />
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Profile Settings"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
 
-      {/* Main Content */}
-      <div className="ml-64 min-h-screen overflow-auto">
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.back()}
-                className="text-slate-400 hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
-                  Profile Settings
-                </h1>
-                <p className="text-slate-400 mt-1">Manage your account and preferences</p>
-              </div>
-            </div>
-
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Header Badge */}
+          <div className="flex items-center justify-end">
             <Badge variant="secondary" className="bg-amber-100 text-amber-800">
               <Crown className="h-3 w-3 mr-1" />
               Premium
@@ -684,6 +672,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   )
 }

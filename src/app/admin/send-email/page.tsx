@@ -1,16 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import EmailComposer from '@/app/components/admin/email-composer';
 import EmailPreview from '@/app/components/admin/email-preview';
-import Sidebar from '@/app/components/common/sidebar';
+import { AppShell } from '@/app/components/layout';
+import DashboardHeader from '@/app/components/forecast/dashboard-header';
 import { AdminBroadcastEmailData } from '@/lib/email-templates/admin-broadcast';
 
 export default function AdminSendEmailPage() {
-  const router = useRouter();
   const [previewHtml, setPreviewHtml] = useState<string>('');
   const [previewSubject, setPreviewSubject] = useState<string>('');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -46,26 +43,16 @@ export default function AdminSendEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      {/* Sidebar */}
-      <Sidebar />
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Send Email Broadcast"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
 
-      {/* Main Content */}
-      <div className="ml-64 min-h-screen overflow-auto">
-        <div className="max-w-5xl mx-auto p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="text-slate-400 hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </div>
-
+        <div className="max-w-5xl mx-auto space-y-6">
           <EmailComposer onPreview={handlePreview} />
 
           {/* Email Preview Modal */}
@@ -79,16 +66,16 @@ export default function AdminSendEmailPage() {
           {/* Loading Overlay */}
           {isLoadingPreview && (
             <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
-              <div className="bg-slate-800 rounded-lg p-6 shadow-xl border border-slate-700">
+              <div className="bg-rc-bg-dark rounded-lg p-6 shadow-xl border border-rc-bg-light">
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-lg font-medium text-white">Generating preview...</p>
+                  <p className="text-lg font-medium text-rc-text">Generating preview...</p>
                 </div>
               </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

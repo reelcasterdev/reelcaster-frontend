@@ -150,15 +150,14 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
   // Custom bar shape with rounded corners and background track
   const CustomBar = (props: any) => {
     const { x, y, width, height, fill, background } = props
-    const barWidth = width * 0.85 // Wider bars
+    const barWidth = width * 0.7 // Bar width
     const xOffset = (width - barWidth) / 2
-    const radius = 8 // Rounded corners
+    const radius = 6 // Rounded corners
     const bgColor = '#2d2d38' // Dark background track color
 
-    // Use the chart's coordinate system - background starts at y=20 and goes to y value at score 0
-    // The background prop contains the full bar dimensions from Recharts
-    const bgY = 20
-    const bgHeight = background?.height || 200
+    // Use background props from Recharts for proper positioning
+    const bgY = background?.y ?? y
+    const bgHeight = background?.height ?? height
 
     return (
       <g>
@@ -214,40 +213,40 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
       </div>
 
       {/* Chart */}
-      <div className="h-[320px] mt-4">
+      <div className="h-[320px] mt-4 -mx-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 20, right: 10, left: 0, bottom: 40 }}
-            barCategoryGap="4%"
+            margin={{ top: 10, right: 5, left: -15, bottom: 5 }}
+            barCategoryGap="2%"
           >
             <XAxis
               dataKey="time"
-              stroke="#6b7280"
-              fontSize={11}
+              stroke="transparent"
+              fontSize={10}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: '#9ca3af' }}
+              tick={{ fill: '#6b7280' }}
               interval={0}
               angle={-45}
               textAnchor="end"
-              height={50}
+              height={45}
             />
             <YAxis
               domain={[0, yAxisMax]}
-              stroke="#6b7280"
-              fontSize={12}
+              stroke="transparent"
+              fontSize={11}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: '#9ca3af' }}
-              tickCount={6}
+              tick={{ fill: '#6b7280' }}
+              tickCount={5}
               tickFormatter={(value) => {
-                if (activeLayer === 'wind') return `${Math.round(value)} km/h`
-                if (activeLayer === 'temp') return `${Math.round(value)}°C`
-                if (activeLayer === 'wave') return `${value.toFixed(1)} ${heightUnit}`
+                if (activeLayer === 'wind') return `${Math.round(value)}`
+                if (activeLayer === 'temp') return `${Math.round(value)}°`
+                if (activeLayer === 'wave') return `${value.toFixed(1)}`
                 return `${Math.round(value)}`
               }}
-              width={65}
+              width={30}
             />
             <ChartTooltip content={<CustomTooltip />} />
 
@@ -255,7 +254,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
               dataKey={activeLayer}
               shape={<CustomBar />}
               activeBar={false}
-              background={{ fill: 'transparent' }}
+              background={{ fill: '#1a1a1f' }}
             >
               {chartData.map((entry, index) => (
                 <Cell
