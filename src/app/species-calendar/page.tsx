@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Calendar, ExternalLink, AlertCircle } from 'lucide-react'
-import Sidebar from '../components/common/sidebar'
+import { Search, ExternalLink, AlertCircle } from 'lucide-react'
+import { AppShell } from '../components/layout'
+import DashboardHeader from '../components/forecast/dashboard-header'
 import LocationSelector from '../components/species-calendar/location-selector'
 import SpeciesByStatusView from '../components/species-calendar/species-by-status-view'
 import ErrorState from '../components/common/error-state'
@@ -62,24 +63,19 @@ export default function SpeciesCalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex">
-      <Sidebar />
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Species Calendar"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
 
-      <main className="flex-1 lg:ml-64 p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Page Header */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-8 h-8 text-blue-400" />
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Species Calendar</h1>
-            </div>
-            <p className="text-slate-400 text-lg">
-              Explore fishing regulations and availability by species in British Columbia
-            </p>
-          </div>
 
           {/* Controls Section */}
-          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 space-y-4">
+          <div className="bg-rc-bg-dark rounded-xl p-6 border border-rc-bg-light space-y-4">
             {/* Location Selector */}
             <LocationSelector
               selectedLocation={selectedLocation}
@@ -89,13 +85,13 @@ export default function SpeciesCalendarPage() {
 
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-rc-text-muted" />
               <input
                 type="text"
                 placeholder="Search species by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-700/50 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="w-full bg-rc-bg-light/50 border border-rc-bg-light rounded-lg pl-10 pr-4 py-3 text-rc-text placeholder-rc-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               />
             </div>
           </div>
@@ -107,10 +103,10 @@ export default function SpeciesCalendarPage() {
                 <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 space-y-2">
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                    <span className="text-slate-300">
+                    <span className="text-rc-text-light">
                       Last Verified: <span className="text-blue-400 font-medium">{formatDate(calendarData.lastVerified)}</span>
                     </span>
-                    <span className="text-slate-300">
+                    <span className="text-rc-text-light">
                       Next Review: <span className="text-blue-400 font-medium">{formatDate(calendarData.nextReviewDate)}</span>
                     </span>
                     {calendarData.officialUrl && (
@@ -125,7 +121,7 @@ export default function SpeciesCalendarPage() {
                       </a>
                     )}
                   </div>
-                  <p className="text-slate-400 text-xs">
+                  <p className="text-rc-text-muted text-xs">
                     Always verify current regulations on the official DFO website before fishing
                   </p>
                 </div>
@@ -137,9 +133,9 @@ export default function SpeciesCalendarPage() {
           {loading && (
             <div className="flex flex-col justify-center items-center py-20 space-y-4">
               <div className="relative w-16 h-16">
-                <div className="absolute inset-0 border-4 border-slate-700/30 border-t-blue-500 rounded-full animate-spin" />
+                <div className="absolute inset-0 border-4 border-rc-bg-light/30 border-t-blue-500 rounded-full animate-spin" />
               </div>
-              <p className="text-slate-400 text-lg">Loading species data...</p>
+              <p className="text-rc-text-muted text-lg">Loading species data...</p>
             </div>
           )}
 
@@ -152,22 +148,22 @@ export default function SpeciesCalendarPage() {
           {calendarData && !loading && !error && (
             <div className="space-y-6">
               {/* Summary Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                  <div className="text-slate-400 text-sm mb-1">Total Species</div>
-                  <div className="text-white text-2xl font-bold">{calendarData.totalSpecies}</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-rc-bg-dark rounded-xl p-4 border border-rc-bg-light">
+                  <div className="text-rc-text-muted text-xs mb-1">Total Species</div>
+                  <div className="text-rc-text text-2xl font-bold">{calendarData.totalSpecies}</div>
                 </div>
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                  <div className="text-green-400 text-sm mb-1">Open</div>
-                  <div className="text-white text-2xl font-bold">{calendarData.speciesByStatus.Open.length}</div>
+                <div className="bg-rc-bg-dark rounded-xl p-4 border border-rc-bg-light">
+                  <div className="text-emerald-400 text-xs mb-1">Open</div>
+                  <div className="text-emerald-400 text-2xl font-bold">{calendarData.speciesByStatus.Open.length}</div>
                 </div>
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                  <div className="text-red-400 text-sm mb-1">Closed</div>
-                  <div className="text-white text-2xl font-bold">{calendarData.speciesByStatus.Closed.length}</div>
+                <div className="bg-rc-bg-dark rounded-xl p-4 border border-rc-bg-light">
+                  <div className="text-red-400 text-xs mb-1">Closed</div>
+                  <div className="text-red-400 text-2xl font-bold">{calendarData.speciesByStatus.Closed.length}</div>
                 </div>
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                  <div className="text-yellow-400 text-sm mb-1">Non Retention</div>
-                  <div className="text-white text-2xl font-bold">{calendarData.speciesByStatus['Non Retention'].length}</div>
+                <div className="bg-rc-bg-dark rounded-xl p-4 border border-rc-bg-light">
+                  <div className="text-amber-400 text-xs mb-1">Non Retention</div>
+                  <div className="text-amber-400 text-2xl font-bold">{calendarData.speciesByStatus['Non Retention'].length}</div>
                 </div>
               </div>
 
@@ -188,7 +184,7 @@ export default function SpeciesCalendarPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }

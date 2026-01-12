@@ -12,84 +12,46 @@ import { generateOpenMeteoDailyForecasts, OpenMeteoDailyForecast } from './utils
 import { fetchCHSTideData, CHSWaterData } from './utils/chsTideApi'
 import ForecastCacheService from './utils/forecastCacheService'
 import { useAnalytics } from '@/hooks/use-analytics'
-// import ModernLoadingState from './components/common/modern-loading-state'
 import ErrorState from './components/common/error-state'
 
-// Component imports
+
+import { AppShell } from './components/layout'
+import DashboardHeader from './components/forecast/dashboard-header'
+
 import NewForecastHeader from './components/forecast/new-forecast-header'
-import DayOutlook from './components/forecast/day-outlook'
-import OverallScore from './components/forecast/overall-score'
-import HourlyChart from './components/forecast/hourly-chart'
-import HourlyTable from './components/forecast/hourly-table'
+import DayOutlookNew from './components/forecast/day-outlook-new'
+import HourlyChartNew from './components/forecast/hourly-chart-new'
+import HourlyTableNew from './components/forecast/hourly-table-new'
 import WeatherConditions from './components/forecast/weather-conditions'
 import SpeciesRegulations from './components/forecast/species-regulations'
 import FishingReports from './components/forecast/fishing-reports'
 import { FishingReportDisplay } from './components/forecast/fishing-report-display'
 import { TideChart } from './components/forecast/tide-chart'
 import { TideStatusWidget } from './components/forecast/tide-status-widget'
-import Sidebar from './components/common/sidebar'
-import CompactLocationSelector from './components/location/compact-location-selector'
 import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
-import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
-import { DFONoticesSection } from './components/forecast/dfo-notices-section'
 import AlgorithmInfoModal from './components/forecast/algorithm-info-modal'
-import { AlgorithmVersionToggle } from './components/forecast/algorithm-version-toggle'
 import { setAlgorithmVersion } from './utils/speciesAlgorithms'
+import type { AlgorithmVersion } from './components/forecast/algorithm-version-toggle'
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
 import { useLocationRegulations } from '@/hooks/use-regulations'
 
-// Real fishing location and species data
-interface FishingHotspot {
-  name: string
-  coordinates: { lat: number; lon: number }
-}
+// New widget components
+import OverallScoreWidget from './components/forecast/overall-score-widget'
+import MapViewWidget from './components/forecast/map-view-widget'
+import WeatherWidget from './components/forecast/weather-widget'
+import TideWidget from './components/forecast/tide-widget'
+import MapModal from './components/forecast/map-modal'
 
-interface FishingLocation {
-  id: string
-  name: string
-  coordinates: { lat: number; lon: number }
-  hotspots: FishingHotspot[]
-}
+// Centralized config
+import {
+  FISHING_LOCATIONS,
+  type FishingHotspot,
+} from './config/locations'
 
-
-const fishingLocations: FishingLocation[] = [
-  {
-    id: 'victoria-sidney',
-    name: 'Victoria, Sidney',
-    coordinates: { lat: 48.4113, lon: -123.398 },
-    hotspots: [
-      { name: 'Breakwater (Shore Fishing)', coordinates: { lat: 48.4113, lon: -123.398 } },
-      { name: 'Waterfront', coordinates: { lat: 48.4284, lon: -123.3656 } },
-      { name: 'Ten Mile Point (Shore Fishing)', coordinates: { lat: 48.4167, lon: -123.3 } },
-      { name: 'Oak Bay', coordinates: { lat: 48.4264, lon: -123.3145 } },
-      { name: 'Waterfront Bay', coordinates: { lat: 48.4632, lon: -123.3127 } },
-      { name: 'Constance Bank', coordinates: { lat: 48.3833, lon: -123.4167 } },
-      { name: 'Sidney', coordinates: { lat: 48.65, lon: -123.4 } },
-    ],
-  },
-  {
-    id: 'sooke-port-renfrew',
-    name: 'Sooke, Port Renfrew',
-    coordinates: { lat: 48.3415, lon: -123.5507 },
-    hotspots: [
-      { name: 'East Sooke', coordinates: { lat: 48.35, lon: -123.6167 } },
-      { name: 'Becher Bay', coordinates: { lat: 48.3167, lon: -123.6333 } },
-      { name: 'Pedder Bay', coordinates: { lat: 48.3415, lon: -123.5507 } },
-      { name: 'Church Rock', coordinates: { lat: 48.3, lon: -123.6 } },
-    ],
-  },
-]
-
-// Helper function to map location names to DFO fishing areas
-function getDFOAreasForLocation(locationName: string): number[] {
-  const locationToAreas: Record<string, number[]> = {
-    'Victoria, Sidney': [19],
-    'Sooke, Port Renfrew': [20],
-  }
-  return locationToAreas[locationName] || [19, 20] // Default to both areas if unknown
-}
+// Use centralized config
+const fishingLocations = FISHING_LOCATIONS
 
 function NewForecastContent() {
   const searchParams = useSearchParams()
@@ -116,6 +78,7 @@ function NewForecastContent() {
   const [tideData, setTideData] = useState<CHSWaterData | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
   const [showAlgorithmModal, setShowAlgorithmModal] = useState(false)
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false)
 
   // Cache-related state
   const [isCachedData, setIsCachedData] = useState(false)
@@ -374,6 +337,12 @@ function NewForecastContent() {
     }
   }, [coordinates, species, selectedLocation, selectedHotspot, fetchFreshForecastData, trackEvent])
 
+  // Handle algorithm version change
+  const handleAlgorithmChange = useCallback((version: AlgorithmVersion) => {
+    setAlgorithmVersion(version)
+    fetchForecastData()
+  }, [fetchForecastData])
+
   useEffect(() => {
     fetchForecastData()
   }, [fetchForecastData])
@@ -399,42 +368,55 @@ function NewForecastContent() {
     return <ErrorState message="Invalid coordinates provided" />
   }
 
+  // Right sidebar content for desktop
+  const rightSidebarContent = !loading ? (
+    <div className="p-4 space-y-4">
+      {/* Overall Score Widget */}
+      <OverallScoreWidget
+        score={forecastData[selectedDay]?.twoHourForecasts[0]?.score.total || 0}
+        onDetailsClick={() => setShowAlgorithmModal(true)}
+      />
+
+      {/* Map View Widget */}
+      <MapViewWidget
+        lat={coordinates.lat}
+        lon={coordinates.lon}
+        locationName={selectedLocation}
+        hotspotName={selectedHotspot}
+        onExpand={() => setIsMapModalOpen(true)}
+      />
+
+      {/* Weather Widget */}
+      <WeatherWidget
+        forecasts={forecastData}
+        openMeteoData={openMeteoData}
+        selectedDay={selectedDay}
+      />
+
+      {/* Tide Widget */}
+      <TideWidget tideData={tideData} />
+
+      {/* Species Regulations */}
+      <SpeciesRegulations
+        species={dynamicRegulations?.species || []}
+        areaUrl={dynamicRegulations?.url}
+        lastVerified={dynamicRegulations?.lastVerified}
+        nextReviewDate={dynamicRegulations?.nextReviewDate}
+      />
+    </div>
+  ) : null
+
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      {/* Sidebar */}
-      <Sidebar />
+    <AppShell rightSidebar={rightSidebarContent}>
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
-      {/* Main Content */}
-      <div className="lg:ml-64 min-h-screen overflow-auto">
-        <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-3 sm:space-y-6 pt-16 lg:pt-6">
-          {/* Location Selector */}
-          <CompactLocationSelector />
+        <DashboardHeader
+          title="Reports"
+          showAlgorithm={true}
+          onAlgorithmChange={handleAlgorithmChange}
+        />
 
-          {/* Algorithm Version Toggle */}
-          <AlgorithmVersionToggle
-            onVersionChange={(version) => {
-              setAlgorithmVersion(version)
-              // Trigger forecast refresh to recalculate with new version
-              fetchForecastData()
-            }}
-          />
-
-          {/* Weather Map */}
-          {!loading && currentLocation && (
-            <ForecastMapSwitcher
-              location={selectedLocation}
-              hotspot={selectedHotspot}
-              hotspots={currentLocation.hotspots}
-              centerCoordinates={coordinates}
-              onHotspotChange={handleHotspotChange}
-              openMeteoData={openMeteoData}
-            />
-          )}
-
-          {/* Header - Always show */}
           <NewForecastHeader
-            location={selectedLocation}
-            hotspot={selectedHotspot}
             isCachedData={isCachedData}
             isRefreshing={isRefreshing}
             cacheInfo={cacheInfo}
@@ -459,34 +441,31 @@ function NewForecastContent() {
               {/* Top Section Skeleton */}
               <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
                 <div className="lg:col-span-2">
-                  <div className="bg-slate-800 rounded-lg h-48 animate-pulse" />
+                  <div className="bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
                 </div>
                 <div className="lg:col-span-1">
-                  <div className="bg-slate-800 rounded-lg h-48 animate-pulse" />
+                  <div className="bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
                 </div>
               </div>
 
               {/* Main Content Skeleton */}
               <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
                 <div className="lg:col-span-2 space-y-3 sm:space-y-6">
-                  <div className="bg-slate-800 rounded-lg h-64 animate-pulse" />
-                  <div className="lg:hidden bg-slate-800 rounded-lg h-48 animate-pulse" />
-                  <div className="bg-slate-800 rounded-lg h-96 animate-pulse" />
+                  <div className="bg-rc-bg-dark rounded-lg h-64 animate-pulse" />
+                  <div className="lg:hidden bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
+                  <div className="bg-rc-bg-dark rounded-lg h-96 animate-pulse" />
                 </div>
                 <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
-                  <div className="bg-slate-800 rounded-lg h-48 animate-pulse" />
-                  <div className="bg-slate-800 rounded-lg h-64 animate-pulse" />
+                  <div className="bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
+                  <div className="bg-rc-bg-dark rounded-lg h-64 animate-pulse" />
                 </div>
               </div>
             </div>
           ) : (
             <>
-              {/* Top Section - Always full width on mobile */}
-              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
-                {/* Left column - Forecast Outlook and Chart */}
-                <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+              <div className="lg:col-span-2 space-y-3 sm:space-y-4">
                   {/* Forecast Outlook */}
-                  <DayOutlook
+                  <DayOutlookNew
                     forecasts={forecastData}
                     selectedDay={selectedDay}
                     onDaySelect={setSelectedDay}
@@ -494,23 +473,9 @@ function NewForecastContent() {
                   />
 
                   {/* Hourly Fishing Score Chart - Now above the fold */}
-                  <HourlyChart forecasts={forecastData} selectedDay={selectedDay} species={species} />
+                  <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} />
                 </div>
 
-                {/* Overall Score - Full width on mobile */}
-                <div className="lg:col-span-1">
-                  <OverallScore
-                    forecasts={forecastData}
-                    selectedDay={selectedDay}
-                    species={species}
-                    onLearnMore={() => setShowAlgorithmModal(true)}
-                  />
-                </div>
-              </div>
-
-              {/* Main Content - Stack on mobile, grid on desktop */}
-              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
-                {/* Charts and Table Section */}
                 <div className="lg:col-span-2 space-y-3 sm:space-y-6">
                   {/* Weather and Conditions - Show here on mobile, hide on desktop */}
                   <div className="lg:hidden">
@@ -549,7 +514,7 @@ function NewForecastContent() {
                   </div>
 
                   {/* Hourly Data Table */}
-                  <HourlyTable
+                  <HourlyTableNew
                     forecasts={forecastData}
                     openMeteoData={openMeteoData}
                     tideData={tideData || tideData}
@@ -565,35 +530,6 @@ function NewForecastContent() {
 
                 </div>
 
-                {/* Right Column - Desktop only */}
-                <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
-                  {/* Weather and Conditions */}
-                  <WeatherConditions
-                    forecasts={forecastData}
-                    openMeteoData={openMeteoData}
-                    tideData={tideData}
-                    selectedDay={selectedDay}
-                  />
-
-                  {/* Tide Status Widget - Desktop */}
-                  {tideData && (
-                    <TideStatusWidget
-                      tideData={tideData}
-                    />
-                  )}
-
-                  {/* Species Regulations */}
-                  <SpeciesRegulations
-                    species={dynamicRegulations?.species || []}
-                    areaUrl={dynamicRegulations?.url}
-                    lastVerified={dynamicRegulations?.lastVerified}
-                    nextReviewDate={dynamicRegulations?.nextReviewDate}
-                  />
-
-                  {/* Reports */}
-                  <FishingReports />
-                </div>
-              </div>
 
               {/* Reports - Show at bottom on mobile */}
               <div className="lg:hidden">
@@ -604,18 +540,8 @@ function NewForecastContent() {
               <div className="mt-6">
                 <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
               </div>
-
-              {/* DFO Fishery Notices */}
-              <div className="mt-6">
-                <DFONoticesSection
-                  areas={getDFOAreasForLocation(selectedLocation)}
-                  species={species ? [species] : []}
-                  limit={10}
-                />
-              </div>
             </>
           )}
-        </div>
       </div>
 
       {/* Algorithm Info Modal */}
@@ -624,7 +550,21 @@ function NewForecastContent() {
         onClose={() => setShowAlgorithmModal(false)}
         species={species}
       />
-    </div>
+
+      {/* Map Modal */}
+      {currentLocation && (
+        <MapModal
+          isOpen={isMapModalOpen}
+          onClose={() => setIsMapModalOpen(false)}
+          location={selectedLocation}
+          hotspot={selectedHotspot}
+          hotspots={currentLocation.hotspots}
+          centerCoordinates={coordinates}
+          onHotspotChange={handleHotspotChange}
+          openMeteoData={openMeteoData}
+        />
+      )}
+    </AppShell>
   )
 }
 

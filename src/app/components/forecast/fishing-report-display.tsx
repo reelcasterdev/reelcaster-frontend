@@ -3,30 +3,18 @@
 import React, { useState, useEffect } from 'react'
 import { Fish, Waves, Calendar, TrendingUp, Anchor, ChevronRight, AlertCircle } from 'lucide-react'
 
-const conditionColors: Record<string, string> = {
-  'EXCELLENT': 'from-green-500 to-green-600',
-  'VERY GOOD': 'from-green-400 to-green-500',
-  'GOOD': 'from-blue-500 to-blue-600',
-  'FAIR': 'from-yellow-400 to-yellow-500',
-  'SLOW': 'from-orange-400 to-orange-500',
-  'Excellent': 'from-green-500 to-green-600',
-  'Very Good': 'from-green-400 to-green-500',
-  'Good': 'from-blue-500 to-blue-600',
-  'Fair': 'from-yellow-400 to-yellow-500',
-  'Slow': 'from-orange-400 to-orange-500'
-}
-
-const conditionShadows: Record<string, string> = {
-  'EXCELLENT': 'shadow-green-500/30',
-  'VERY GOOD': 'shadow-green-400/30',
-  'GOOD': 'shadow-blue-500/30',
-  'FAIR': 'shadow-yellow-400/30',
-  'SLOW': 'shadow-orange-400/30',
-  'Excellent': 'shadow-green-500/30',
-  'Very Good': 'shadow-green-400/30',
-  'Good': 'shadow-blue-500/30',
-  'Fair': 'shadow-yellow-400/30',
-  'Slow': 'shadow-orange-400/30'
+// Condition badge colors - subtle muted styles
+const conditionStyles: Record<string, { bg: string; text: string; border: string }> = {
+  'EXCELLENT': { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20' },
+  'VERY GOOD': { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20' },
+  'GOOD': { bg: 'bg-rc-bg-light', text: 'text-rc-text-light', border: 'border-rc-bg-light' },
+  'FAIR': { bg: 'bg-rc-bg-light', text: 'text-rc-text-muted', border: 'border-rc-bg-light' },
+  'SLOW': { bg: 'bg-rc-bg-light', text: 'text-rc-text-muted', border: 'border-rc-bg-light' },
+  'Excellent': { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20' },
+  'Very Good': { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20' },
+  'Good': { bg: 'bg-rc-bg-light', text: 'text-rc-text-light', border: 'border-rc-bg-light' },
+  'Fair': { bg: 'bg-rc-bg-light', text: 'text-rc-text-muted', border: 'border-rc-bg-light' },
+  'Slow': { bg: 'bg-rc-bg-light', text: 'text-rc-text-muted', border: 'border-rc-bg-light' }
 }
 
 interface FishingReportDisplayProps {
@@ -98,11 +86,11 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
 
   if (loading) {
     return (
-      <div className="w-full space-y-3 sm:space-y-6">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl sm:rounded-2xl border border-slate-700 p-4 sm:p-6 shadow-xl">
+      <div className="w-full space-y-4">
+        <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-5">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-slate-700 rounded w-1/4"></div>
+            <div className="h-6 bg-rc-bg-dark rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-rc-bg-dark rounded w-1/4"></div>
           </div>
         </div>
       </div>
@@ -111,8 +99,8 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
 
   if (error || !reportData) {
     return (
-      <div className="w-full space-y-3 sm:space-y-6">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl sm:rounded-2xl border border-slate-700 p-4 sm:p-6 shadow-xl">
+      <div className="w-full space-y-4">
+        <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-5">
           <div className="flex items-center gap-2 text-yellow-400">
             <AlertCircle className="w-5 h-5" />
             <p className="text-sm">{error || 'No fishing report available'}</p>
@@ -124,11 +112,11 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
 
   // Get the specific hotspot report
   const hotspotReport = reportData.hotspotReports[hotspot]
-  
+
   if (!hotspotReport) {
     return (
-      <div className="w-full space-y-3 sm:space-y-6">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl sm:rounded-2xl border border-slate-700 p-4 sm:p-6 shadow-xl">
+      <div className="w-full space-y-4">
+        <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-5">
           <div className="flex items-center gap-2 text-yellow-400">
             <AlertCircle className="w-5 h-5" />
             <p className="text-sm">No specific report available for {hotspot}</p>
@@ -141,75 +129,78 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
   return (
     <div className="w-full space-y-3 sm:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl sm:rounded-2xl border border-slate-700 p-4 sm:p-6 shadow-xl">
+      <div className="bg-rc-bg-darkest rounded-xl sm:rounded-2xl border border-rc-bg-light p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent flex items-center gap-2">
-              <Fish className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+            <h2 className="text-xl sm:text-2xl font-bold text-rc-text flex items-center gap-2">
+              <Fish className="w-5 h-5 sm:w-6 sm:h-6 text-rc-text-muted" />
               {location} - {hotspot}
             </h2>
-            <p className="flex items-center gap-2 mt-2 text-sm text-slate-400">
+            <p className="flex items-center gap-2 mt-2 text-sm text-rc-text-muted">
               <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Week ending {reportData.reportMetadata.weekEnding}
             </p>
           </div>
-          <div className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-700/50 border border-slate-600/30 rounded-full">
-            <span className="text-xs sm:text-sm text-slate-300">{reportData.reportMetadata.source}</span>
+          <div className="px-2 sm:px-3 py-1 sm:py-1.5 bg-rc-bg-dark border border-rc-bg-light rounded-full">
+            <span className="text-xs sm:text-sm text-rc-text-light">{reportData.reportMetadata.source}</span>
           </div>
         </div>
       </div>
 
       {/* Current Conditions */}
-      <div className="bg-gradient-to-b from-slate-700/50 to-slate-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-3 sm:mb-4 text-white">
-          <Waves className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+      <div className="bg-rc-bg-darkest rounded-xl sm:rounded-2xl border border-rc-bg-light p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-3 sm:mb-4 text-rc-text">
+          <Waves className="w-4 h-4 sm:w-5 sm:h-5 text-rc-text-muted" />
           Current Conditions at {hotspot}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {Object.entries(hotspotReport.conditions).map(([type, condition]) => (
-            <div key={type} className="flex items-center justify-between bg-slate-800 rounded-lg p-3 border border-slate-700/50">
-              <span className="text-sm capitalize text-slate-300">
-                {type.replace(/([A-Z])/g, ' $1').trim()}
-              </span>
-              <div className={`px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r ${conditionColors[condition] || 'from-gray-500 to-gray-600'} shadow-lg ${conditionShadows[condition] || ''}`}>
-                <span className="text-[10px] sm:text-xs font-bold text-white">{condition}</span>
+          {Object.entries(hotspotReport.conditions).map(([type, condition]) => {
+            const style = conditionStyles[condition] || { bg: 'bg-rc-bg-light', text: 'text-rc-text-muted', border: 'border-rc-bg-light' }
+            return (
+              <div key={type} className="flex items-center justify-between bg-rc-bg-dark rounded-lg p-3 border border-rc-bg-light">
+                <span className="text-sm capitalize text-rc-text-light">
+                  {type.replace(/([A-Z])/g, ' $1').trim()}
+                </span>
+                <div className={`px-2 sm:px-3 py-1 rounded-full border ${style.bg} ${style.border}`}>
+                  <span className={`text-[10px] sm:text-xs font-medium ${style.text}`}>{condition}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
       {/* Species Activity */}
-      <div className="bg-gradient-to-b from-slate-700/50 to-slate-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-4 text-white">
-          <Fish className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+      <div className="bg-rc-bg-darkest rounded-xl sm:rounded-2xl border border-rc-bg-light p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-4 text-rc-text">
+          <Fish className="w-4 h-4 sm:w-5 sm:h-5 text-rc-text-muted" />
           Species Activity
         </h3>
         <div className="space-y-3">
           {Object.entries(hotspotReport.species).map(([species, info]) => (
-            <div key={species} className="bg-slate-800 rounded-lg p-3 border border-slate-700/50">
-              <h4 className="font-medium capitalize text-white mb-2">{species}</h4>
+            <div key={species} className="bg-rc-bg-dark rounded-lg p-3 border border-rc-bg-light">
+              <h4 className="font-medium capitalize text-rc-text mb-2">{species}</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
                 <div>
-                  <span className="text-slate-400">Status:</span>{' '}
-                  <span className="text-white">{info.status}</span>
+                  <span className="text-rc-text-muted">Status:</span>{' '}
+                  <span className="text-rc-text">{info.status}</span>
                 </div>
                 {info.size && (
                   <div>
-                    <span className="text-slate-400">Size:</span>{' '}
-                    <span className="text-white">{info.size}</span>
+                    <span className="text-rc-text-muted">Size:</span>{' '}
+                    <span className="text-rc-text">{info.size}</span>
                   </div>
                 )}
                 {info.bestDepths && (
                   <div>
-                    <span className="text-slate-400">Best Depths:</span>{' '}
-                    <span className="text-white">{info.bestDepths}</span>
+                    <span className="text-rc-text-muted">Best Depths:</span>{' '}
+                    <span className="text-rc-text">{info.bestDepths}</span>
                   </div>
                 )}
                 {info.bestArea && (
                   <div className="sm:col-span-2">
-                    <span className="text-slate-400">Best Area:</span>{' '}
-                    <span className="text-white">{info.bestArea}</span>
+                    <span className="text-rc-text-muted">Best Area:</span>{' '}
+                    <span className="text-rc-text">{info.bestArea}</span>
                   </div>
                 )}
               </div>
@@ -219,34 +210,34 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
       </div>
 
       {/* Tackle Recommendations */}
-      <div className="bg-gradient-to-b from-slate-700/50 to-slate-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-4 text-white">
-          <Anchor className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
+      <div className="bg-rc-bg-darkest rounded-xl sm:rounded-2xl border border-rc-bg-light p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-4 text-rc-text">
+          <Anchor className="w-4 h-4 sm:w-5 sm:h-5 text-rc-text-muted" />
           Recommended Setup for {hotspot}
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Lures & Baits */}
           <div className="space-y-3">
             {hotspotReport.topLures.length > 0 && (
               <div>
-                <h4 className="text-xs sm:text-sm font-medium mb-2 text-slate-400">Top Lures</h4>
+                <h4 className="text-xs sm:text-sm font-medium mb-2 text-rc-text-muted">Top Lures</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {hotspotReport.topLures.map((lure, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded-full text-[10px] sm:text-xs text-blue-300">
+                    <span key={i} className="px-2 py-0.5 bg-rc-bg-light border border-rc-bg-light rounded-full text-[10px] sm:text-xs text-rc-text-light">
                       {lure}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-            
+
             {hotspotReport.topBaits.length > 0 && (
               <div>
-                <h4 className="text-xs sm:text-sm font-medium mb-2 text-slate-400">Top Baits</h4>
+                <h4 className="text-xs sm:text-sm font-medium mb-2 text-rc-text-muted">Top Baits</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {hotspotReport.topBaits.map((bait, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded-full text-[10px] sm:text-xs text-green-300">
+                    <span key={i} className="px-2 py-0.5 bg-rc-bg-light border border-rc-bg-light rounded-full text-[10px] sm:text-xs text-rc-text-light">
                       {bait}
                     </span>
                   ))}
@@ -259,23 +250,23 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
           <div className="space-y-3">
             {hotspotReport.flashers.length > 0 && (
               <div>
-                <h4 className="text-xs sm:text-sm font-medium mb-2 text-slate-400">Flashers</h4>
+                <h4 className="text-xs sm:text-sm font-medium mb-2 text-rc-text-muted">Flashers</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {hotspotReport.flashers.map((flasher, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-cyan-500/20 border border-cyan-500/30 rounded-full text-[10px] sm:text-xs text-cyan-300">
+                    <span key={i} className="px-2 py-0.5 bg-rc-bg-light border border-rc-bg-light rounded-full text-[10px] sm:text-xs text-rc-text-light">
                       {flasher}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-            
+
             {hotspotReport.baitDetails?.teaserHeadColors && (
               <div>
-                <h4 className="text-xs sm:text-sm font-medium mb-2 text-slate-400">Teaser Head Colors</h4>
+                <h4 className="text-xs sm:text-sm font-medium mb-2 text-rc-text-muted">Teaser Head Colors</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {hotspotReport.baitDetails.teaserHeadColors.map((color, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded-full text-[10px] sm:text-xs text-purple-300">
+                    <span key={i} className="px-2 py-0.5 bg-rc-bg-light border border-rc-bg-light rounded-full text-[10px] sm:text-xs text-rc-text-light">
                       {color}
                     </span>
                   ))}
@@ -288,10 +279,10 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
         {/* Techniques */}
         {hotspotReport.techniques.length > 0 && (
           <div className="mt-4">
-            <h4 className="text-xs sm:text-sm font-medium mb-2 text-slate-400">Techniques</h4>
+            <h4 className="text-xs sm:text-sm font-medium mb-2 text-rc-text-muted">Techniques</h4>
             <div className="flex flex-wrap gap-1.5">
               {hotspotReport.techniques.map((technique, i) => (
-                <span key={i} className="px-2 py-0.5 bg-slate-700/50 border border-slate-600/30 rounded text-[10px] sm:text-xs text-slate-300">
+                <span key={i} className="px-2 py-0.5 bg-rc-bg-dark border border-rc-bg-light rounded text-[10px] sm:text-xs text-rc-text-light">
                   {technique}
                 </span>
               ))}
@@ -301,38 +292,38 @@ export function FishingReportDisplay({ location, hotspot }: FishingReportDisplay
 
         {/* Notes */}
         {hotspotReport.notes && (
-          <div className="mt-4 p-3 bg-slate-800 rounded-lg border border-slate-700/50">
-            <p className="text-xs sm:text-sm text-slate-300 italic">💡 {hotspotReport.notes}</p>
+          <div className="mt-4 p-3 bg-rc-bg-dark rounded-lg border border-rc-bg-light">
+            <p className="text-xs sm:text-sm text-rc-text-light italic">💡 {hotspotReport.notes}</p>
           </div>
         )}
       </div>
 
       {/* General Area Tips */}
-      <div className="bg-gradient-to-b from-slate-700/50 to-slate-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-700/50 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-4 text-white">
-          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
+      <div className="bg-rc-bg-darkest rounded-xl sm:rounded-2xl border border-rc-bg-light p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 mb-4 text-rc-text">
+          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-rc-text-muted" />
           General {location} Tips
         </h3>
         <ul className="space-y-2">
           {reportData.fishingTips.map((tip, index) => (
             <li key={index} className="flex items-start">
-              <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400 mt-0.5 mr-2 flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-slate-300">{tip}</span>
+              <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rc-text-muted mt-0.5 mr-2 flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-rc-text-light">{tip}</span>
             </li>
           ))}
         </ul>
-        
+
         {/* Depth & Setup Info */}
         {(reportData.recommendedTackle.depths || reportData.recommendedTackle.setupDetails) && (
-          <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-2">
+          <div className="mt-4 pt-4 border-t border-rc-bg-light space-y-2">
             {reportData.recommendedTackle.depths && (
-              <p className="text-xs sm:text-sm text-slate-400">
-                <span className="font-medium">Recommended Depths:</span> {reportData.recommendedTackle.depths}
+              <p className="text-xs sm:text-sm text-rc-text-muted">
+                <span className="font-medium text-rc-text-light">Recommended Depths:</span> {reportData.recommendedTackle.depths}
               </p>
             )}
             {reportData.recommendedTackle.setupDetails && (
-              <p className="text-xs sm:text-sm text-slate-400">
-                <span className="font-medium">Setup Details:</span> {reportData.recommendedTackle.setupDetails}
+              <p className="text-xs sm:text-sm text-rc-text-muted">
+                <span className="font-medium text-rc-text-light">Setup Details:</span> {reportData.recommendedTackle.setupDetails}
               </p>
             )}
           </div>

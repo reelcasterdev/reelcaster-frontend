@@ -201,9 +201,17 @@ Based on current usage analysis, these components are actively used:
 
 - `mobile-friendly-chart.tsx` - Data visualization component for charts
 
+**Layout (New Design System):**
+
+- `app-shell.tsx` - Main layout wrapper with icon sidebar, location panel, mobile nav
+- `icon-sidebar.tsx` - Desktop icon-based sidebar navigation
+- `location-panel.tsx` - Desktop location/hotspot selector panel
+- `mobile-tab-bar.tsx` - Mobile bottom navigation
+- `mobile-location-sheet.tsx` - Mobile location selector sheet
+- `dashboard-header.tsx` - Page header with title and optional controls
+
 **Common:**
 
-- `sidebar.tsx` - Main navigation sidebar
 - `modern-loading-state.tsx` - Loading state component
 - `error-state.tsx` - Error display component
 
@@ -248,12 +256,354 @@ When working with APIs:
 - Location selection is passed through URL parameters
 - User preferences are managed via UserPreferencesService
 
-### Styling Guidelines
+### Design System
 
-- Use Tailwind CSS classes for styling
-- CSS variables are defined for theming (check globals.css)
-- Custom animations use tw-animate-css
-- Follow the existing responsive design patterns
+ReelCaster uses a custom dark theme design system built on Tailwind CSS v4. **Always use the `rc-*` color tokens** for consistency across the application.
+
+#### Color Tokens (Defined in `globals.css`)
+
+```css
+/* Background Colors (darkest to lightest) */
+--color-rc-bg-darkest: #1E1E1E;  /* Page background, AppShell */
+--color-rc-bg-dark: #2B2B2B;     /* Cards, containers, panels */
+--color-rc-bg-light: #333333;    /* Input backgrounds, borders, hover states */
+
+/* Text Colors */
+--color-rc-text: #FFFFFF;        /* Primary text, headings */
+--color-rc-text-light: #E3E3E3;  /* Secondary text */
+--color-rc-text-muted: #AAAAAA;  /* Muted text, labels, placeholders, icons */
+```
+
+**Tailwind Usage:**
+```tsx
+// Backgrounds
+className="bg-rc-bg-darkest"  // Page backgrounds
+className="bg-rc-bg-dark"     // Cards, containers
+className="bg-rc-bg-light"    // Input fields, borders, subtle backgrounds
+
+// Text
+className="text-rc-text"       // Primary text
+className="text-rc-text-light" // Secondary text
+className="text-rc-text-muted" // Labels, placeholders, disabled text
+
+// Borders
+className="border-rc-bg-light" // Standard borders
+```
+
+#### Accent Colors
+
+Use Tailwind's built-in color palette for accents:
+
+| Purpose | Color | Classes |
+|---------|-------|---------|
+| Primary actions, active states | Blue 600 | `bg-blue-600`, `text-blue-600`, `border-blue-600` |
+| Success, positive | Emerald 400/500 | `text-emerald-400`, `bg-emerald-500/20` |
+| Warning, attention | Amber 400/500 | `text-amber-400`, `bg-amber-500/20` |
+| Error, destructive | Red 500 | `text-red-500`, `bg-red-500/20` |
+| Info | Blue 400 | `text-blue-400`, `bg-blue-500/20` |
+| CTA buttons | Green 600 | `bg-green-600 hover:bg-green-500` |
+
+#### Page Layout Pattern
+
+All pages should use the `AppShell` component with consistent padding:
+
+```tsx
+import { AppShell } from '@/app/components/layout'
+import DashboardHeader from '@/app/components/forecast/dashboard-header'
+
+export default function MyPage() {
+  return (
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Page Title"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
+
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Page content */}
+        </div>
+      </div>
+    </AppShell>
+  )
+}
+```
+
+**Key Layout Classes:**
+- Outer container: `p-4 sm:p-6 space-y-4 sm:space-y-6`
+- Content width: `max-w-4xl mx-auto` (or `max-w-5xl`, `max-w-6xl`, `max-w-7xl`)
+- Content spacing: `space-y-6`
+
+#### Card/Container Pattern
+
+```tsx
+// Standard card
+<div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4">
+  {/* Content */}
+</div>
+
+// Card with darker background (for sections within cards)
+<div className="bg-rc-bg-darkest border border-rc-bg-light rounded-xl p-6">
+  <h2 className="text-xl font-semibold text-rc-text">Title</h2>
+  <p className="text-sm text-rc-text-muted mt-1">Description</p>
+</div>
+```
+
+#### Form Component Styling
+
+**Input Fields:**
+```tsx
+// Use the Input component from @/components/ui/input
+// Or inline styling:
+<input className="w-full bg-rc-bg-light border border-rc-bg-light rounded-lg px-3 py-2 text-rc-text text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+```
+
+**Select Dropdowns:**
+```tsx
+// Use Select from @/components/ui/select
+// Key classes already applied:
+// - Trigger: bg-rc-bg-light border-rc-bg-light text-rc-text
+// - Content: bg-rc-bg-dark text-rc-text border-rc-bg-light
+// - Item: focus:bg-rc-bg-light focus:text-rc-text
+```
+
+**Switch/Toggle:**
+```tsx
+// Use Switch from @/components/ui/switch
+// Unchecked: bg-rc-bg-light, thumb bg-rc-text-muted
+// Checked: bg-blue-600, thumb bg-white
+```
+
+**Checkbox:**
+```tsx
+// Use Checkbox from @/components/ui/checkbox
+// Unchecked: border-rc-bg-light bg-rc-bg-light
+// Checked: bg-blue-600 text-white border-blue-600
+```
+
+**Slider:**
+```tsx
+// Use Slider from @/components/ui/slider
+// Track: bg-rc-bg-light
+// Range (filled): bg-blue-600
+// Thumb: border-blue-600 bg-rc-bg-dark
+```
+
+**Labels:**
+```tsx
+// Use Label from @/components/ui/label
+<Label className="text-rc-text">Field Label</Label>
+// Or inline:
+<label className="block text-xs font-medium text-rc-text-muted mb-2">Label</label>
+```
+
+#### Button Patterns
+
+```tsx
+// Primary action button (gradient)
+<Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+  Action
+</Button>
+
+// Secondary/ghost button
+<button className="flex items-center gap-2 px-3 py-1.5 bg-rc-bg-light text-rc-text-muted hover:bg-rc-bg-dark rounded-lg text-sm transition-colors">
+  Secondary
+</button>
+
+// Pill-shaped button (used in DashboardHeader)
+<button className="flex items-center bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-full text-sm transition-colors">
+  <span className="px-4 py-2 text-rc-text">Button Text</span>
+</button>
+
+// CTA button (green)
+<button className="flex items-center bg-green-600 hover:bg-green-500 rounded-full text-sm font-medium transition-colors">
+  <span className="flex items-center gap-2 px-4 py-2 text-rc-text">Call to Action</span>
+</button>
+```
+
+#### Status Badges
+
+```tsx
+// Success/positive
+<span className="px-2 py-0.5 text-xs rounded-full bg-green-500/20 text-green-300">
+  Released
+</span>
+
+// Info
+<span className="px-2 py-0.5 text-xs rounded-full bg-blue-500/20 text-blue-300">
+  Kept
+</span>
+
+// Warning
+<span className="px-2 py-0.5 text-xs rounded-full bg-yellow-500/20 text-yellow-300">
+  Pending
+</span>
+
+// Error
+<span className="px-2 py-0.5 text-xs rounded-full bg-red-500/20 text-red-300">
+  Error
+</span>
+
+// Neutral/metadata
+<span className="px-2 py-0.5 text-xs rounded-full bg-rc-bg-light text-rc-text-muted">
+  Metadata
+</span>
+```
+
+#### Stats Cards Pattern
+
+```tsx
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4">
+    <div className="flex items-center gap-2 text-rc-text-muted text-xs mb-1">
+      <Icon className="w-4 h-4" />
+      <span>Label</span>
+    </div>
+    <p className="text-2xl font-bold text-rc-text">Value</p>
+  </div>
+  {/* Colored stat */}
+  <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4">
+    <div className="flex items-center gap-2 text-emerald-400 text-xs mb-1">
+      <Icon className="w-4 h-4" />
+      <span>Success Metric</span>
+    </div>
+    <p className="text-2xl font-bold text-emerald-400">123</p>
+  </div>
+</div>
+```
+
+#### List Item/Card Pattern
+
+```tsx
+<div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4 hover:border-blue-500/30 transition-colors cursor-pointer">
+  <div className="flex items-start justify-between">
+    <div className="flex items-start gap-4">
+      {/* Icon */}
+      <div className="p-3 rounded-xl bg-emerald-500/20">
+        <Icon className="w-6 h-6 text-emerald-400" />
+      </div>
+
+      <div>
+        <h3 className="text-rc-text font-semibold">Title</h3>
+        <div className="flex items-center gap-2 text-sm text-rc-text-muted mt-1">
+          <Icon className="w-4 h-4" />
+          <span>Metadata</span>
+        </div>
+      </div>
+    </div>
+
+    <ChevronRight className="w-5 h-5 text-rc-text-muted" />
+  </div>
+</div>
+```
+
+#### Empty State Pattern
+
+```tsx
+<div className="text-center py-12">
+  <Icon className="w-12 h-12 text-rc-text-muted mx-auto mb-4" />
+  <h3 className="text-lg font-medium text-rc-text mb-2">No Items Yet</h3>
+  <p className="text-sm text-rc-text-muted">
+    Description of what to do next.
+  </p>
+</div>
+```
+
+#### Focus States
+
+All interactive elements should have visible focus states:
+```tsx
+// Standard focus ring (blue)
+className="focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+// Or using the design system pattern
+className="focus-visible:border-blue-500 focus-visible:ring-blue-500/30 focus-visible:ring-[3px]"
+```
+
+#### Hover States
+
+```tsx
+// Card hover
+className="hover:border-blue-500/30 transition-colors"
+
+// Button hover (background change)
+className="hover:bg-rc-bg-light transition-colors"
+
+// Button hover (darken)
+className="bg-blue-600 hover:bg-blue-700 transition-colors"
+```
+
+#### Icon Styling
+
+```tsx
+// In text context (muted)
+<Icon className="w-4 h-4 text-rc-text-muted" />
+
+// Primary icon
+<Icon className="w-5 h-5 text-rc-text" />
+
+// Accent icon
+<Icon className="w-6 h-6 text-blue-400" />
+
+// Icon in container
+<div className="p-2 bg-rc-bg-light rounded-lg">
+  <Icon className="w-5 h-5 text-rc-text-light" />
+</div>
+```
+
+#### Responsive Patterns
+
+```tsx
+// Padding
+className="p-4 sm:p-6"           // 16px mobile, 24px desktop
+
+// Spacing
+className="space-y-4 sm:space-y-6"  // Vertical gaps
+
+// Grid
+className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+
+// Hide/show
+className="hidden lg:block"      // Desktop only
+className="lg:hidden"            // Mobile only
+
+// Text
+className="text-sm sm:text-base" // Responsive text size
+```
+
+#### DO's and DON'Ts
+
+**DO:**
+- Always use `rc-*` color tokens for backgrounds and text
+- Use `rounded-xl` for cards, `rounded-lg` for inputs/buttons
+- Add `transition-colors` to interactive elements
+- Use `space-y-*` for vertical spacing within containers
+- Use semantic color accents (emerald=success, amber=warning, red=error)
+
+**DON'T:**
+- Use `gray-*`, `slate-*`, or `zinc-*` colors (legacy)
+- Use `text-white` (use `text-rc-text` instead)
+- Use `bg-gray-900` (use `bg-rc-bg-dark` instead)
+- Hardcode colors that aren't in the design system
+- Forget hover/focus states on interactive elements
+
+#### shadcn/ui Components (Themed)
+
+The following shadcn/ui components have been customized for the ReelCaster design system. Always use these instead of creating custom form elements:
+
+| Component | Path | Key Customizations |
+|-----------|------|-------------------|
+| `Input` | `@/components/ui/input` | `bg-rc-bg-light`, `text-rc-text`, blue focus ring |
+| `Select` | `@/components/ui/select` | Dark dropdown, `bg-rc-bg-dark` content |
+| `Switch` | `@/components/ui/switch` | `bg-blue-600` when checked |
+| `Checkbox` | `@/components/ui/checkbox` | `bg-blue-600` when checked |
+| `Slider` | `@/components/ui/slider` | `bg-blue-600` track fill |
+| `Label` | `@/components/ui/label` | `text-rc-text` |
+| `Button` | `@/components/ui/button` | Various variants available |
+| `Card` | `@/components/ui/card` | Use with `bg-rc-bg-dark border-rc-bg-light` overrides |
+| `Badge` | `@/components/ui/badge` | Use with custom color classes for status |
 
 ### TypeScript
 

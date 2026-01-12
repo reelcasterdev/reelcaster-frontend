@@ -1,7 +1,7 @@
 // Dynamic recommendation generator based on current conditions
 // Produces actionable advice tailored to species and conditions
 
-import { getSpeciesExplanations, getRecommendationForScore, getScoreLabel } from './speciesExplanations'
+import { getSpeciesExplanations, getScoreLabel } from './speciesExplanations'
 
 export interface FactorScore {
   key: string
@@ -20,16 +20,6 @@ export interface OverallRecommendation {
   timingAdvice?: string
   depthAdvice?: string
   techniqueAdvice?: string
-}
-
-// Get dynamic recommendation for a single factor
-export function generateFactorRecommendation(
-  factorKey: string,
-  score: number,
-  value: number | string | undefined,
-  species: string
-): string {
-  return getRecommendationForScore(species, factorKey, score)
 }
 
 // Generate comprehensive overall recommendations
@@ -301,49 +291,3 @@ function generateTechniqueAdvice(factors: FactorScore[], species: string, overal
   }
 }
 
-// Get a simple one-line recommendation for tooltips
-export function getQuickRecommendation(
-  factorKey: string,
-  score: number,
-  species: string
-): string {
-  const recommendation = getRecommendationForScore(species, factorKey, score)
-  // Return first sentence only for tooltip
-  const firstSentence = recommendation.split('.')[0]
-  return firstSentence + '.'
-}
-
-// Get score interpretation for display
-export function getScoreInterpretation(overallScore: number, species: string): string {
-  const speciesData = getSpeciesExplanations(species)
-  const displayName = speciesData.displayName
-
-  if (overallScore >= 80) return `Excellent ${displayName} conditions`
-  if (overallScore >= 65) return `Good ${displayName} conditions`
-  if (overallScore >= 50) return `Fair ${displayName} conditions`
-  if (overallScore >= 35) return `Challenging for ${displayName}`
-  return `Difficult ${displayName} conditions`
-}
-
-// Generate safety warnings based on factors
-export function generateSafetyWarnings(factors: FactorScore[]): string[] {
-  const warnings: string[] = []
-
-  const seaState = factors.find((f) => f.key === 'seaState' || f.key === 'waveHeight')
-  const wind = factors.find((f) => f.key === 'windSpeed')
-  const precipitation = factors.find((f) => f.key === 'precipitation')
-
-  if (seaState && seaState.score <= 2) {
-    warnings.push('Rough seas - exercise caution and check marine forecast')
-  }
-
-  if (wind && typeof wind.value === 'number' && wind.value > 30) {
-    warnings.push('High winds - small craft advisory conditions')
-  }
-
-  if (precipitation && precipitation.score <= 2) {
-    warnings.push('Severe weather possible - monitor conditions closely')
-  }
-
-  return warnings
-}

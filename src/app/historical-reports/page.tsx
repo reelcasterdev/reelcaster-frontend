@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Calendar, Fish, MapPin, TrendingUp, ChevronRight } from 'lucide-react'
+import { Fish, MapPin, TrendingUp, ChevronRight } from 'lucide-react'
 import { loadHistoricalReports, GroupedReports } from '../utils/load-historical-reports'
-import Sidebar from '../components/common/sidebar'
+import { AppShell } from '../components/layout'
+import DashboardHeader from '../components/forecast/dashboard-header'
 import ModernLoadingState from '../components/common/modern-loading-state'
 import ErrorState from '../components/common/error-state'
 
@@ -45,44 +46,37 @@ export default function HistoricalReportsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white">
-        <Sidebar />
-        <div className="lg:ml-64 min-h-screen overflow-auto">
+      <AppShell showLocationPanel={false}>
+        <div className="flex-1 min-h-screen">
           <ModernLoadingState forecastDays={20} />
         </div>
-      </div>
+      </AppShell>
     )
   }
 
   if (error || !reports) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white">
-        <Sidebar />
-        <div className="lg:ml-64 min-h-screen overflow-auto">
+      <AppShell showLocationPanel={false}>
+        <div className="flex-1 min-h-screen">
           <ErrorState message={error || 'Failed to load reports'} />
         </div>
-      </div>
+      </AppShell>
     )
   }
 
   const currentReport = reports[selectedLocation]?.find(r => r.date === selectedWeek)
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <Sidebar />
-      
-      <div className="lg:ml-64 min-h-screen overflow-auto">
-        <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-3 sm:space-y-6 pt-16 lg:pt-6">
-          {/* Header */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl sm:rounded-2xl border border-slate-700 p-4 sm:p-6 shadow-xl">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent flex items-center gap-2">
-              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" />
-              Historical Fishing Reports
-            </h1>
-            <p className="mt-2 text-sm sm:text-base text-slate-400">
-              Browse fishing reports from the past 20 weeks
-            </p>
-          </div>
+    <AppShell showLocationPanel={false}>
+      <div className="flex-1 min-h-screen p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardHeader
+          title="Historical Reports"
+          showTimeframe={false}
+          showSetLocation={false}
+          showCustomize={false}
+        />
+
+        <div className="max-w-7xl mx-auto space-y-4">
 
           {/* Location Selector */}
           <div className="bg-gradient-to-b from-slate-700/50 to-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
@@ -242,6 +236,6 @@ export default function HistoricalReportsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   )
 }
