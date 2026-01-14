@@ -34,8 +34,8 @@ export default function HourlyTableNew({
   const tableData = useMemo(() => {
     if (!selectedForecast || !openMeteoData) return []
 
-    // Helper to get tide height at specific time
-    const getTideHeightAtTime = (timestamp: number) => {
+    // Helper to get tide height at specific time (same logic as chart)
+    const getTideHeightAtTime = (timestamp: number): number | null => {
       if (!tideData?.waterLevels?.length) return null
 
       const closestWaterLevel = tideData.waterLevels.reduce((prev, curr) => {
@@ -44,7 +44,9 @@ export default function HourlyTableNew({
         return currDiff < prevDiff ? curr : prev
       })
 
-      return closestWaterLevel
+      // Only use if within 2 hours (7200 seconds) - more lenient than chart
+      if (Math.abs(closestWaterLevel.timestamp - timestamp) > 7200) return null
+      return closestWaterLevel.height
     }
 
     // Get data for each hour (every 4th 15-min interval)
@@ -60,12 +62,12 @@ export default function HourlyTableNew({
       const displayHour = hour.toString().padStart(2, '0') + ':00'
 
       // Use score.timestamp for tide lookup (same as chart)
-      const tideWaterLevel = getTideHeightAtTime(score.timestamp)
+      const tideHeight = getTideHeightAtTime(score.timestamp)
 
       // Determine if tide is rising at this specific time
-      const prevTide = hourIndex > 0 ? getTideHeightAtTime(score.timestamp - 3600) : null
-      const isRising = tideWaterLevel && prevTide
-        ? tideWaterLevel.height > prevTide.height
+      const prevTideHeight = hourIndex > 0 ? getTideHeightAtTime(score.timestamp - 3600) : null
+      const isRising = tideHeight !== null && prevTideHeight !== null
+        ? tideHeight > prevTideHeight
         : tideData?.isRising
 
       // Get wave height - use actual data if available, otherwise estimate from wind
@@ -82,7 +84,7 @@ export default function HourlyTableNew({
         windDirection: data.windDirection,
         temp: data.temp,
         waveHeight,
-        tideHeight: tideWaterLevel?.height ?? null,
+        tideHeight,
         tideRising: isRising,
       }
     })
