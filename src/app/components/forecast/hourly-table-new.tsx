@@ -141,6 +141,13 @@ export default function HourlyTableNew({
       getExtra: () => null,
       onClick: () => cycleUnit('height'),
     },
+    {
+      id: 'test',
+      label: 'TEST',
+      unit: 'x',
+      getValue: () => 'Z',
+      onClick: undefined,
+    },
   ]
 
   if (!tableData.length) {
