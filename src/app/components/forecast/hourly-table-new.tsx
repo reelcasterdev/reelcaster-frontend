@@ -30,24 +30,23 @@ export default function HourlyTableNew({
     return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(direction / 45) % 8]
   }
 
+  // Helper to get tide height at specific time (same logic as chart - defined outside useMemo)
+  const getTideHeightAtTime = (timestamp: number): number | null => {
+    if (!tideData?.waterLevels?.length) return null
+
+    const closestWaterLevel = tideData.waterLevels.reduce((prev, curr) => {
+      const prevDiff = Math.abs(prev.timestamp - timestamp)
+      const currDiff = Math.abs(curr.timestamp - timestamp)
+      return currDiff < prevDiff ? curr : prev
+    })
+
+    // Return height directly without threshold check
+    return closestWaterLevel.height
+  }
+
   // Build table data - hourly intervals (matching the chart exactly)
   const tableData = useMemo(() => {
     if (!selectedForecast) return []
-
-    // Helper to get tide height at specific time (same logic as chart)
-    const getTideHeightAtTime = (timestamp: number): number | null => {
-      if (!tideData?.waterLevels?.length) return null
-
-      const closestWaterLevel = tideData.waterLevels.reduce((prev, curr) => {
-        const prevDiff = Math.abs(prev.timestamp - timestamp)
-        const currDiff = Math.abs(curr.timestamp - timestamp)
-        return currDiff < prevDiff ? curr : prev
-      })
-
-      // Only use if within 1 hour (3600 seconds) - same as chart
-      if (Math.abs(closestWaterLevel.timestamp - timestamp) > 3600) return null
-      return closestWaterLevel.height
-    }
 
     // Use exact same data source as chart - filter minutelyScores every 4th item
     return selectedForecast.minutelyScores
