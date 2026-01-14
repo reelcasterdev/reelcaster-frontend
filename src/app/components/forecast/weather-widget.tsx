@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
+import { useUnitPreferences } from '@/contexts/unit-preferences-context'
+import { convertWind, convertTemp, convertHeight, formatWind, formatTemp, formatHeight } from '@/app/utils/unit-conversions'
 
 interface WeatherWidgetProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -10,19 +11,12 @@ interface WeatherWidgetProps {
   selectedDay?: number
 }
 
-type WindUnit = 'kph' | 'knots'
-type HeightUnit = 'm' | 'ft'
-type TempUnit = 'C' | 'F'
-
 export default function WeatherWidget({
   forecasts,
   openMeteoData,
   selectedDay = 0,
 }: WeatherWidgetProps) {
-  const [windUnit, setWindUnit] = useState<WindUnit>('kph')
-  const [waveUnit, setWaveUnit] = useState<HeightUnit>('m')
-  const [tempUnit, setTempUnit] = useState<TempUnit>('C')
-  const [currentUnit, setCurrentUnit] = useState<WindUnit>('kph')
+  const { windUnit, tempUnit, heightUnit, cycleUnit } = useUnitPreferences()
 
   const selectedForecast = forecasts[selectedDay]
   const baseIndex = selectedDay * 96
@@ -51,20 +45,20 @@ export default function WeatherWidget({
   const waveHeight = selectedWeather?.waveHeight ?? 0.5
   const currentSpeed = selectedWeather?.oceanCurrentSpeed ?? 0.2
 
-  // Unit conversions
-  const convertWind = (value: number, unit: WindUnit) => {
-    if (unit === 'knots') return (value / 1.852).toFixed(1)
-    return Math.round(value)
+  // Format values with conversions
+  const formatWindValue = (kph: number) => {
+    const converted = convertWind(kph, 'kph', windUnit)
+    return formatWind(converted, windUnit, windUnit === 'knots' ? 1 : 0)
   }
 
-  const convertHeight = (value: number, unit: HeightUnit) => {
-    if (unit === 'ft') return (value * 3.281).toFixed(1)
-    return value.toFixed(1)
+  const formatHeightValue = (meters: number) => {
+    const converted = convertHeight(meters, 'm', heightUnit)
+    return formatHeight(converted, heightUnit, 1)
   }
 
-  const convertTemp = (value: number, unit: TempUnit) => {
-    if (unit === 'F') return Math.round((value * 9) / 5 + 32)
-    return Math.round(value)
+  const formatTempValue = (celsius: number) => {
+    const converted = convertTemp(celsius, 'C', tempUnit)
+    return formatTemp(converted, tempUnit, 0)
   }
 
   // Moon phase calculation
@@ -90,19 +84,19 @@ export default function WeatherWidget({
   const UnitToggle = ({
     options,
     value,
-    onChange,
+    onCycle,
   }: {
-    options: [string, string]
+    options: string[]
     value: string
-    onChange: (value: string) => void
+    onCycle: () => void
   }) => (
     <div className="flex items-center bg-rc-bg-dark rounded-lg p-0.5">
       {options.map(option => (
         <button
           key={option}
-          onClick={() => onChange(option)}
+          onClick={onCycle}
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-            value === option
+            value.toLowerCase() === option.toLowerCase()
               ? 'bg-rc-bg-light text-rc-text'
               : 'text-rc-text-muted hover:text-rc-text'
           }`}
@@ -155,12 +149,12 @@ export default function WeatherWidget({
         {/* Wind */}
         <MetricRow
           label="Wind"
-          value={convertWind(windSpeed, windUnit)}
+          value={formatWindValue(windSpeed)}
           toggle={
             <UnitToggle
-              options={['Kph', 'Knots']}
-              value={windUnit === 'kph' ? 'Kph' : 'Knots'}
-              onChange={v => setWindUnit(v === 'Kph' ? 'kph' : 'knots')}
+              options={['Kph', 'Mph', 'Knots']}
+              value={windUnit}
+              onCycle={() => cycleUnit('wind')}
             />
           }
         />
@@ -168,12 +162,12 @@ export default function WeatherWidget({
         {/* Wave Height */}
         <MetricRow
           label="Wave Height"
-          value={convertHeight(waveHeight, waveUnit)}
+          value={formatHeightValue(waveHeight)}
           toggle={
             <UnitToggle
               options={['m', 'ft']}
-              value={waveUnit}
-              onChange={v => setWaveUnit(v as HeightUnit)}
+              value={heightUnit}
+              onCycle={() => cycleUnit('height')}
             />
           }
         />
@@ -181,12 +175,12 @@ export default function WeatherWidget({
         {/* Temperature */}
         <MetricRow
           label="Temperature"
-          value={`${convertTemp(temperature, tempUnit)}°`}
+          value={formatTempValue(temperature)}
           toggle={
             <UnitToggle
               options={['C', 'F']}
               value={tempUnit}
-              onChange={v => setTempUnit(v as TempUnit)}
+              onCycle={() => cycleUnit('temp')}
             />
           }
         />
@@ -194,12 +188,12 @@ export default function WeatherWidget({
         {/* Current */}
         <MetricRow
           label="Current"
-          value={convertWind(currentSpeed, currentUnit)}
+          value={formatWindValue(currentSpeed)}
           toggle={
             <UnitToggle
-              options={['Kph', 'Knots']}
-              value={currentUnit === 'kph' ? 'Kph' : 'Knots'}
-              onChange={v => setCurrentUnit(v === 'Kph' ? 'kph' : 'knots')}
+              options={['Kph', 'Mph', 'Knots']}
+              value={windUnit}
+              onCycle={() => cycleUnit('wind')}
             />
           }
         />

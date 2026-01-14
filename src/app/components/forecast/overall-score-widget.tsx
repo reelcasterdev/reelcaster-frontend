@@ -46,7 +46,7 @@ export default function OverallScoreWidget({
       <div className="text-center mb-4">
         <div className="flex items-baseline justify-center gap-1">
           <span className="text-5xl font-bold text-rc-text">
-            {normalizedScore.toFixed(0)}
+            {normalizedScore.toFixed(1)}
           </span>
           <span className="text-xl text-rc-text-muted">/ {maxScore}</span>
         </div>

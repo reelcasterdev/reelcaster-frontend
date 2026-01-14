@@ -386,7 +386,11 @@ function NewForecastContent() {
     <div className="p-4 space-y-4">
       {/* Overall Score Widget */}
       <OverallScoreWidget
-        score={forecastData[selectedDay]?.twoHourForecasts[0]?.score.total || 0}
+        score={
+          forecastData[selectedDay]?.twoHourForecasts.length > 0
+            ? Math.max(...forecastData[selectedDay].twoHourForecasts.map(f => f.score.total))
+            : 0
+        }
         onDetailsClick={() => setShowAlgorithmModal(true)}
       />
 

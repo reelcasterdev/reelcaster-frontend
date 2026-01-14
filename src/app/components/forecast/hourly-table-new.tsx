@@ -15,7 +15,7 @@ interface HourlyTableNewProps {
   selectedDay?: number
 }
 
-type SortField = 'time' | 'score' | 'wind' | 'tide' | 'temp'
+type SortField = 'time' | 'score' | 'wind' | 'temp' | 'wave' | 'tide'
 type SortDirection = 'asc' | 'desc' | null
 
 export default function HourlyTableNew({
@@ -79,6 +79,10 @@ export default function HourlyTableNew({
         ? tideWaterLevel.height > prevTide.height
         : tideData?.isRising
 
+      // Get wave height - use actual data if available, otherwise estimate from wind
+      const windSpeed = data.windSpeed || 10
+      const waveHeight = score?.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
+
       return {
         time: displayHour,
         timestamp: data.timestamp,
@@ -88,6 +92,7 @@ export default function HourlyTableNew({
         windDir: getWindDir(data.windDirection),
         windDirection: data.windDirection,
         temp: data.temp,
+        waveHeight,
         tideHeight: tideWaterLevel?.height ?? null,
         tideRising: isRising,
       }
@@ -115,13 +120,17 @@ export default function HourlyTableNew({
           aVal = a.windSpeed
           bVal = b.windSpeed
           break
-        case 'tide':
-          aVal = a.tideHeight ?? 0
-          bVal = b.tideHeight ?? 0
-          break
         case 'temp':
           aVal = a.temp
           bVal = b.temp
+          break
+        case 'wave':
+          aVal = a.waveHeight
+          bVal = b.waveHeight
+          break
+        case 'tide':
+          aVal = a.tideHeight ?? 0
+          bVal = b.tideHeight ?? 0
           break
         default:
           return 0
@@ -220,20 +229,29 @@ export default function HourlyTableNew({
               </th>
               <th className="px-4 py-3 text-left">
                 <button
-                  onClick={() => handleSort('tide')}
-                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
-                >
-                  Tide
-                  <SortIcon field="tide" />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
                   onClick={() => handleSort('temp')}
                   className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
                 >
                   Temp
                   <SortIcon field="temp" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <button
+                  onClick={() => handleSort('wave')}
+                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
+                >
+                  Wave
+                  <SortIcon field="wave" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <button
+                  onClick={() => handleSort('tide')}
+                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
+                >
+                  Tide
+                  <SortIcon field="tide" />
                 </button>
               </th>
             </tr>
@@ -269,6 +287,28 @@ export default function HourlyTableNew({
                   </button>
                 </td>
 
+                {/* Temp */}
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => cycleUnit('temp')}
+                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
+                    title="Click to change temperature unit"
+                  >
+                    {formatTempValue(row.temp)}
+                  </button>
+                </td>
+
+                {/* Wave */}
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => cycleUnit('height')}
+                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
+                    title="Click to change height unit"
+                  >
+                    {formatHeightValue(row.waveHeight)}
+                  </button>
+                </td>
+
                 {/* Tide */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
@@ -291,17 +331,6 @@ export default function HourlyTableNew({
                       <span className="text-sm text-rc-text-muted">--</span>
                     )}
                   </div>
-                </td>
-
-                {/* Temp */}
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => cycleUnit('temp')}
-                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
-                    title="Click to change temperature unit"
-                  >
-                    {formatTempValue(row.temp)}
-                  </button>
                 </td>
               </tr>
             ))}
