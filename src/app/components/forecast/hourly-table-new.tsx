@@ -137,7 +137,12 @@ export default function HourlyTableNew({
       id: 'tide',
       label: 'Tide',
       unit: heightUnit,
-      getValue: (d: typeof tableData[0]) => d.tideHeight !== null ? formatHeightValue(d.tideHeight) : '--',
+      getValue: (d: typeof tableData[0]) => {
+        if (d.tideHeight !== null) return formatHeightValue(d.tideHeight)
+        if (!tideData) return 'NT'
+        if (!tideData.waterLevels?.length) return 'NW'
+        return '--'
+      },
       getExtra: (d: typeof tableData[0]) => d.tideHeight !== null ? (d.tideRising ? 'up' : 'down') : null,
       onClick: () => cycleUnit('height'),
     },
