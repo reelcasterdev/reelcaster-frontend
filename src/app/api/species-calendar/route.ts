@@ -12,6 +12,31 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseKey)
 }
 
+// Species that have scoring algorithms implemented
+// Filter to only show these on the species calendar
+const SPECIES_WITH_ALGORITHMS = [
+  'chinook salmon',
+  'coho salmon',
+  'pink salmon',
+  'sockeye salmon',
+  'chum salmon',
+  'halibut',
+  'lingcod',
+  'rockfish',
+  'crab',
+  'spot prawn',
+  'spot prawns',
+  'dungeness crab',
+  'red rock crab',
+]
+
+function hasAlgorithm(speciesName: string): boolean {
+  const normalizedName = speciesName.toLowerCase().trim()
+  return SPECIES_WITH_ALGORITHMS.some(algo =>
+    normalizedName.includes(algo) || algo.includes(normalizedName)
+  )
+}
+
 export interface SpeciesCalendarData {
   location: string
   areaId: string
@@ -95,6 +120,11 @@ export async function GET(request: NextRequest) {
     const uniqueSpecies = new Map<string, SpeciesInfo>()
 
     data.species.forEach((s: any) => {
+      // Only include species that have scoring algorithms
+      if (!hasAlgorithm(s.species_name)) {
+        return
+      }
+
       const speciesKey = `${s.species_name}-${s.status}`
 
       // Skip if we've already processed this species with this status

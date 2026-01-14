@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import { AreaRegulations, regulationsService } from '@/app/services/regulations'
 
+// In-memory cache for regulations by location (persists across re-renders)
+const regulationsCache = new Map<string, { data: AreaRegulations | null; timestamp: number }>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 interface UseRegulationsOptions {
   areaId?: string
   enableApi?: boolean // Default to true now for dynamic data
@@ -55,6 +59,7 @@ export function useRegulations(options: UseRegulationsOptions = {}) {
 
 /**
  * Hook to fetch regulations for a specific location
+ * Uses in-memory caching to avoid redundant API calls
  */
 export function useLocationRegulations(locationName: string | null) {
   const [regulations, setRegulations] = useState<AreaRegulations | null>(null)
@@ -69,11 +74,24 @@ export function useLocationRegulations(locationName: string | null) {
     }
 
     const fetchRegulations = async () => {
+      // Check cache first
+      const cached = regulationsCache.get(locationName)
+      const now = Date.now()
+
+      if (cached && (now - cached.timestamp) < CACHE_TTL) {
+        // Cache hit - use cached data immediately
+        setRegulations(cached.data)
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       setError(null)
 
       try {
         const data = await regulationsService.getRegulationsByLocation(locationName)
+        // Store in cache
+        regulationsCache.set(locationName, { data, timestamp: now })
         setRegulations(data)
       } catch (err) {
         console.error('Error fetching regulations:', err)

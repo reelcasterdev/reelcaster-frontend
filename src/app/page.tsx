@@ -59,6 +59,7 @@ function NewForecastContent() {
   const { trackEvent } = useAnalytics()
   const pageLoadStartTime = useRef<number>(Date.now())
   const hasTrackedPageView = useRef<boolean>(false)
+  const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // Default to Victoria Waterfront if no parameters provided
   const location = searchParams.get('location') || 'Victoria, Sidney'
@@ -140,26 +141,23 @@ function NewForecastContent() {
     tideData: CHSWaterData | null
   } | null> => {
     try {
-      // Fetch tide data from CHS API
-      let finalTideData: CHSWaterData | null = null
-      
-      try {
-        const locationId = selectedLocation.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
-        console.log('Fetching CHS data for location:', locationId)
-        const chsData = await fetchCHSTideData(locationId)
-        if (chsData) {
-          console.log('CHS data fetched successfully')
-          finalTideData = chsData
-        }
-      } catch (chsError) {
-        console.warn('CHS tide data not available:', chsError)
-      }
+      // Fetch ALL data in parallel: weather, marine, AND tide
+      const locationId = selectedLocation.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')
 
-      // Fetch weather forecast and marine data in parallel
-      const [weatherResult, marineResult] = await Promise.all([
+      const [weatherResult, marineResult, tideResult] = await Promise.all([
         fetchOpenMeteoWeather(coordinates, 14),
-        fetchOpenMeteoMarine(coordinates, 7)
+        fetchOpenMeteoMarine(coordinates, 7),
+        // Wrap tide fetch to handle errors gracefully
+        fetchCHSTideData(locationId).catch(err => {
+          console.warn('CHS tide data not available:', err)
+          return null
+        })
       ])
+
+      const finalTideData = tideResult || null
+      if (finalTideData) {
+        console.log('CHS data fetched successfully')
+      }
 
       if (!weatherResult.success) {
         throw new Error(weatherResult.error || 'Failed to fetch weather data')
@@ -343,8 +341,23 @@ function NewForecastContent() {
     fetchForecastData()
   }, [fetchForecastData])
 
+  // Debounced fetch to prevent rapid re-fetches on URL param changes
   useEffect(() => {
-    fetchForecastData()
+    // Clear any pending fetch
+    if (fetchDebounceRef.current) {
+      clearTimeout(fetchDebounceRef.current)
+    }
+
+    // Debounce fetch by 100ms to batch rapid param changes
+    fetchDebounceRef.current = setTimeout(() => {
+      fetchForecastData()
+    }, 100)
+
+    return () => {
+      if (fetchDebounceRef.current) {
+        clearTimeout(fetchDebounceRef.current)
+      }
+    }
   }, [fetchForecastData])
 
   // Track page view once when page loads and data is ready
@@ -473,7 +486,7 @@ function NewForecastContent() {
                   />
 
                   {/* Hourly Fishing Score Chart - Now above the fold */}
-                  <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} />
+                  <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} tideData={tideData} />
                 </div>
 
                 <div className="lg:col-span-2 space-y-3 sm:space-y-6">
