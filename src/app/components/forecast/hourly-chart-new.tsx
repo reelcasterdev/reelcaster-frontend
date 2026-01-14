@@ -267,22 +267,33 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
 
       {/* Chart */}
       <div className="h-[320px] mt-4 flex">
-        {/* Y-axis label */}
-        <div className="flex flex-col justify-center pr-2 text-xs text-rc-text-muted" style={{ minWidth: '50px' }}>
-          <span className="font-medium text-rc-text-light">
-            {activeLayer === 'score' && 'Score'}
-            {activeLayer === 'wind' && 'km/h'}
-            {activeLayer === 'temp' && '°C'}
-            {activeLayer === 'wave' && heightUnit}
-            {activeLayer === 'tide' && heightUnit}
-          </span>
+        {/* Y-axis label - matches table label column width */}
+        <div className="flex-shrink-0 flex flex-col justify-between py-2 pr-1" style={{ width: '55px' }}>
+          <span className="text-xs text-rc-text-muted">{yAxisMax}</span>
+          <div className="flex flex-col items-start">
+            <span className="text-xs font-medium text-rc-text">
+              {activeLayer === 'score' && 'Score'}
+              {activeLayer === 'wind' && 'Wind'}
+              {activeLayer === 'temp' && 'Temp'}
+              {activeLayer === 'wave' && 'Wave'}
+              {activeLayer === 'tide' && 'Tide'}
+            </span>
+            <span className="text-xs text-rc-text-muted">
+              {activeLayer === 'score' && '/10'}
+              {activeLayer === 'wind' && 'km/h'}
+              {activeLayer === 'temp' && '°C'}
+              {activeLayer === 'wave' && heightUnit}
+              {activeLayer === 'tide' && heightUnit}
+            </span>
+          </div>
+          <span className="text-xs text-rc-text-muted">0</span>
         </div>
 
         <div className="flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
-              margin={{ top: 10, right: 5, left: 0, bottom: 5 }}
+              margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
               barCategoryGap="2%"
             >
               <XAxis
@@ -297,24 +308,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
                 textAnchor="end"
                 height={45}
               />
-              <YAxis
-                domain={[0, yAxisMax]}
-                stroke="transparent"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: '#6b7280' }}
-                tickCount={5}
-                tickFormatter={(value) => {
-                  if (activeLayer === 'score') return `${Math.round(value)}`
-                  if (activeLayer === 'wind') return `${Math.round(value)}`
-                  if (activeLayer === 'temp') return `${Math.round(value)}`
-                  if (activeLayer === 'wave') return `${value.toFixed(1)}`
-                  if (activeLayer === 'tide') return `${value.toFixed(1)}`
-                  return `${Math.round(value)}`
-                }}
-                width={30}
-              />
+              <YAxis hide domain={[0, yAxisMax]} />
             <Bar
               dataKey={activeLayer}
               shape={<CustomBar />}

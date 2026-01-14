@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { CHSWaterData } from '../../utils/chsTideApi'
-import { ChevronUp, ChevronDown, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useUnitPreferences } from '@/contexts/unit-preferences-context'
-import { convertWind, convertTemp, convertHeight, formatWind, formatTemp, formatHeight } from '@/app/utils/unit-conversions'
+import { convertWind, convertTemp, convertHeight } from '@/app/utils/unit-conversions'
 
 interface HourlyTableNewProps {
   forecasts: OpenMeteoDailyForecast[]
@@ -15,17 +15,12 @@ interface HourlyTableNewProps {
   selectedDay?: number
 }
 
-type SortField = 'time' | 'score' | 'wind' | 'temp' | 'wave' | 'tide'
-type SortDirection = 'asc' | 'desc' | null
-
 export default function HourlyTableNew({
   forecasts,
   openMeteoData,
   tideData,
   selectedDay = 0,
 }: HourlyTableNewProps) {
-  const [sortField, setSortField] = useState<SortField | null>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const { windUnit, tempUnit, heightUnit, cycleUnit } = useUnitPreferences()
 
   const selectedForecast = forecasts[selectedDay]
@@ -35,7 +30,7 @@ export default function HourlyTableNew({
     return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(direction / 45) % 8]
   }
 
-  // Build table data - hourly intervals
+  // Build table data - hourly intervals (matching the chart)
   const tableData = useMemo(() => {
     if (!selectedForecast || !openMeteoData) return []
 
@@ -62,14 +57,7 @@ export default function HourlyTableNew({
       const score = selectedForecast.minutelyScores[scoreIndex]
 
       const hour = new Date(data.timestamp * 1000).getHours()
-      const displayHour =
-        hour === 0
-          ? '12:00 AM'
-          : hour < 12
-          ? `${hour}:00 AM`
-          : hour === 12
-          ? '12:00 PM'
-          : `${hour - 12}:00 PM`
+      const displayHour = hour.toString().padStart(2, '0') + ':00'
 
       const tideWaterLevel = getTideHeightAtTime(data.timestamp)
 
@@ -99,243 +87,132 @@ export default function HourlyTableNew({
     })
   }, [selectedForecast, openMeteoData, tideData, selectedDay])
 
-  // Sort data
-  const sortedData = useMemo(() => {
-    if (!sortField || !sortDirection) return tableData
+  // Format values
+  const formatScore = (score: number) => score.toString()
 
-    return [...tableData].sort((a, b) => {
-      let aVal: number
-      let bVal: number
-
-      switch (sortField) {
-        case 'time':
-          aVal = a.hourIndex
-          bVal = b.hourIndex
-          break
-        case 'score':
-          aVal = a.score
-          bVal = b.score
-          break
-        case 'wind':
-          aVal = a.windSpeed
-          bVal = b.windSpeed
-          break
-        case 'temp':
-          aVal = a.temp
-          bVal = b.temp
-          break
-        case 'wave':
-          aVal = a.waveHeight
-          bVal = b.waveHeight
-          break
-        case 'tide':
-          aVal = a.tideHeight ?? 0
-          bVal = b.tideHeight ?? 0
-          break
-        default:
-          return 0
-      }
-
-      return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-    })
-  }, [tableData, sortField, sortDirection])
-
-  // Handle sort
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      if (sortDirection === 'asc') {
-        setSortDirection('desc')
-      } else if (sortDirection === 'desc') {
-        setSortField(null)
-        setSortDirection(null)
-      }
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
-    }
-  }
-
-  // Sort icon component
-  const SortIcon = ({ field }: { field: SortField }) => (
-    <div className="flex flex-col ml-1">
-      <ChevronUp
-        className={`w-3 h-3 -mb-1 ${
-          sortField === field && sortDirection === 'asc'
-            ? 'text-rc-text'
-            : 'text-rc-text-muted'
-        }`}
-      />
-      <ChevronDown
-        className={`w-3 h-3 ${
-          sortField === field && sortDirection === 'desc'
-            ? 'text-rc-text'
-            : 'text-rc-text-muted'
-        }`}
-      />
-    </div>
-  )
-
-  // Format wind with current unit preference (source is kph)
   const formatWindValue = (kph: number) => {
     const converted = convertWind(kph, 'kph', windUnit)
-    return formatWind(converted, windUnit, 0)
+    return Math.round(converted).toString()
   }
 
-  // Format temperature with current unit preference (source is C)
   const formatTempValue = (celsius: number) => {
     const converted = convertTemp(celsius, 'C', tempUnit)
-    return formatTemp(converted, tempUnit, 0)
+    return Math.round(converted).toString()
   }
 
-  // Format height with current unit preference (source is m)
   const formatHeightValue = (meters: number) => {
     const converted = convertHeight(meters, 'm', heightUnit)
-    return formatHeight(converted, heightUnit, 1)
+    return converted.toFixed(1)
+  }
+
+  // Row definitions matching the chart tabs order
+  const rows = [
+    {
+      id: 'score',
+      label: 'Score',
+      unit: '/10',
+      getValue: (d: typeof tableData[0]) => formatScore(d.score),
+      onClick: undefined,
+    },
+    {
+      id: 'wind',
+      label: 'Wind',
+      unit: windUnit,
+      getValue: (d: typeof tableData[0]) => formatWindValue(d.windSpeed),
+      getExtra: (d: typeof tableData[0]) => d.windDir,
+      onClick: () => cycleUnit('wind'),
+    },
+    {
+      id: 'temp',
+      label: 'Temp',
+      unit: tempUnit === 'C' ? '°C' : '°F',
+      getValue: (d: typeof tableData[0]) => formatTempValue(d.temp),
+      onClick: () => cycleUnit('temp'),
+    },
+    {
+      id: 'wave',
+      label: 'Wave',
+      unit: heightUnit,
+      getValue: (d: typeof tableData[0]) => formatHeightValue(d.waveHeight),
+      onClick: () => cycleUnit('height'),
+    },
+    {
+      id: 'tide',
+      label: 'Tide',
+      unit: heightUnit,
+      getValue: (d: typeof tableData[0]) => d.tideHeight !== null ? formatHeightValue(d.tideHeight) : '--',
+      getExtra: (d: typeof tableData[0]) => d.tideHeight !== null ? (d.tideRising ? 'up' : 'down') : null,
+      onClick: () => cycleUnit('height'),
+    },
+  ]
+
+  if (!tableData.length) {
+    return (
+      <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-4">
+        <p className="text-rc-text-muted">No data available</p>
+      </div>
+    )
   }
 
   return (
     <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden">
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-rc-bg-light">
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('time')}
-                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
-                >
-                  Time
-                  <SortIcon field="time" />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('score')}
-                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
-                >
-                  Score
-                  <SortIcon field="score" />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('wind')}
-                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
-                >
-                  Wind
-                  <SortIcon field="wind" />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('temp')}
-                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
-                >
-                  Temp
-                  <SortIcon field="temp" />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('wave')}
-                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
-                >
-                  Wave
-                  <SortIcon field="wave" />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('tide')}
-                  className="flex items-center text-sm text-rc-text-muted hover:text-rc-text transition-colors"
-                >
-                  Tide
-                  <SortIcon field="tide" />
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedData.map((row) => (
-              <tr
-                key={row.hourIndex}
-                className="border-b border-rc-bg-dark hover:bg-rc-bg-dark/50 transition-colors"
-              >
-                {/* Time */}
-                <td className="px-4 py-3">
-                  <span className="text-sm text-rc-text">{row.time}</span>
-                </td>
+      {/* Table aligned with chart above */}
+      <div className="flex">
+        {/* Left label column - matches chart Y-axis width */}
+        <div className="flex-shrink-0" style={{ width: '55px' }}>
+          {/* Time header */}
+          <div className="px-1.5 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50">
+            <span className="text-[10px] text-rc-text-muted">Time</span>
+          </div>
+          {/* Row labels */}
+          {rows.map((row) => (
+            <div
+              key={row.id}
+              className={`px-1.5 py-2 border-b border-rc-bg-dark bg-rc-bg-dark/30 ${
+                row.onClick ? 'cursor-pointer hover:bg-rc-bg-dark/50' : ''
+              }`}
+              onClick={row.onClick}
+              title={row.onClick ? 'Click to change unit' : undefined}
+            >
+              <div className="text-[10px] font-medium text-rc-text">{row.label}</div>
+              <div className="text-[10px] text-rc-text-muted">{row.unit}</div>
+            </div>
+          ))}
+        </div>
 
-                {/* Score */}
-                <td className="px-4 py-3">
-                  <span className="text-sm text-rc-text">
-                    {row.score}
-                    <span className="text-rc-text-muted">/10</span>
-                  </span>
-                </td>
-
-                {/* Wind */}
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => cycleUnit('wind')}
-                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
-                    title="Click to change wind unit"
+        {/* Data columns - flex to fill remaining space */}
+        <div className="flex-1 overflow-x-auto">
+          <div className="flex min-w-max">
+            {tableData.map((d, i) => (
+              <div key={i} className="flex-1 min-w-[40px]">
+                {/* Time header */}
+                <div className="px-1 py-2 text-center border-b border-rc-bg-light border-l border-rc-bg-light/50">
+                  <span className="text-xs text-rc-text-muted">{d.time.replace(':00', '')}</span>
+                </div>
+                {/* Data cells */}
+                {rows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="px-1 py-2 text-center border-b border-rc-bg-dark border-l border-rc-bg-light/30 flex flex-col items-center justify-center"
                   >
-                    {formatWindValue(row.windSpeed)}{' '}
-                    <span className="text-rc-text-muted">{row.windDir}</span>
-                  </button>
-                </td>
-
-                {/* Temp */}
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => cycleUnit('temp')}
-                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
-                    title="Click to change temperature unit"
-                  >
-                    {formatTempValue(row.temp)}
-                  </button>
-                </td>
-
-                {/* Wave */}
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => cycleUnit('height')}
-                    className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
-                    title="Click to change height unit"
-                  >
-                    {formatHeightValue(row.waveHeight)}
-                  </button>
-                </td>
-
-                {/* Tide */}
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    {row.tideHeight !== null ? (
-                      <>
-                        <button
-                          onClick={() => cycleUnit('height')}
-                          className="text-sm text-rc-text hover:text-blue-400 border-b border-dotted border-rc-text-muted hover:border-blue-400 transition-colors"
-                          title="Click to change height unit"
-                        >
-                          {formatHeightValue(row.tideHeight)}
-                        </button>
-                        {row.tideRising ? (
-                          <ArrowUpRight className="w-4 h-4 text-green-500" />
+                    <span className="text-xs text-rc-text">{row.getValue(d)}</span>
+                    {row.getExtra && row.getExtra(d) && (
+                      row.id === 'tide' ? (
+                        row.getExtra(d) === 'up' ? (
+                          <ArrowUpRight className="w-3 h-3 text-green-500" />
                         ) : (
-                          <ArrowDownRight className="w-4 h-4 text-red-500" />
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-sm text-rc-text-muted">--</span>
+                          <ArrowDownRight className="w-3 h-3 text-red-500" />
+                        )
+                      ) : (
+                        <span className="text-[10px] text-rc-text-muted">{row.getExtra(d)}</span>
+                      )
                     )}
                   </div>
-                </td>
-              </tr>
+                ))}
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
     </div>
   )
