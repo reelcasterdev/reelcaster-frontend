@@ -30,9 +30,9 @@ export default function HourlyTableNew({
     return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(direction / 45) % 8]
   }
 
-  // Build table data - hourly intervals (matching the chart)
+  // Build table data - hourly intervals (matching the chart exactly)
   const tableData = useMemo(() => {
-    if (!selectedForecast || !openMeteoData) return []
+    if (!selectedForecast) return []
 
     // Helper to get tide height at specific time (same logic as chart)
     const getTideHeightAtTime = (timestamp: number): number | null => {
@@ -44,51 +44,46 @@ export default function HourlyTableNew({
         return currDiff < prevDiff ? curr : prev
       })
 
-      // Only use if within 2 hours (7200 seconds) - more lenient than chart
-      if (Math.abs(closestWaterLevel.timestamp - timestamp) > 7200) return null
+      // Only use if within 1 hour (3600 seconds) - same as chart
+      if (Math.abs(closestWaterLevel.timestamp - timestamp) > 3600) return null
       return closestWaterLevel.height
     }
 
-    // Get data for each hour (every 4th 15-min interval)
-    return Array.from({ length: 24 }, (_, hourIndex) => {
-      const baseIndex = selectedDay * 96
-      const dataIndex = Math.min(baseIndex + hourIndex * 4, openMeteoData.minutely15.length - 1)
-      const data = openMeteoData.minutely15[dataIndex]
+    // Use exact same data source as chart - filter minutelyScores every 4th item
+    return selectedForecast.minutelyScores
+      .filter((_, index) => index % 4 === 0) // Every hour (same as chart)
+      .map((score, hourIndex) => {
+        const hour = new Date(score.timestamp * 1000).getHours()
+        const displayHour = hour.toString().padStart(2, '0') + ':00'
 
-      const scoreIndex = Math.min(hourIndex * 4, selectedForecast.minutelyScores.length - 1)
-      const score = selectedForecast.minutelyScores[scoreIndex]
+        // Get tide height using score.timestamp (same as chart)
+        const tideHeightMeters = getTideHeightAtTime(score.timestamp)
 
-      const hour = new Date(data.timestamp * 1000).getHours()
-      const displayHour = hour.toString().padStart(2, '0') + ':00'
+        // Determine if tide is rising at this specific time
+        const prevTideHeight = hourIndex > 0 ? getTideHeightAtTime(score.timestamp - 3600) : null
+        const isRising = tideHeightMeters !== null && prevTideHeight !== null
+          ? tideHeightMeters > prevTideHeight
+          : tideData?.isRising
 
-      // Use score.timestamp for tide lookup (same as chart)
-      const tideHeight = getTideHeightAtTime(score.timestamp)
+        // Get wave height - use actual data if available, otherwise estimate from wind
+        const windSpeed = score.windSpeed || 10
+        const waveHeight = score.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
 
-      // Determine if tide is rising at this specific time
-      const prevTideHeight = hourIndex > 0 ? getTideHeightAtTime(score.timestamp - 3600) : null
-      const isRising = tideHeight !== null && prevTideHeight !== null
-        ? tideHeight > prevTideHeight
-        : tideData?.isRising
-
-      // Get wave height - use actual data if available, otherwise estimate from wind
-      const windSpeed = data.windSpeed || 10
-      const waveHeight = score?.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
-
-      return {
-        time: displayHour,
-        timestamp: data.timestamp,
-        hourIndex,
-        score: Math.round(score?.score || 5),
-        windSpeed: data.windSpeed,
-        windDir: getWindDir(data.windDirection),
-        windDirection: data.windDirection,
-        temp: data.temp,
-        waveHeight,
-        tideHeight,
-        tideRising: isRising,
-      }
-    })
-  }, [selectedForecast, openMeteoData, tideData, selectedDay])
+        return {
+          time: displayHour,
+          timestamp: score.timestamp,
+          hourIndex,
+          score: Math.round(score.score || 5),
+          windSpeed: score.windSpeed,
+          windDir: getWindDir(openMeteoData?.minutely15[hourIndex * 4]?.windDirection ?? 0),
+          windDirection: openMeteoData?.minutely15[hourIndex * 4]?.windDirection ?? 0,
+          temp: score.temp,
+          waveHeight,
+          tideHeight: tideHeightMeters,
+          tideRising: isRising,
+        }
+      })
+  }, [selectedForecast, openMeteoData, tideData])
 
   // Format values
   const formatScore = (score: number) => score.toString()
