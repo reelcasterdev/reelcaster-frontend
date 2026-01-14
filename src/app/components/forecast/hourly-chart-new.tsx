@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from 'recharts'
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell, Area, AreaChart, ReferenceLine } from 'recharts'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { CHSWaterData } from '../../utils/chsTideApi'
 import { useUnitPreferences } from '@/contexts/unit-preferences-context'
@@ -112,9 +112,23 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
     // For score, cap at 10 since that's the max possible
     if (activeLayer === 'score') return Math.min(10, Math.ceil(withHeadroom))
 
+    // For tide, round to 0.5 increments
+    if (activeLayer === 'tide') return Math.ceil(withHeadroom * 2) / 2
+
     // Round up to nice numbers
     if (activeLayer === 'wave') return Math.ceil(withHeadroom * 10) / 10 // Round to 0.1
     return Math.ceil(withHeadroom / 5) * 5 // Round to nearest 5
+  }, [chartData, activeLayer])
+
+  // Calculate Y-axis min for tide (can be negative)
+  const yAxisMin = useMemo(() => {
+    if (activeLayer !== 'tide' || !chartData.length) return 0
+
+    const minValue = Math.min(...chartData.map(d => d.tide as number))
+    // Add some headroom below for negative tides
+    const withHeadroom = minValue < 0 ? minValue * 1.2 : 0
+    // Round to 0.5 increments
+    return Math.floor(withHeadroom * 2) / 2
   }, [chartData, activeLayer])
 
   if (!selectedForecast) {
@@ -291,41 +305,109 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
 
         <div className="flex-1">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
-              barCategoryGap="2%"
-            >
-              <XAxis
-                dataKey="time"
-                stroke="transparent"
-                fontSize={10}
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: '#6b7280' }}
-                interval={0}
-                angle={-45}
-                textAnchor="end"
-                height={45}
-              />
-              <YAxis hide domain={[0, yAxisMax]} />
-            <Bar
-              dataKey={activeLayer}
-              shape={<CustomBar />}
-              activeBar={false}
-              background={{ fill: '#1a1a1f' }}
-              onMouseEnter={(_, index) => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={getBarColor(entry[activeLayer], activeLayer)}
+            {activeLayer === 'tide' ? (
+              // Area chart for tide
+              <AreaChart
+                data={chartData}
+                margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                onMouseMove={(state: any) => {
+                  if (state?.activeTooltipIndex !== undefined) {
+                    setHoveredIndex(state.activeTooltipIndex)
+                  }
+                }}
+                onMouseLeave={() => setHoveredIndex(null)}
+              >
+                <defs>
+                  <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="time"
+                  stroke="transparent"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#6b7280' }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={45}
                 />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+                <YAxis hide domain={[yAxisMin, yAxisMax]} />
+                {/* Zero reference line for tide */}
+                {yAxisMin < 0 && (
+                  <ReferenceLine y={0} stroke="#4b5563" strokeDasharray="3 3" />
+                )}
+                <Area
+                  type="monotone"
+                  dataKey="tide"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fill="url(#tideGradient)"
+                  dot={(props: any) => {
+                    const { cx, cy, index } = props
+                    const isHovered = hoveredIndex === index
+                    return (
+                      <circle
+                        key={`dot-${index}`}
+                        cx={cx}
+                        cy={cy}
+                        r={isHovered ? 6 : 3}
+                        fill="#3b82f6"
+                        stroke={isHovered ? '#60a5fa' : 'none'}
+                        strokeWidth={isHovered ? 2 : 0}
+                        style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
+                      />
+                    )
+                  }}
+                  activeDot={{
+                    r: 6,
+                    fill: '#3b82f6',
+                    stroke: '#60a5fa',
+                    strokeWidth: 2,
+                  }}
+                />
+              </AreaChart>
+            ) : (
+              // Bar chart for other metrics
+              <BarChart
+                data={chartData}
+                margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                barCategoryGap="2%"
+              >
+                <XAxis
+                  dataKey="time"
+                  stroke="transparent"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#6b7280' }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={45}
+                />
+                <YAxis hide domain={[0, yAxisMax]} />
+                <Bar
+                  dataKey={activeLayer}
+                  shape={<CustomBar />}
+                  activeBar={false}
+                  background={{ fill: '#1a1a1f' }}
+                  onMouseEnter={(_, index) => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={getBarColor(entry[activeLayer], activeLayer)}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            )}
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -343,7 +425,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
           </div>
         ) : (
           <span className="text-sm text-rc-text-muted">
-            Hover over a bar to see details
+            Hover over {activeLayer === 'tide' ? 'the chart' : 'a bar'} to see details
           </span>
         )}
       </div>
