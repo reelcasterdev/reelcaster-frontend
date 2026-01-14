@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell, Area, AreaChart, ReferenceLine } from 'recharts'
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell, Area, AreaChart, ReferenceLine, CartesianGrid } from 'recharts'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { CHSWaterData } from '../../utils/chsTideApi'
 import { useUnitPreferences } from '@/contexts/unit-preferences-context'
@@ -165,8 +165,8 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
       return '#b45454'
     }
     if (layer === 'tide') {
-      // Use blue gradient for tide - darker blue for lower, lighter for higher
-      return '#3b82f6' // Blue for all tide values
+      // Use green for tide line color
+      return '#22c55e'
     }
     return '#3b82f6'
   }
@@ -300,16 +300,18 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
               {activeLayer === 'tide' && heightUnit}
             </span>
           </div>
-          <span className="text-xs text-rc-text-muted">0</span>
+          <span className="text-xs text-rc-text-muted">
+            {activeLayer === 'tide' ? yAxisMin.toFixed(1) : '0'}
+          </span>
         </div>
 
         <div className="flex-1">
           <ResponsiveContainer width="100%" height="100%">
             {activeLayer === 'tide' ? (
-              // Area chart for tide
+              // Area chart for tide - styled like reference image
               <AreaChart
                 data={chartData}
-                margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
                 onMouseMove={(state: any) => {
                   if (state?.activeTooltipIndex !== undefined) {
                     setHoveredIndex(state.activeTooltipIndex)
@@ -319,10 +321,17 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
               >
                 <defs>
                   <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor="#1e4976" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#1e3a5f" stopOpacity={0.3} />
                   </linearGradient>
                 </defs>
+                {/* Vertical grid lines */}
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#333333"
+                  vertical={true}
+                  horizontal={false}
+                />
                 <XAxis
                   dataKey="time"
                   stroke="transparent"
@@ -330,42 +339,41 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: '#6b7280' }}
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  height={45}
+                  interval={1}
+                  height={30}
                 />
-                <YAxis hide domain={[yAxisMin, yAxisMax]} />
-                {/* Zero reference line for tide */}
+                <YAxis
+                  domain={[yAxisMin, yAxisMax]}
+                  stroke="transparent"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#6b7280' }}
+                  width={35}
+                  tickFormatter={(value) => value.toFixed(1)}
+                />
+                {/* "Now" reference line */}
+                <ReferenceLine
+                  x={new Date().getHours().toString().padStart(2, '0') + ':00'}
+                  stroke="#9ca3af"
+                  strokeDasharray="4 4"
+                  label={{ value: 'Now', position: 'top', fill: '#9ca3af', fontSize: 11 }}
+                />
+                {/* Zero reference line for negative tides */}
                 {yAxisMin < 0 && (
                   <ReferenceLine y={0} stroke="#4b5563" strokeDasharray="3 3" />
                 )}
                 <Area
-                  type="monotone"
+                  type="natural"
                   dataKey="tide"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
+                  stroke="#22c55e"
+                  strokeWidth={2.5}
                   fill="url(#tideGradient)"
-                  dot={(props: any) => {
-                    const { cx, cy, index } = props
-                    const isHovered = hoveredIndex === index
-                    return (
-                      <circle
-                        key={`dot-${index}`}
-                        cx={cx}
-                        cy={cy}
-                        r={isHovered ? 6 : 3}
-                        fill="#3b82f6"
-                        stroke={isHovered ? '#60a5fa' : 'none'}
-                        strokeWidth={isHovered ? 2 : 0}
-                        style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
-                      />
-                    )
-                  }}
+                  dot={false}
                   activeDot={{
                     r: 6,
-                    fill: '#3b82f6',
-                    stroke: '#60a5fa',
+                    fill: '#ef4444',
+                    stroke: '#ffffff',
                     strokeWidth: 2,
                   }}
                 />
