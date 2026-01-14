@@ -59,10 +59,11 @@ export default function HourlyTableNew({
       const hour = new Date(data.timestamp * 1000).getHours()
       const displayHour = hour.toString().padStart(2, '0') + ':00'
 
-      const tideWaterLevel = getTideHeightAtTime(data.timestamp)
+      // Use score.timestamp for tide lookup (same as chart)
+      const tideWaterLevel = getTideHeightAtTime(score.timestamp)
 
       // Determine if tide is rising at this specific time
-      const prevTide = hourIndex > 0 ? getTideHeightAtTime(data.timestamp - 3600) : null
+      const prevTide = hourIndex > 0 ? getTideHeightAtTime(score.timestamp - 3600) : null
       const isRising = tideWaterLevel && prevTide
         ? tideWaterLevel.height > prevTide.height
         : tideData?.isRising
@@ -181,7 +182,7 @@ export default function HourlyTableNew({
         </div>
 
         {/* Data columns - flex to fill remaining space */}
-        <div className="flex-1 overflow-x-auto">
+        <div className="flex-1 overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max">
             {tableData.map((d, i) => (
               <div key={i} className="flex-1 min-w-[40px]">
