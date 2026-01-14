@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from 'recharts'
-import { ChartTooltip } from '@/components/ui/chart'
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell, Area, AreaChart, ReferenceLine, CartesianGrid } from 'recharts'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { CHSWaterData } from '../../utils/chsTideApi'
 import { useUnitPreferences } from '@/contexts/unit-preferences-context'
@@ -27,6 +26,7 @@ const LAYER_TABS: { id: LayerType; label: string }[] = [
 
 export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }: HourlyChartNewProps) {
   const [activeLayer, setActiveLayer] = useState<LayerType>('score')
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const { heightUnit } = useUnitPreferences()
 
   const selectedForecast = forecasts[selectedDay]
@@ -112,9 +112,23 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
     // For score, cap at 10 since that's the max possible
     if (activeLayer === 'score') return Math.min(10, Math.ceil(withHeadroom))
 
+    // For tide, round to 0.5 increments
+    if (activeLayer === 'tide') return Math.ceil(withHeadroom * 2) / 2
+
     // Round up to nice numbers
     if (activeLayer === 'wave') return Math.ceil(withHeadroom * 10) / 10 // Round to 0.1
     return Math.ceil(withHeadroom / 5) * 5 // Round to nearest 5
+  }, [chartData, activeLayer])
+
+  // Calculate Y-axis min for tide (can be negative)
+  const yAxisMin = useMemo(() => {
+    if (activeLayer !== 'tide' || !chartData.length) return 0
+
+    const minValue = Math.min(...chartData.map(d => d.tide as number))
+    // Add some headroom below for negative tides
+    const withHeadroom = minValue < 0 ? minValue * 1.2 : 0
+    // Round to 0.5 increments
+    return Math.floor(withHeadroom * 2) / 2
   }, [chartData, activeLayer])
 
   if (!selectedForecast) {
@@ -151,51 +165,51 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
       return '#b45454'
     }
     if (layer === 'tide') {
-      // Use blue gradient for tide - darker blue for lower, lighter for higher
-      return '#3b82f6' // Blue for all tide values
+      // Use green for tide line color
+      return '#22c55e'
     }
     return '#3b82f6'
   }
 
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: any[] }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload
-      const value = data[activeLayer]
-      const unit =
-        activeLayer === 'score' ? '/10' :
-        activeLayer === 'wind' ? ' km/h' :
-        activeLayer === 'temp' ? '°C' :
-        activeLayer === 'wave' ? ` ${heightUnit}` :
-        activeLayer === 'tide' ? ` ${heightUnit}` : ''
+  // Get formatted value for the hovered bar
+  const getHoveredValueText = () => {
+    if (hoveredIndex === null || !chartData[hoveredIndex]) return null
 
-      return (
-        <div className="bg-rc-bg-darkest border border-rc-bg-light rounded-lg p-3 shadow-lg">
-          <p className="text-sm font-medium text-rc-text">{data.time}</p>
-          <p className="text-lg font-bold text-rc-text mt-1">
-            {typeof value === 'number' ? value.toFixed(2) : value}
-            <span className="text-rc-text-muted text-sm ml-1">{unit}</span>
-          </p>
-        </div>
-      )
+    const data = chartData[hoveredIndex]
+    const value = data[activeLayer]
+    const time = data.time.replace(':00', '') // Show as "11" instead of "11:00"
+
+    const layerLabel = LAYER_TABS.find(t => t.id === activeLayer)?.label || ''
+
+    let formattedValue = ''
+    if (activeLayer === 'score') {
+      formattedValue = `${(value as number).toFixed(1)}/10`
+    } else if (activeLayer === 'wind') {
+      formattedValue = `${Math.round(value as number)} km/h`
+    } else if (activeLayer === 'temp') {
+      formattedValue = `${Math.round(value as number)}°C`
+    } else if (activeLayer === 'wave' || activeLayer === 'tide') {
+      formattedValue = `${(value as number).toFixed(1)} ${heightUnit}`
     }
-    return null
+
+    return `${layerLabel} ${time}:00 ${formattedValue}`
   }
 
-  // Custom bar shape with rounded corners and background track
+  // Custom bar shape with rounded corners, background track, and hover effect
   const CustomBar = (props: any) => {
-    const { x, y, width, height, fill, background } = props
+    const { x, y, width, height, fill, background, index } = props
+    const isHovered = hoveredIndex === index
     const barWidth = width * 0.7 // Bar width
     const xOffset = (width - barWidth) / 2
     const radius = 6 // Rounded corners
-    const bgColor = '#2d2d38' // Dark background track color
+    const bgColor = isHovered ? '#3d3d48' : '#2d2d38' // Lighter on hover
 
     // Use background props from Recharts for proper positioning
     const bgY = background?.y ?? y
     const bgHeight = background?.height ?? height
 
     return (
-      <g>
+      <g style={{ cursor: 'pointer' }}>
         {/* Background track - full height rounded rectangle */}
         <rect
           x={x + xOffset}
@@ -205,6 +219,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
           fill={bgColor}
           rx={radius}
           ry={radius}
+          style={{ transition: 'fill 0.15s ease' }}
         />
         {/* Foreground colored bar */}
         <rect
@@ -215,7 +230,24 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
           fill={fill}
           rx={radius}
           ry={radius}
+          opacity={isHovered ? 1 : 0.85}
+          style={{ transition: 'opacity 0.15s ease' }}
         />
+        {/* Hover glow effect */}
+        {isHovered && (
+          <rect
+            x={x + xOffset - 2}
+            y={bgY - 2}
+            width={barWidth + 4}
+            height={bgHeight + 4}
+            fill="none"
+            stroke={fill}
+            strokeWidth={2}
+            rx={radius + 2}
+            ry={radius + 2}
+            opacity={0.5}
+          />
+        )}
       </g>
     )
   }
@@ -248,75 +280,162 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
       </div>
 
       {/* Chart */}
-      <div className="h-[320px] mt-4 -mx-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            margin={{ top: 10, right: 5, left: -15, bottom: 5 }}
-            barCategoryGap="2%"
-          >
-            <XAxis
-              dataKey="time"
-              stroke="transparent"
-              fontSize={10}
-              tickLine={false}
-              axisLine={false}
-              tick={{ fill: '#6b7280' }}
-              interval={0}
-              angle={-45}
-              textAnchor="end"
-              height={45}
-            />
-            <YAxis
-              domain={[0, yAxisMax]}
-              stroke="transparent"
-              fontSize={11}
-              tickLine={false}
-              axisLine={false}
-              tick={{ fill: '#6b7280' }}
-              tickCount={5}
-              tickFormatter={(value) => {
-                if (activeLayer === 'wind') return `${Math.round(value)}`
-                if (activeLayer === 'temp') return `${Math.round(value)}°`
-                if (activeLayer === 'wave') return `${value.toFixed(1)}`
-                if (activeLayer === 'tide') return `${value.toFixed(1)}`
-                return `${Math.round(value)}`
-              }}
-              width={30}
-            />
-            <ChartTooltip content={<CustomTooltip />} />
+      <div className="h-[320px] mt-4 flex">
+        {/* Y-axis label - matches table label column width */}
+        <div className="flex-shrink-0 flex flex-col justify-between py-2 pr-1" style={{ width: '55px' }}>
+          <span className="text-xs text-rc-text-muted">{yAxisMax}</span>
+          <div className="flex flex-col items-start">
+            <span className="text-xs font-medium text-rc-text">
+              {activeLayer === 'score' && 'Score'}
+              {activeLayer === 'wind' && 'Wind'}
+              {activeLayer === 'temp' && 'Temp'}
+              {activeLayer === 'wave' && 'Wave'}
+              {activeLayer === 'tide' && 'Tide'}
+            </span>
+            <span className="text-xs text-rc-text-muted">
+              {activeLayer === 'score' && '/10'}
+              {activeLayer === 'wind' && 'km/h'}
+              {activeLayer === 'temp' && '°C'}
+              {activeLayer === 'wave' && heightUnit}
+              {activeLayer === 'tide' && heightUnit}
+            </span>
+          </div>
+          <span className="text-xs text-rc-text-muted">
+            {activeLayer === 'tide' ? yAxisMin.toFixed(1) : '0'}
+          </span>
+        </div>
 
-            <Bar
-              dataKey={activeLayer}
-              shape={<CustomBar />}
-              activeBar={false}
-              background={{ fill: '#1a1a1f' }}
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={getBarColor(entry[activeLayer], activeLayer)}
+        <div className="flex-1">
+          <ResponsiveContainer width="100%" height="100%">
+            {activeLayer === 'tide' ? (
+              // Area chart for tide - styled like reference image
+              <AreaChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
+                onMouseMove={(state: any) => {
+                  if (state?.activeTooltipIndex !== undefined) {
+                    setHoveredIndex(state.activeTooltipIndex)
+                  }
+                }}
+                onMouseLeave={() => setHoveredIndex(null)}
+              >
+                <defs>
+                  <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1e4976" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#1e3a5f" stopOpacity={0.3} />
+                  </linearGradient>
+                </defs>
+                {/* Vertical grid lines */}
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#333333"
+                  vertical={true}
+                  horizontal={false}
                 />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+                <XAxis
+                  dataKey="time"
+                  stroke="transparent"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#6b7280' }}
+                  interval={1}
+                  height={30}
+                />
+                <YAxis
+                  domain={[yAxisMin, yAxisMax]}
+                  stroke="transparent"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#6b7280' }}
+                  width={35}
+                  tickFormatter={(value) => value.toFixed(1)}
+                />
+                {/* "Now" reference line */}
+                <ReferenceLine
+                  x={new Date().getHours().toString().padStart(2, '0') + ':00'}
+                  stroke="#9ca3af"
+                  strokeDasharray="4 4"
+                  label={{ value: 'Now', position: 'top', fill: '#9ca3af', fontSize: 11 }}
+                />
+                {/* Zero reference line for negative tides */}
+                {yAxisMin < 0 && (
+                  <ReferenceLine y={0} stroke="#4b5563" strokeDasharray="3 3" />
+                )}
+                <Area
+                  type="natural"
+                  dataKey="tide"
+                  stroke="#22c55e"
+                  strokeWidth={2.5}
+                  fill="url(#tideGradient)"
+                  dot={false}
+                  activeDot={{
+                    r: 6,
+                    fill: '#ef4444',
+                    stroke: '#ffffff',
+                    strokeWidth: 2,
+                  }}
+                />
+              </AreaChart>
+            ) : (
+              // Bar chart for other metrics
+              <BarChart
+                data={chartData}
+                margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                barCategoryGap="2%"
+              >
+                <XAxis
+                  dataKey="time"
+                  stroke="transparent"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#6b7280' }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={45}
+                />
+                <YAxis hide domain={[0, yAxisMax]} />
+                <Bar
+                  dataKey={activeLayer}
+                  shape={<CustomBar />}
+                  activeBar={false}
+                  background={{ fill: '#1a1a1f' }}
+                  onMouseEnter={(_, index) => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={getBarColor(entry[activeLayer], activeLayer)}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center justify-start gap-6 mt-4">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-1 rounded-full bg-[#22c55e]" />
-          <span className="text-sm text-rc-text-muted">Good</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-1 rounded-full bg-[#a3a322]" />
-          <span className="text-sm text-rc-text-muted">Average</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-1 rounded-full bg-[#b45454]" />
-          <span className="text-sm text-rc-text-muted">Bad</span>
-        </div>
+      {/* Hover Info Display */}
+      <div className="h-8 mt-4 flex items-center justify-center">
+        {hoveredIndex !== null ? (
+          <div className="flex items-center gap-3 px-4 py-1.5 bg-rc-bg-dark rounded-lg">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: getBarColor(chartData[hoveredIndex]?.[activeLayer] ?? 0, activeLayer) }}
+            />
+            <span className="text-sm font-medium text-rc-text">
+              {getHoveredValueText()}
+            </span>
+          </div>
+        ) : (
+          <span className="text-sm text-rc-text-muted">
+            Hover over {activeLayer === 'tide' ? 'the chart' : 'a bar'} to see details
+          </span>
+        )}
       </div>
     </div>
   )
