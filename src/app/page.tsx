@@ -429,7 +429,8 @@ function NewForecastContent() {
 
         <DashboardHeader
           title="Reports"
-          showAlgorithm={true}
+          showAlgorithm={false}
+          showTimeframe={false}
           onAlgorithmChange={handleAlgorithmChange}
         />
 

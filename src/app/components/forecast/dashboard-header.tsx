@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, MapPin, Settings, Beaker } from 'lucide-react'
+import { ChevronDown, MapPin, Settings, Beaker, Bell } from 'lucide-react'
 import { type AlgorithmVersion } from './algorithm-version-toggle'
 import { ReportIcon } from '@/app/components/common/report-icon'
 import LocationSelectorModal from './location-selector-modal'
@@ -13,6 +13,7 @@ interface DashboardHeaderProps {
   showSetLocation?: boolean
   showCustomize?: boolean
   showAlgorithm?: boolean
+  showCustomNotifications?: boolean
   onAlgorithmChange?: (version: AlgorithmVersion) => void
 }
 
@@ -30,10 +31,11 @@ const ALGORITHM_OPTIONS = [
 
 export default function DashboardHeader({
   title = 'Reports',
-  showTimeframe = true,
+  showTimeframe = false,
   showSetLocation = true,
   showCustomize = true,
   showAlgorithm = false,
+  showCustomNotifications = true,
   onAlgorithmChange,
 }: DashboardHeaderProps) {
   const router = useRouter()
@@ -183,6 +185,19 @@ export default function DashboardHeader({
             <span className="flex items-center gap-2 px-4 py-2 text-rc-text">
               <MapPin className="w-4 h-4" />
               <span className="hidden sm:inline">Set Location</span>
+            </span>
+          </button>
+        )}
+
+        {/* Custom Notifications Button - Pill Shape */}
+        {showCustomNotifications && (
+          <button
+            onClick={() => router.push('/profile/custom-alerts')}
+            className="flex items-center bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-full text-sm transition-colors"
+          >
+            <span className="flex items-center gap-2 px-4 py-2 text-rc-text">
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">Custom Alerts</span>
             </span>
           </button>
         )}
