@@ -150,7 +150,7 @@ function DFONoticesContent() {
           notice.title.toLowerCase().includes(query) ||
           notice.notice_number.toLowerCase().includes(query) ||
           notice.species.some(s => s.toLowerCase().includes(query)) ||
-          notice.full_text.toLowerCase().includes(query)
+          (notice.full_text && notice.full_text.toLowerCase().includes(query))
         if (!matchesSearch) return false
       }
 
@@ -379,15 +379,17 @@ function DFONoticesContent() {
                           </div>
                         )}
 
-                        <div>
-                          <h4 className="text-sm font-medium text-rc-text-light mb-2">Notice Text</h4>
-                          <div className="bg-rc-bg-light rounded-lg p-4">
-                            <p className="text-sm text-rc-text-muted whitespace-pre-wrap">
-                              {notice.full_text.substring(0, 1000)}
-                              {notice.full_text.length > 1000 && '...'}
-                            </p>
+                        {notice.full_text && notice.full_text.trim() && (
+                          <div>
+                            <h4 className="text-sm font-medium text-rc-text-light mb-2">Notice Text</h4>
+                            <div className="bg-rc-bg-light rounded-lg p-4">
+                              <p className="text-sm text-rc-text-muted whitespace-pre-wrap">
+                                {notice.full_text.substring(0, 1000)}
+                                {notice.full_text.length > 1000 && '...'}
+                              </p>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         <a
                           href={notice.notice_url}

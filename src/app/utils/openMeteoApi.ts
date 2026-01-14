@@ -521,7 +521,7 @@ export const fetchOpenMeteoMarine = async (
 /**
  * Merge marine data into weather data
  * Marine data is hourly, weather data is 15-min
- * We interpolate marine data to match weather timestamps
+ * Uses optimized two-pointer approach (O(n+m) instead of O(n*m))
  */
 export function mergeMarineData(
   weatherData: OpenMeteo15MinData[],
@@ -531,13 +531,23 @@ export function mergeMarineData(
     return weatherData
   }
 
+  // Sort both arrays by timestamp (should already be sorted, but ensure it)
+  const sortedMarine = [...marineData].sort((a, b) => a.timestamp - b.timestamp)
+
+  // Two-pointer merge - O(n+m) complexity
+  let marineIdx = 0
+
   return weatherData.map(weather => {
-    // Find closest marine data point (within 1 hour)
-    const closestMarine = marineData.reduce((closest, marine) => {
-      const timeDiff = Math.abs(marine.timestamp - weather.timestamp)
-      const closestDiff = Math.abs(closest.timestamp - weather.timestamp)
-      return timeDiff < closestDiff ? marine : closest
-    }, marineData[0])
+    // Advance marine pointer to find closest match
+    while (
+      marineIdx < sortedMarine.length - 1 &&
+      Math.abs(sortedMarine[marineIdx + 1].timestamp - weather.timestamp) <
+      Math.abs(sortedMarine[marineIdx].timestamp - weather.timestamp)
+    ) {
+      marineIdx++
+    }
+
+    const closestMarine = sortedMarine[marineIdx]
 
     // Only merge if within 1 hour (3600 seconds)
     const timeDiff = Math.abs(closestMarine.timestamp - weather.timestamp)

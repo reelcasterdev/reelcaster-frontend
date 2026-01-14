@@ -17,22 +17,18 @@ export default function OverallScoreWidget({
 }: OverallScoreWidgetProps) {
   const normalizedScore = Math.min(Math.max(score, 0), maxScore)
 
-  // Get score color based on value
-  const getScoreColor = () => {
-    if (normalizedScore >= 8) return 'text-green-400'
-    if (normalizedScore >= 6) return 'text-blue-400'
-    if (normalizedScore >= 4) return 'text-yellow-400'
-    return 'text-red-400'
+  // Get the bar color based on overall score (all segments same color)
+  const getBarColor = () => {
+    if (normalizedScore >= 8) return 'bg-emerald-500'
+    if (normalizedScore >= 5) return 'bg-amber-500'
+    return 'bg-red-500'
   }
 
-  // Get segment colors for the indicator (10 segments for 0-10 scale)
+  // Get segment color - filled segments use score-based color, empty are gray
   const getSegmentColor = (index: number) => {
     const segmentValue = index + 1 // 1-10
     if (normalizedScore >= segmentValue) {
-      if (segmentValue <= 4) return 'bg-red-500'
-      if (segmentValue <= 6) return 'bg-yellow-500'
-      if (segmentValue <= 8) return 'bg-blue-500'
-      return 'bg-green-500'
+      return getBarColor()
     }
     return 'bg-rc-bg-light'
   }
@@ -49,7 +45,7 @@ export default function OverallScoreWidget({
       {/* Score Display */}
       <div className="text-center mb-4">
         <div className="flex items-baseline justify-center gap-1">
-          <span className={`text-5xl font-bold ${getScoreColor()}`}>
+          <span className="text-5xl font-bold text-rc-text">
             {normalizedScore.toFixed(0)}
           </span>
           <span className="text-xl text-rc-text-muted">/ {maxScore}</span>

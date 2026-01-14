@@ -206,8 +206,13 @@ After running the setup script, refresh your application.
         return { data: null, cached: false }
       }
 
-      // Increment hit count
-      await supabase.rpc('increment_cache_hit', { cache_key_param: cacheKey })
+      // Increment hit count in background (non-blocking)
+      // Fire and forget - don't await to avoid adding latency
+      supabase.rpc('increment_cache_hit', { cache_key_param: cacheKey }).then(() => {
+        // Success - stats updated
+      }, () => {
+        // Silently ignore errors - stats are not critical
+      })
 
       return {
         data: {

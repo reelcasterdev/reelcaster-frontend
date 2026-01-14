@@ -255,12 +255,15 @@ export function DFONoticesSection({ areas = [19, 20], species = [], limit = 10 }
                       </div>
                     )}
 
-                    <div>
-                      <h4 className="text-xs font-semibold mb-1">Notice Text</h4>
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">
-                        {notice.full_text.substring(0, 500)}...
-                      </p>
-                    </div>
+                    {notice.full_text && notice.full_text.trim() && (
+                      <div>
+                        <h4 className="text-xs font-semibold mb-1">Notice Text</h4>
+                        <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6">
+                          {notice.full_text.substring(0, 500)}
+                          {notice.full_text.length > 500 && '...'}
+                        </p>
+                      </div>
+                    )}
 
                     <a
                       href={notice.notice_url}

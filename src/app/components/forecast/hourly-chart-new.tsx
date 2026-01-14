@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from 'recharts'
 import { ChartTooltip } from '@/components/ui/chart'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
+import { CHSWaterData } from '../../utils/chsTideApi'
 import { useUnitPreferences } from '@/contexts/unit-preferences-context'
 import { convertHeight } from '@/app/utils/unit-conversions'
 
@@ -11,22 +12,39 @@ interface HourlyChartNewProps {
   forecasts: OpenMeteoDailyForecast[]
   selectedDay?: number
   species?: string | null
+  tideData?: CHSWaterData | null
 }
 
-type LayerType = 'score' | 'wind' | 'temp' | 'wave'
+type LayerType = 'score' | 'wind' | 'temp' | 'wave' | 'tide'
 
 const LAYER_TABS: { id: LayerType; label: string }[] = [
   { id: 'score', label: 'Score' },
   { id: 'wind', label: 'Wind' },
   { id: 'temp', label: 'Temp' },
-  { id: 'wave', label: 'Wave Height' },
+  { id: 'wave', label: 'Wave' },
+  { id: 'tide', label: 'Tide' },
 ]
 
-export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyChartNewProps) {
+export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }: HourlyChartNewProps) {
   const [activeLayer, setActiveLayer] = useState<LayerType>('score')
   const { heightUnit } = useUnitPreferences()
 
   const selectedForecast = forecasts[selectedDay]
+
+  // Helper to find closest tide height for a given timestamp
+  const getTideHeightForTimestamp = (timestamp: number): number | null => {
+    if (!tideData?.waterLevels?.length) return null
+
+    const closestLevel = tideData.waterLevels.reduce((prev, curr) => {
+      const prevDiff = Math.abs(prev.timestamp - timestamp)
+      const currDiff = Math.abs(curr.timestamp - timestamp)
+      return currDiff < prevDiff ? curr : prev
+    })
+
+    // Only use if within 1 hour (3600 seconds)
+    if (Math.abs(closestLevel.timestamp - timestamp) > 3600) return null
+    return closestLevel.height
+  }
 
   // Get max value for the background track
   const getMaxValue = (layer: LayerType): number => {
@@ -39,6 +57,8 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
         return 30
       case 'wave':
         return heightUnit === 'ft' ? 7 : 2 // 2m ≈ 6.5ft
+      case 'tide':
+        return heightUnit === 'ft' ? 13 : 4 // 4m ≈ 13ft typical max tide
       default:
         return 10
     }
@@ -62,17 +82,24 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
         // Convert to user's preferred unit
         const waveHeight = convertHeight(waveHeightMeters, 'm', heightUnit)
 
+        // Get tide height for this hour
+        const tideHeightMeters = getTideHeightForTimestamp(score.timestamp)
+        const tideHeight = tideHeightMeters !== null
+          ? convertHeight(tideHeightMeters, 'm', heightUnit)
+          : null
+
         return {
           time: displayHour,
           score: score.score,
           wind: windSpeed,
           temp: score.temp || 15,
           wave: Math.round(waveHeight * 100) / 100, // Round to 2 decimals for better precision
+          tide: tideHeight !== null ? Math.round(tideHeight * 100) / 100 : 0,
           timestamp: score.timestamp,
           background: maxValue, // Full height track
         }
       })
-  }, [selectedForecast, heightUnit])
+  }, [selectedForecast, heightUnit, tideData])
 
   // Calculate Y-axis max: 20% higher than the highest value
   const yAxisMax = useMemo(() => {
@@ -123,6 +150,10 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
       if (value <= avgThreshold) return '#a3a322'
       return '#b45454'
     }
+    if (layer === 'tide') {
+      // Use blue gradient for tide - darker blue for lower, lighter for higher
+      return '#3b82f6' // Blue for all tide values
+    }
     return '#3b82f6'
   }
 
@@ -132,7 +163,11 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
       const data = payload[0].payload
       const value = data[activeLayer]
       const unit =
-        activeLayer === 'score' ? '/10' : activeLayer === 'wind' ? ' km/h' : activeLayer === 'temp' ? '°C' : ` ${heightUnit}`
+        activeLayer === 'score' ? '/10' :
+        activeLayer === 'wind' ? ' km/h' :
+        activeLayer === 'temp' ? '°C' :
+        activeLayer === 'wave' ? ` ${heightUnit}` :
+        activeLayer === 'tide' ? ` ${heightUnit}` : ''
 
       return (
         <div className="bg-rc-bg-darkest border border-rc-bg-light rounded-lg p-3 shadow-lg">
@@ -244,6 +279,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0 }: HourlyCha
                 if (activeLayer === 'wind') return `${Math.round(value)}`
                 if (activeLayer === 'temp') return `${Math.round(value)}°`
                 if (activeLayer === 'wave') return `${value.toFixed(1)}`
+                if (activeLayer === 'tide') return `${value.toFixed(1)}`
                 return `${Math.round(value)}`
               }}
               width={30}
