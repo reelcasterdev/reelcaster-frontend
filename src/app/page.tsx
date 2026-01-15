@@ -26,7 +26,6 @@ import WeatherConditions from './components/forecast/weather-conditions'
 import SpeciesRegulations from './components/forecast/species-regulations'
 import FishingReports from './components/forecast/fishing-reports'
 import { FishingReportDisplay } from './components/forecast/fishing-report-display'
-import { TideChart } from './components/forecast/tide-chart'
 import { TideStatusWidget } from './components/forecast/tide-status-widget'
 import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
 import AlgorithmInfoModal from './components/forecast/algorithm-info-modal'
@@ -514,13 +513,6 @@ function NewForecastContent() {
                     </div>
                   )}
 
-                  {/* Tide Chart - Mobile */}
-                  {tideData && (
-                    <div className="lg:hidden mb-4">
-                      <TideChart tideData={tideData} />
-                    </div>
-                  )}
-
                   {/* Species Regulations - Show here on mobile, hide on desktop */}
                   <div className="lg:hidden">
                     <SpeciesRegulations
@@ -538,13 +530,6 @@ function NewForecastContent() {
                     tideData={tideData || tideData}
                     selectedDay={selectedDay}
                   />
-
-                  {/* Tide Chart - Desktop (below hourly table) */}
-                  {tideData && (
-                    <div className="mt-6">
-                      <TideChart tideData={tideData} />
-                    </div>
-                  )}
 
                 </div>
 
