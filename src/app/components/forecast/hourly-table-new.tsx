@@ -97,6 +97,7 @@ export default function HourlyTableNew({
     return Math.round(converted).toString()
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatHeightValue = (meters: number) => {
     const converted = convertHeight(meters, 'm', heightUnit)
     return converted.toFixed(1)
