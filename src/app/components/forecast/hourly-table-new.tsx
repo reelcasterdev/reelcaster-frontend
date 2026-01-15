@@ -97,7 +97,6 @@ export default function HourlyTableNew({
     return Math.round(converted).toString()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatHeightValue = (meters: number) => {
     const converted = convertHeight(meters, 'm', heightUnit)
     return converted.toFixed(1)
@@ -131,23 +130,17 @@ export default function HourlyTableNew({
       id: 'wave',
       label: 'Wave',
       unit: heightUnit,
-      getValue: () => 'W',
+      getValue: (d: typeof tableData[0]) => formatHeightValue(d.waveHeight),
+      getExtra: (d: typeof tableData[0]) => d.tideRising !== undefined ? (d.tideRising ? 'up' : 'down') : null,
       onClick: () => cycleUnit('height'),
     },
     {
       id: 'tide',
       label: 'Tide',
       unit: heightUnit,
-      getValue: () => 'T',
-      getExtra: () => null,
+      getValue: (d: typeof tableData[0]) => d.tideHeight !== null ? formatHeightValue(d.tideHeight) : '--',
+      getExtra: (d: typeof tableData[0]) => d.tideHeight !== null ? (d.tideRising ? 'up' : 'down') : null,
       onClick: () => cycleUnit('height'),
-    },
-    {
-      id: 'test',
-      label: 'TEST',
-      unit: 'x',
-      getValue: () => 'Z',
-      onClick: undefined,
     },
   ]
 
