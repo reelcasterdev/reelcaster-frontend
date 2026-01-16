@@ -30,23 +30,24 @@ export default function HourlyTableNew({
     return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(direction / 45) % 8]
   }
 
-  // Helper to get tide height at specific time (same logic as chart - defined outside useMemo)
-  const getTideHeightAtTime = (timestamp: number): number | null => {
-    if (!tideData?.waterLevels?.length) return null
-
-    const closestWaterLevel = tideData.waterLevels.reduce((prev, curr) => {
-      const prevDiff = Math.abs(prev.timestamp - timestamp)
-      const currDiff = Math.abs(curr.timestamp - timestamp)
-      return currDiff < prevDiff ? curr : prev
-    })
-
-    // Return height directly without threshold check
-    return closestWaterLevel.height
-  }
-
   // Build table data - hourly intervals (matching the chart exactly)
   const tableData = useMemo(() => {
     if (!selectedForecast) return []
+
+    // Helper function INSIDE useMemo to ensure it uses current tideData
+    const getTideHeight = (timestamp: number): number | null => {
+      if (!tideData?.waterLevels?.length) return null
+
+      const closestLevel = tideData.waterLevels.reduce((prev, curr) => {
+        const prevDiff = Math.abs(prev.timestamp - timestamp)
+        const currDiff = Math.abs(curr.timestamp - timestamp)
+        return currDiff < prevDiff ? curr : prev
+      })
+
+      // Only use if within 1 hour (3600 seconds) - same as chart
+      if (Math.abs(closestLevel.timestamp - timestamp) > 3600) return null
+      return closestLevel.height
+    }
 
     // Use exact same data source as chart - filter minutelyScores every 4th item
     return selectedForecast.minutelyScores
@@ -56,10 +57,10 @@ export default function HourlyTableNew({
         const displayHour = hour.toString().padStart(2, '0') + ':00'
 
         // Get tide height using score.timestamp (same as chart)
-        const tideHeightMeters = getTideHeightAtTime(score.timestamp)
+        const tideHeightMeters = getTideHeight(score.timestamp)
 
         // Determine if tide is rising at this specific time
-        const prevTideHeight = hourIndex > 0 ? getTideHeightAtTime(score.timestamp - 3600) : null
+        const prevTideHeight = hourIndex > 0 ? getTideHeight(score.timestamp - 3600) : null
         const isRising = tideHeightMeters !== null && prevTideHeight !== null
           ? tideHeightMeters > prevTideHeight
           : tideData?.isRising
@@ -82,6 +83,7 @@ export default function HourlyTableNew({
           tideRising: isRising,
         }
       })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedForecast, openMeteoData, tideData])
 
   // Format values
