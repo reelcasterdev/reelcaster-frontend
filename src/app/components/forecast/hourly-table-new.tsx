@@ -69,21 +69,27 @@ export default function HourlyTableNew({
         const windSpeed = score.windSpeed || 10
         const waveHeight = score.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
 
+        // Get additional weather data from openMeteoData
+        const meteoData = openMeteoData?.minutely15[hourIndex * 4]
+
         return {
           time: displayHour,
           timestamp: score.timestamp,
           hourIndex,
           score: Math.round(score.score || 5),
           windSpeed: score.windSpeed,
-          windDir: getWindDir(openMeteoData?.minutely15[hourIndex * 4]?.windDirection ?? 0),
-          windDirection: openMeteoData?.minutely15[hourIndex * 4]?.windDirection ?? 0,
+          windGusts: meteoData?.windGusts ?? 0,
+          windDir: getWindDir(meteoData?.windDirection ?? 0),
+          windDirection: meteoData?.windDirection ?? 0,
           temp: score.temp,
+          precipProbability: meteoData?.precipitationProbability ?? 0,
+          pressure: meteoData?.pressure ?? 1013,
+          cloudCover: meteoData?.cloudCover ?? 0,
           waveHeight,
           tideHeight: tideHeightMeters,
           tideRising: isRising,
         }
       })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedForecast, openMeteoData, tideData])
 
   // Format values
@@ -122,11 +128,32 @@ export default function HourlyTableNew({
       onClick: () => cycleUnit('wind'),
     },
     {
+      id: 'gusts',
+      label: 'Gusts',
+      unit: windUnit,
+      getValue: (d: typeof tableData[0]) => formatWindValue(d.windGusts),
+      onClick: () => cycleUnit('wind'),
+    },
+    {
       id: 'temp',
       label: 'Temp',
       unit: tempUnit === 'C' ? '°C' : '°F',
       getValue: (d: typeof tableData[0]) => formatTempValue(d.temp),
       onClick: () => cycleUnit('temp'),
+    },
+    {
+      id: 'rain',
+      label: 'Rain',
+      unit: '%',
+      getValue: (d: typeof tableData[0]) => d.precipProbability.toString(),
+      onClick: undefined,
+    },
+    {
+      id: 'clouds',
+      label: 'Clouds',
+      unit: '%',
+      getValue: (d: typeof tableData[0]) => d.cloudCover.toString(),
+      onClick: undefined,
     },
     {
       id: 'wave',
@@ -154,21 +181,36 @@ export default function HourlyTableNew({
     )
   }
 
+  // Debug: Check tide data
+  const debugTide = {
+    hasTideData: !!tideData,
+    waterLevelsCount: tideData?.waterLevels?.length ?? 0,
+    firstTimestamp: tideData?.waterLevels?.[0]?.timestamp,
+    scoreTimestamp: tableData[0]?.timestamp,
+  }
+
   return (
     <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden">
+      {/* Debug info - REMOVE AFTER DEBUGGING */}
+      <div className="p-2 text-xs text-yellow-400 bg-yellow-900/20">
+        DEBUG: tideData={debugTide.hasTideData ? 'YES' : 'NO'} |
+        levels={debugTide.waterLevelsCount} |
+        tideTSample={debugTide.firstTimestamp} |
+        scoreTSample={debugTide.scoreTimestamp}
+      </div>
       {/* Table aligned with chart above */}
       <div className="flex">
         {/* Left label column - matches chart Y-axis width */}
         <div className="flex-shrink-0" style={{ width: '55px' }}>
           {/* Time header */}
-          <div className="px-1.5 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50">
+          <div className="px-1.5 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50 h-[32px] flex items-center">
             <span className="text-[10px] text-rc-text-muted">Time</span>
           </div>
           {/* Row labels */}
           {rows.map((row) => (
             <div
               key={row.id}
-              className={`px-1.5 py-2 border-b border-rc-bg-dark bg-rc-bg-dark/30 ${
+              className={`px-1.5 py-2 border-b border-rc-bg-dark bg-rc-bg-dark/30 h-[44px] flex flex-col justify-center ${
                 row.onClick ? 'cursor-pointer hover:bg-rc-bg-dark/50' : ''
               }`}
               onClick={row.onClick}
@@ -186,14 +228,14 @@ export default function HourlyTableNew({
             {tableData.map((d, i) => (
               <div key={i} className="flex-1 min-w-[40px]">
                 {/* Time header */}
-                <div className="px-1 py-2 text-center border-b border-rc-bg-light border-l border-rc-bg-light/50">
+                <div className="px-1 py-2 text-center border-b border-rc-bg-light border-l border-rc-bg-light/50 h-[32px] flex items-center justify-center">
                   <span className="text-xs text-rc-text-muted">{d.time.replace(':00', '')}</span>
                 </div>
                 {/* Data cells */}
                 {rows.map((row) => (
                   <div
                     key={row.id}
-                    className="px-1 py-2 text-center border-b border-rc-bg-dark border-l border-rc-bg-light/30 flex flex-col items-center justify-center"
+                    className="px-1 py-2 text-center border-b border-rc-bg-dark border-l border-rc-bg-light/30 h-[44px] flex flex-col items-center justify-center"
                   >
                     <span className="text-xs text-rc-text">{row.getValue(d)}</span>
                     {row.getExtra && row.getExtra(d) && (
