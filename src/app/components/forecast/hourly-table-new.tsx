@@ -30,23 +30,24 @@ export default function HourlyTableNew({
     return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(direction / 45) % 8]
   }
 
-  // Helper to get tide height at specific time (same logic as chart - defined outside useMemo)
-  const getTideHeightAtTime = (timestamp: number): number | null => {
-    if (!tideData?.waterLevels?.length) return null
-
-    const closestWaterLevel = tideData.waterLevels.reduce((prev, curr) => {
-      const prevDiff = Math.abs(prev.timestamp - timestamp)
-      const currDiff = Math.abs(curr.timestamp - timestamp)
-      return currDiff < prevDiff ? curr : prev
-    })
-
-    // Return height directly without threshold check
-    return closestWaterLevel.height
-  }
-
   // Build table data - hourly intervals (matching the chart exactly)
   const tableData = useMemo(() => {
     if (!selectedForecast) return []
+
+    // Helper function INSIDE useMemo to ensure it uses current tideData
+    const getTideHeight = (timestamp: number): number | null => {
+      if (!tideData?.waterLevels?.length) return null
+
+      const closestLevel = tideData.waterLevels.reduce((prev, curr) => {
+        const prevDiff = Math.abs(prev.timestamp - timestamp)
+        const currDiff = Math.abs(curr.timestamp - timestamp)
+        return currDiff < prevDiff ? curr : prev
+      })
+
+      // Only use if within 1 hour (3600 seconds) - same as chart
+      if (Math.abs(closestLevel.timestamp - timestamp) > 3600) return null
+      return closestLevel.height
+    }
 
     // Use exact same data source as chart - filter minutelyScores every 4th item
     return selectedForecast.minutelyScores
@@ -56,10 +57,10 @@ export default function HourlyTableNew({
         const displayHour = hour.toString().padStart(2, '0') + ':00'
 
         // Get tide height using score.timestamp (same as chart)
-        const tideHeightMeters = getTideHeightAtTime(score.timestamp)
+        const tideHeightMeters = getTideHeight(score.timestamp)
 
         // Determine if tide is rising at this specific time
-        const prevTideHeight = hourIndex > 0 ? getTideHeightAtTime(score.timestamp - 3600) : null
+        const prevTideHeight = hourIndex > 0 ? getTideHeight(score.timestamp - 3600) : null
         const isRising = tideHeightMeters !== null && prevTideHeight !== null
           ? tideHeightMeters > prevTideHeight
           : tideData?.isRising
@@ -68,15 +69,21 @@ export default function HourlyTableNew({
         const windSpeed = score.windSpeed || 10
         const waveHeight = score.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
 
+        // Get additional weather data from openMeteoData
+        const meteoData = openMeteoData?.minutely15[hourIndex * 4]
+
         return {
           time: displayHour,
           timestamp: score.timestamp,
           hourIndex,
           score: Math.round(score.score || 5),
           windSpeed: score.windSpeed,
-          windDir: getWindDir(openMeteoData?.minutely15[hourIndex * 4]?.windDirection ?? 0),
-          windDirection: openMeteoData?.minutely15[hourIndex * 4]?.windDirection ?? 0,
+          windGusts: meteoData?.windGusts ?? 0,
+          windDir: getWindDir(meteoData?.windDirection ?? 0),
+          windDirection: meteoData?.windDirection ?? 0,
           temp: score.temp,
+          precipProbability: meteoData?.precipitationProbability ?? 0,
+          cloudCover: meteoData?.cloudCover ?? 0,
           waveHeight,
           tideHeight: tideHeightMeters,
           tideRising: isRising,
@@ -97,7 +104,6 @@ export default function HourlyTableNew({
     return Math.round(converted).toString()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatHeightValue = (meters: number) => {
     const converted = convertHeight(meters, 'm', heightUnit)
     return converted.toFixed(1)
@@ -121,6 +127,13 @@ export default function HourlyTableNew({
       onClick: () => cycleUnit('wind'),
     },
     {
+      id: 'gusts',
+      label: 'Gusts',
+      unit: windUnit,
+      getValue: (d: typeof tableData[0]) => formatWindValue(d.windGusts),
+      onClick: () => cycleUnit('wind'),
+    },
+    {
       id: 'temp',
       label: 'Temp',
       unit: tempUnit === 'C' ? '°C' : '°F',
@@ -128,26 +141,34 @@ export default function HourlyTableNew({
       onClick: () => cycleUnit('temp'),
     },
     {
+      id: 'rain',
+      label: 'Rain',
+      unit: '%',
+      getValue: (d: typeof tableData[0]) => d.precipProbability.toString(),
+      onClick: undefined,
+    },
+    {
+      id: 'clouds',
+      label: 'Clouds',
+      unit: '%',
+      getValue: (d: typeof tableData[0]) => d.cloudCover.toString(),
+      onClick: undefined,
+    },
+    {
       id: 'wave',
       label: 'Wave',
       unit: heightUnit,
-      getValue: () => 'W',
+      getValue: (d: typeof tableData[0]) => formatHeightValue(d.waveHeight),
+      getExtra: (d: typeof tableData[0]) => d.tideRising !== undefined ? (d.tideRising ? 'up' : 'down') : null,
       onClick: () => cycleUnit('height'),
     },
     {
       id: 'tide',
       label: 'Tide',
       unit: heightUnit,
-      getValue: () => 'T',
-      getExtra: () => null,
+      getValue: (d: typeof tableData[0]) => d.tideHeight !== null ? formatHeightValue(d.tideHeight) : '--',
+      getExtra: (d: typeof tableData[0]) => d.tideHeight !== null ? (d.tideRising ? 'up' : 'down') : null,
       onClick: () => cycleUnit('height'),
-    },
-    {
-      id: 'test',
-      label: 'TEST',
-      unit: 'x',
-      getValue: () => 'Z',
-      onClick: undefined,
     },
   ]
 
@@ -159,6 +180,7 @@ export default function HourlyTableNew({
     )
   }
 
+
   return (
     <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden">
       {/* Table aligned with chart above */}
@@ -166,14 +188,14 @@ export default function HourlyTableNew({
         {/* Left label column - matches chart Y-axis width */}
         <div className="flex-shrink-0" style={{ width: '55px' }}>
           {/* Time header */}
-          <div className="px-1.5 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50">
+          <div className="px-1.5 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50 h-[32px] flex items-center">
             <span className="text-[10px] text-rc-text-muted">Time</span>
           </div>
           {/* Row labels */}
           {rows.map((row) => (
             <div
               key={row.id}
-              className={`px-1.5 py-2 border-b border-rc-bg-dark bg-rc-bg-dark/30 ${
+              className={`px-1.5 py-2 border-b border-rc-bg-dark bg-rc-bg-dark/30 h-[44px] flex flex-col justify-center ${
                 row.onClick ? 'cursor-pointer hover:bg-rc-bg-dark/50' : ''
               }`}
               onClick={row.onClick}
@@ -191,14 +213,14 @@ export default function HourlyTableNew({
             {tableData.map((d, i) => (
               <div key={i} className="flex-1 min-w-[40px]">
                 {/* Time header */}
-                <div className="px-1 py-2 text-center border-b border-rc-bg-light border-l border-rc-bg-light/50">
+                <div className="px-1 py-2 text-center border-b border-rc-bg-light border-l border-rc-bg-light/50 h-[32px] flex items-center justify-center">
                   <span className="text-xs text-rc-text-muted">{d.time.replace(':00', '')}</span>
                 </div>
                 {/* Data cells */}
                 {rows.map((row) => (
                   <div
                     key={row.id}
-                    className="px-1 py-2 text-center border-b border-rc-bg-dark border-l border-rc-bg-light/30 flex flex-col items-center justify-center"
+                    className="px-1 py-2 text-center border-b border-rc-bg-dark border-l border-rc-bg-light/30 h-[44px] flex flex-col items-center justify-center"
                   >
                     <span className="text-xs text-rc-text">{row.getValue(d)}</span>
                     {row.getExtra && row.getExtra(d) && (
