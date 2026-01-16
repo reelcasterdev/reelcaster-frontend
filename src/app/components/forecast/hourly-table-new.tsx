@@ -83,7 +83,6 @@ export default function HourlyTableNew({
           windDirection: meteoData?.windDirection ?? 0,
           temp: score.temp,
           precipProbability: meteoData?.precipitationProbability ?? 0,
-          pressure: meteoData?.pressure ?? 1013,
           cloudCover: meteoData?.cloudCover ?? 0,
           waveHeight,
           tideHeight: tideHeightMeters,
@@ -181,23 +180,9 @@ export default function HourlyTableNew({
     )
   }
 
-  // Debug: Check tide data
-  const debugTide = {
-    hasTideData: !!tideData,
-    waterLevelsCount: tideData?.waterLevels?.length ?? 0,
-    firstTimestamp: tideData?.waterLevels?.[0]?.timestamp,
-    scoreTimestamp: tableData[0]?.timestamp,
-  }
 
   return (
     <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden">
-      {/* Debug info - REMOVE AFTER DEBUGGING */}
-      <div className="p-2 text-xs text-yellow-400 bg-yellow-900/20">
-        DEBUG: tideData={debugTide.hasTideData ? 'YES' : 'NO'} |
-        levels={debugTide.waterLevelsCount} |
-        tideTSample={debugTide.firstTimestamp} |
-        scoreTSample={debugTide.scoreTimestamp}
-      </div>
       {/* Table aligned with chart above */}
       <div className="flex">
         {/* Left label column - matches chart Y-axis width */}
