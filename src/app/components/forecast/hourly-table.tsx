@@ -299,7 +299,7 @@ export default function HourlyTable({ forecasts, openMeteoData, tideData, select
       {/* Footer with tide info */}
       {tideData && (
         <div className="p-4 bg-slate-700/30 border-t border-slate-700">
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
             <div className="text-slate-400">
               Tide Station: <span className="text-white font-medium">
                 {typeof tideData.station === 'string' ? tideData.station : tideData.station?.name}

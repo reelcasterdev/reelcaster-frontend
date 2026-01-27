@@ -148,7 +148,7 @@ export default function EmailComposer({ onPreview }: EmailComposerProps) {
           <Mail className="h-7 w-7 text-white" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
             Send Email Broadcast
           </h1>
           <p className="text-slate-400 mt-1">

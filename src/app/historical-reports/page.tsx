@@ -107,19 +107,19 @@ export default function HistoricalReportsPage() {
             <div className="lg:col-span-1">
               <div className="bg-gradient-to-b from-slate-700/50 to-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4">
                 <h3 className="text-sm font-medium text-slate-400 mb-3">Select Week</h3>
-                <div className="space-y-2 max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
+                <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible lg:overflow-y-auto lg:max-h-[600px] pb-2 lg:pb-0 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
                   {reports[selectedLocation]?.map(report => (
                     <button
                       key={report.date}
                       onClick={() => setSelectedWeek(report.date)}
-                      className={`w-full p-3 rounded-lg text-left transition-all duration-300 ${
+                      className={`flex-shrink-0 lg:flex-shrink p-3 rounded-lg text-left transition-all duration-300 min-w-[140px] lg:min-w-0 lg:w-full ${
                         selectedWeek === report.date
                           ? 'bg-slate-700 border border-blue-500/50 shadow-lg'
                           : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50'
                       }`}
                     >
                       <div className="text-xs text-slate-500 mb-1">Week ending</div>
-                      <div className="text-sm font-medium text-white">{report.weekEnding}</div>
+                      <div className="text-sm font-medium text-white whitespace-nowrap">{report.weekEnding}</div>
                     </button>
                   ))}
                 </div>
@@ -132,12 +132,12 @@ export default function HistoricalReportsPage() {
                 <div className="space-y-4">
                   {/* Report Header */}
                   <div className="bg-gradient-to-b from-slate-700/50 to-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-4 sm:p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Fish className="w-5 h-5 text-blue-400" />
-                        {selectedLocation} - Week ending {currentReport.weekEnding}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                      <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                        <Fish className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                        <span className="break-words">{selectedLocation} - Week ending {currentReport.weekEnding}</span>
                       </h2>
-                      <div className="px-3 py-1 bg-slate-700/50 border border-slate-600/30 rounded-full">
+                      <div className="px-3 py-1 bg-slate-700/50 border border-slate-600/30 rounded-full self-start sm:self-auto flex-shrink-0">
                         <span className="text-xs text-slate-300">{currentReport.data.reportMetadata.source}</span>
                       </div>
                     </div>

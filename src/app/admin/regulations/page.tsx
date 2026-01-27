@@ -163,7 +163,7 @@ export default function RegulationsAdminPage() {
                 key={reg.id}
                 className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-6"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
                   <div>
                     <h2 className="text-xl font-semibold text-rc-text mb-1">
                       Area {reg.area_id}
@@ -177,14 +177,14 @@ export default function RegulationsAdminPage() {
                       <>
                         <button
                           onClick={() => approveRegulation(reg.id)}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-rc-text rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-rc-text rounded-lg transition-colors text-sm"
                         >
                           <CheckCircle className="w-4 h-4" />
                           Approve
                         </button>
                         <button
                           onClick={() => rejectRegulation(reg.id)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-rc-text rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-rc-text rounded-lg transition-colors text-sm"
                         >
                           <XCircle className="w-4 h-4" />
                           Reject

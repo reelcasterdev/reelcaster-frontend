@@ -2,10 +2,13 @@
 
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import Map, { Marker, Source, Layer, MapRef } from 'react-map-gl/mapbox';
-import { MapPin, Wind, CloudRain, Thermometer, Layers, Info, Play, Pause, Sparkles } from 'lucide-react';
+import { MapPin, Wind, CloudRain, Thermometer, Layers, Info, Play, Pause, Sparkles, Map as MapIcon, Waves, Anchor } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ProcessedOpenMeteoData } from '@/app/utils/openMeteoApi';
+import { CHSWaterData } from '@/app/utils/chsTideApi';
 import WindParticleLayer from './wind-particle-layer';
+import OceanCurrentLayer from './ocean-current-layer';
+import TideStationMarker from './tide-station-marker';
 
 interface FishingHotspot {
   name: string;
@@ -19,7 +22,25 @@ interface ForecastMapProps {
   centerCoordinates: { lat: number; lon: number };
   onHotspotChange: (hotspot: FishingHotspot) => void;
   openMeteoData: ProcessedOpenMeteoData | null;
+  tideData?: CHSWaterData | null;
 }
+
+interface MapStyle {
+  id: string;
+  name: string;
+  url: string;
+}
+
+const MAP_STYLES: MapStyle[] = [
+  { id: 'dark', name: 'Dark', url: 'mapbox://styles/mapbox/dark-v11' },
+  { id: 'satellite', name: 'Satellite', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
+  { id: 'outdoors', name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
+  { id: 'streets', name: 'Streets', url: 'mapbox://styles/mapbox/streets-v12' },
+  { id: 'light', name: 'Light', url: 'mapbox://styles/mapbox/light-v11' },
+  { id: 'nav-night', name: 'Navigation', url: 'mapbox://styles/mapbox/navigation-night-v1' },
+];
+
+const MAP_STYLE_STORAGE_KEY = 'reelcaster-map-style';
 
 interface WeatherLayer {
   id: string;
@@ -36,6 +57,7 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   centerCoordinates,
   onHotspotChange,
   openMeteoData,
+  tideData,
 }) => {
   const mapRef = useRef<MapRef>(null);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -60,6 +82,19 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
   const [windAnimationEnabled, setWindAnimationEnabled] = useState(false);
+  const [oceanCurrentEnabled, setOceanCurrentEnabled] = useState(false);
+  const [tideStationEnabled, setTideStationEnabled] = useState(true);
+  const [showStylePicker, setShowStylePicker] = useState(false);
+  const [mapStyle, setMapStyle] = useState<MapStyle>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(MAP_STYLE_STORAGE_KEY);
+      if (saved) {
+        const found = MAP_STYLES.find(s => s.id === saved);
+        if (found) return found;
+      }
+    }
+    return MAP_STYLES[0];
+  });
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   // Timeline state for forecast playback
@@ -85,6 +120,13 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
     );
   }, []);
 
+  // Change map style
+  const handleStyleChange = useCallback((style: MapStyle) => {
+    setMapStyle(style);
+    setShowStylePicker(false);
+    localStorage.setItem(MAP_STYLE_STORAGE_KEY, style.id);
+  }, []);
+
   // Handle hotspot click
   const handleHotspotClick = useCallback((hotspotData: FishingHotspot) => {
     onHotspotChange(hotspotData);
@@ -102,6 +144,8 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
       windDirection: current.windDirection,
       precipitation: current.precipitation,
       cloudCover: current.cloudCover,
+      oceanCurrentSpeed: current.oceanCurrentSpeed ?? 0,
+      oceanCurrentDirection: current.oceanCurrentDirection ?? 0,
     };
   }, [openMeteoData, timelineIndex]);
 
@@ -167,13 +211,18 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   return (
     <div className="space-y-3">
       {/* Map Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-medium text-white">Weather Map - {location}</h3>
+          <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <h3 className="text-sm font-medium text-white truncate">Weather Map - {location}</h3>
         </div>
         {currentWeather && (
           <div className="flex items-center gap-3 text-xs text-slate-300">
+            {timelineIndex > 0 && (
+              <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px] font-medium">
+                Forecast
+              </span>
+            )}
             <div className="flex items-center gap-1">
               <Thermometer className="w-3 h-3" />
               <span>{currentWeather.temp.toFixed(1)}°C</span>
@@ -224,13 +273,84 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
           )}
         </button>
 
+        {/* Ocean Current Toggle */}
         <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="ml-auto p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 border border-slate-600 transition-colors"
-          title="Map Settings"
+          onClick={() => setOceanCurrentEnabled(!oceanCurrentEnabled)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+            oceanCurrentEnabled
+              ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white border-cyan-500 shadow-lg shadow-cyan-500/30'
+              : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600'
+          } border`}
+          title="Toggle ocean current flow"
         >
-          <Info className="w-4 h-4 text-slate-300" />
+          <Waves className="w-3 h-3" />
+          <span>Currents</span>
+          {oceanCurrentEnabled && (
+            <span className="ml-1 text-[10px] bg-white/20 px-1.5 py-0.5 rounded">LIVE</span>
+          )}
         </button>
+
+        {/* Tide Station Toggle */}
+        {tideData && (
+          <button
+            onClick={() => setTideStationEnabled(!tideStationEnabled)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              tideStationEnabled
+                ? 'bg-blue-600 text-white border-blue-500'
+                : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600'
+            } border`}
+            title="Toggle tide station marker"
+          >
+            <Anchor className="w-3 h-3" />
+            <span>Tide</span>
+          </button>
+        )}
+
+        <div className="ml-auto flex items-center gap-1.5">
+          {/* Map Style Picker */}
+          <div className="relative">
+            <button
+              onClick={() => setShowStylePicker(!showStylePicker)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all border ${
+                showStylePicker
+                  ? 'bg-blue-600 text-white border-blue-500'
+                  : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600'
+              }`}
+              title="Map Style"
+            >
+              <MapIcon className="w-3 h-3" />
+              <span>{mapStyle.name}</span>
+            </button>
+            {showStylePicker && (
+              <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowStylePicker(false)} />
+              <div className="absolute right-0 top-full mt-1 bg-rc-bg-dark border border-rc-bg-light rounded-lg shadow-xl z-20 py-1 min-w-[140px]">
+                {MAP_STYLES.map(style => (
+                  <button
+                    key={style.id}
+                    onClick={() => handleStyleChange(style)}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      mapStyle.id === style.id
+                        ? 'bg-blue-600/20 text-blue-400 font-medium'
+                        : 'text-rc-text-light hover:bg-rc-bg-light'
+                    }`}
+                  >
+                    {style.name}
+                  </button>
+                ))}
+              </div>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-1.5 rounded-md bg-slate-700 hover:bg-slate-600 border border-slate-600 transition-colors"
+            title="Map Settings"
+          >
+            <Info className="w-4 h-4 text-slate-300" />
+          </button>
+        </div>
       </div>
 
       {/* Settings Panel */}
@@ -250,7 +370,7 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
             className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
           />
           <p className="text-xs text-slate-400 mt-2">
-            <strong>Tip:</strong> Toggle layers to view different weather conditions. Enable &quot;Wind Flow&quot; to see directional arrows over water (longer arrows = stronger wind). Click hotspot markers to change location.
+            <strong>Tip:</strong> Toggle layers to view live weather conditions. Enable &quot;Wind Flow&quot; to see directional arrows over water (longer arrows = stronger wind). Use the forecast scrubber below to preview future wind and weather stats. Click hotspot markers to change location.
           </p>
         </div>
       )}
@@ -258,14 +378,14 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
       {/* Map Container */}
       <div
         ref={mapContainerRef}
-        className="relative w-full h-[500px] rounded-lg overflow-hidden border border-slate-600"
+        className="relative w-full h-[350px] sm:h-[500px] rounded-lg overflow-hidden border border-slate-600"
       >
         <Map
           ref={mapRef}
           {...viewport}
           onMove={evt => setViewport(evt.viewState)}
           mapboxAccessToken={mapboxToken}
-          mapStyle="mapbox://styles/mapbox/dark-v11"
+          mapStyle={mapStyle.url}
           style={{ width: '100%', height: '100%' }}
         >
           {/* OpenWeatherMap Tile Layers */}
@@ -340,6 +460,16 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
               </Marker>
             );
           })}
+
+          {/* Tide Station Marker */}
+          {tideData && tideStationEnabled && (
+            <TideStationMarker
+              tideData={tideData}
+              currentTimestamp={
+                openMeteoData?.minutely15?.[timelineIndex]?.timestamp ?? null
+              }
+            />
+          )}
         </Map>
 
         {/* Wind Particle Animation Overlay */}
@@ -358,6 +488,19 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
           />
         )}
 
+        {/* Ocean Current Particle Animation Overlay */}
+        {currentWeather && (
+          <OceanCurrentLayer
+            currentData={{
+              speed: currentWeather.oceanCurrentSpeed,
+              direction: currentWeather.oceanCurrentDirection,
+            }}
+            width={mapContainerRef.current?.clientWidth || 800}
+            height={mapContainerRef.current?.clientHeight || 500}
+            enabled={oceanCurrentEnabled}
+          />
+        )}
+
         {/* Map Legend Overlay */}
         {!owmApiKey && weatherLayers.some(l => l.enabled) && (
           <div className="absolute top-4 right-4 bg-yellow-500/20 border border-yellow-500/30 backdrop-blur-sm px-3 py-2 rounded-lg">
@@ -369,7 +512,7 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
         )}
       </div>
 
-      {/* Timeline Scrubber */}
+      {/* Wind & Weather Forecast Scrubber */}
       {openMeteoData && openMeteoData.minutely15 && openMeteoData.minutely15.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -385,7 +528,10 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
                   <Play className="w-4 h-4 text-blue-400" />
                 )}
               </button>
-              <label className="text-xs font-medium text-slate-300">Forecast Timeline</label>
+              <div>
+                <label className="text-xs font-medium text-slate-300">Wind & Weather Forecast</label>
+                <p className="text-[10px] text-slate-500">Scrub to preview wind flow and weather stats. Map layers show live conditions.</p>
+              </div>
             </div>
             {timelineTimestamp && (
               <span className="text-xs text-blue-400 font-mono">

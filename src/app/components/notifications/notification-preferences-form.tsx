@@ -272,7 +272,7 @@ const NotificationPreferencesForm: React.FC = () => {
       )}
 
       {/* Save Button */}
-      <div className="sticky bottom-0 bg-slate-800 border-t border-slate-700 pt-4 pb-2 -mx-6 px-6">
+      <div className="sticky bottom-0 bg-slate-800 border-t border-slate-700 pt-4 pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
         {error && (
           <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
             <p className="text-sm text-red-400">{error}</p>

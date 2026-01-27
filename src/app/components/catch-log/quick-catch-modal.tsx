@@ -50,7 +50,7 @@ const QuickCatchModal: React.FC<QuickCatchModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="relative w-full sm:max-w-md bg-gray-900 border border-gray-700 rounded-t-2xl sm:rounded-2xl shadow-2xl animate-slide-up sm:animate-scale-in">
+      <div className="relative w-full sm:max-w-md bg-rc-bg-darkest border border-rc-bg-light rounded-t-2xl sm:rounded-2xl shadow-2xl animate-slide-up sm:animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center gap-2">
@@ -168,7 +168,7 @@ const QuickCatchModal: React.FC<QuickCatchModalProps> = ({
             {/* Bite (Lost) */}
             <button
               onClick={() => handleOutcomeSelect('bite')}
-              className="group relative flex flex-col items-center gap-3 p-6 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 hover:border-amber-500 hover:from-amber-500/20 hover:to-orange-500/20 transition-all active:scale-95"
+              className="group relative flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-6 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 hover:border-amber-500 hover:from-amber-500/20 hover:to-orange-500/20 transition-all active:scale-95"
             >
               <div className="p-4 bg-amber-500/20 rounded-full group-hover:bg-amber-500/30 transition-colors">
                 <Fish className="w-8 h-8 text-amber-400" />
@@ -182,7 +182,7 @@ const QuickCatchModal: React.FC<QuickCatchModalProps> = ({
             {/* In the Boat (Landed) */}
             <button
               onClick={() => handleOutcomeSelect('landed')}
-              className="group relative flex flex-col items-center gap-3 p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 border-2 border-emerald-500/30 hover:border-emerald-500 hover:from-emerald-500/20 hover:to-green-500/20 transition-all active:scale-95"
+              className="group relative flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 border-2 border-emerald-500/30 hover:border-emerald-500 hover:from-emerald-500/20 hover:to-green-500/20 transition-all active:scale-95"
             >
               <div className="p-4 bg-emerald-500/20 rounded-full group-hover:bg-emerald-500/30 transition-colors">
                 <Anchor className="w-8 h-8 text-emerald-400" />

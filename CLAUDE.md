@@ -967,3 +967,4 @@ Always act like senior engineer and create smaller and reusable components. Make
 - for the docs always keep the names in file-name format.
 - No need to create new document everytime we change something. We just need to update the CLAUDE.md with anything important regarding the system. and existing docs shouuld be updated if the changes were related.
 - use supabase mcp when trying to access anything in supabase.
+- don't build to check everything unless explicitly asked

@@ -319,6 +319,76 @@ export const fetchTideEvents = async (
   }
 }
 
+// Fetch tide events for a date range (high/low tides)
+export const fetchTideEventsRange = async (
+  stationId: string,
+  startTime: Date,
+  endTime: Date
+): Promise<CHSTideEvent[]> => {
+  const cacheKey = `tides-range-${stationId}-${startTime.toISOString()}-${endTime.toISOString()}`
+  const cached = responseCache.get(cacheKey)
+
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data
+  }
+
+  try {
+    const params = new URLSearchParams({
+      'time-series-code': 'wlp-hilo',
+      from: startTime.toISOString(),
+      to: endTime.toISOString(),
+    })
+
+    const endpoint = typeof window !== 'undefined'
+      ? `${CHS_API_BASE}/stations/${stationId}/data?${params}`
+      : `${CHS_API_BASE}/stations/${stationId}/data?${params}`
+
+    const response = await rateLimitedFetch(endpoint)
+
+    if (!response.ok) throw new Error(`Failed to fetch tide events: ${response.status}`)
+
+    const data = await response.json()
+    const tideEvents: CHSTideEvent[] = []
+
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i]
+      const currentValue = item.value
+      const currentTime = new Date(item.eventDate)
+
+      if (i > 0 && i < data.length - 1) {
+        const nextValue = data[i + 1].value
+        const prevValue = data[i - 1].value
+
+        const isHigh = currentValue > prevValue && currentValue > nextValue
+        const isLow = currentValue < prevValue && currentValue < nextValue
+
+        if (isHigh || isLow) {
+          tideEvents.push({
+            timestamp: currentTime.getTime() / 1000,
+            height: currentValue,
+            type: isHigh ? 'high' : 'low',
+          })
+        }
+      } else if (i === 0 || i === data.length - 1) {
+        const adjacentValue = i === 0 ? data[1].value : data[data.length - 2].value
+        const isHigh = currentValue > adjacentValue
+
+        tideEvents.push({
+          timestamp: currentTime.getTime() / 1000,
+          height: currentValue,
+          type: isHigh ? 'high' : 'low',
+        })
+      }
+    }
+
+    responseCache.set(cacheKey, { data: tideEvents, timestamp: Date.now() })
+    return tideEvents.sort((a, b) => a.timestamp - b.timestamp)
+  } catch (error) {
+    console.error('Error fetching CHS tide events range:', error)
+    return []
+  }
+}
+
 // Calculate current speeds from water level changes
 const calculateCurrentFromWaterLevels = (
   waterLevels: CHSWaterLevel[],
@@ -357,22 +427,26 @@ export const fetchCHSTideData = async (
   try {
     const now = targetTime || new Date()
     const startTime = new Date(now.getTime() - 6 * 60 * 60 * 1000) // 6 hours ago
-    const endTime = new Date(now.getTime() + 18 * 60 * 60 * 1000) // 18 hours ahead
+    // CHS API limits water level queries to 7 days max, so split into two 7-day chunks
+    const midTime = new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000) // startTime + 7 days
+    const endTime = new Date(midTime.getTime() + 7 * 24 * 60 * 60 * 1000) // midTime + 7 days
 
-    // Fetch all data in parallel
-    const [station, waterLevels, todayTides, tomorrowTides] = await Promise.all([
+    // Fetch all data in parallel - water levels in two 7-day chunks, tide events for full 14 days
+    const [station, waterLevelsWeek1, waterLevelsWeek2, tideEvents] = await Promise.all([
       fetchStationMetadata(stationInfo.id),
-      fetchWaterLevels(stationInfo.id, startTime, endTime),
-      fetchTideEvents(stationInfo.id, now),
-      fetchTideEvents(stationInfo.id, new Date(now.getTime() + 24 * 60 * 60 * 1000)),
+      fetchWaterLevels(stationInfo.id, startTime, midTime),
+      fetchWaterLevels(stationInfo.id, midTime, endTime),
+      fetchTideEventsRange(stationInfo.id, startTime, endTime),
     ])
+
+    // Combine water levels from both weeks
+    const waterLevels = [...waterLevelsWeek1, ...waterLevelsWeek2]
 
     if (!station || waterLevels.length === 0) {
       return null
     }
 
-    // Combine tide events
-    const allTides = [...todayTides, ...tomorrowTides].sort((a, b) => a.timestamp - b.timestamp)
+    const allTides = tideEvents
     const nowTimestamp = now.getTime() / 1000
 
     // Find current water level
@@ -384,10 +458,17 @@ export const fetchCHSTideData = async (
     const nextTide = allTides[nextTideIndex] || allTides[0]
     const previousTide = nextTideIndex > 0 ? allTides[nextTideIndex - 1] : allTides[allTides.length - 1]
 
-    // Calculate tidal range
+    // Calculate tidal range for today
+    const todayStart = new Date(now)
+    todayStart.setHours(0, 0, 0, 0)
+    const todayEnd = new Date(now)
+    todayEnd.setHours(23, 59, 59, 999)
+    const todayStartTs = todayStart.getTime() / 1000
+    const todayEndTs = todayEnd.getTime() / 1000
+    const todayTides = allTides.filter(t => t.timestamp >= todayStartTs && t.timestamp <= todayEndTs)
     const dayHighs = todayTides.filter(t => t.type === 'high').map(t => t.height)
     const dayLows = todayTides.filter(t => t.type === 'low').map(t => t.height)
-    const tidalRange = dayHighs.length && dayLows.length 
+    const tidalRange = dayHighs.length && dayLows.length
       ? Math.max(...dayHighs) - Math.min(...dayLows)
       : nextTide.height - previousTide.height
 

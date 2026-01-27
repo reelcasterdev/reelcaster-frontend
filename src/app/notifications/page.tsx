@@ -125,7 +125,7 @@ export default function NotificationsPage() {
 
         <div className="space-y-6">
         {/* Actions Bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setFilter('all')}
@@ -161,7 +161,7 @@ export default function NotificationsPage() {
                 className="flex items-center gap-1 px-3 py-1.5 text-sm text-rc-text-muted hover:text-rc-text transition-colors"
               >
                 <Check className="w-4 h-4" />
-                Mark all read
+                <span className="hidden sm:inline">Mark all read</span>
               </button>
             )}
             {notifications.length > 0 && (
@@ -170,7 +170,7 @@ export default function NotificationsPage() {
                 className="flex items-center gap-1 px-3 py-1.5 text-sm text-rc-text-muted hover:text-red-400 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                Clear all
+                <span className="hidden sm:inline">Clear all</span>
               </button>
             )}
             <button
@@ -178,7 +178,7 @@ export default function NotificationsPage() {
               className="flex items-center gap-1 px-3 py-1.5 text-sm text-rc-text-muted hover:text-rc-text transition-colors"
             >
               <Settings className="w-4 h-4" />
-              Settings
+              <span className="hidden sm:inline">Settings</span>
             </button>
           </div>
         </div>

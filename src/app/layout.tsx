@@ -5,6 +5,8 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { MixpanelProvider } from '@/contexts/mixpanel-context'
 import { UnitPreferencesProvider } from '@/contexts/unit-preferences-context'
 import FishOnButtonWrapper from '@/app/components/catch-log/fish-on-button-wrapper'
+import PinGate from '@/app/components/common/pin-gate'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -32,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <PinGate />
         <AuthProvider>
           <MixpanelProvider>
             <UnitPreferencesProvider>
@@ -40,6 +43,7 @@ export default function RootLayout({
             </UnitPreferencesProvider>
           </MixpanelProvider>
         </AuthProvider>
+        <GoogleAnalytics gaId="G-XN9Y47EB8N" />
       </body>
     </html>
   )

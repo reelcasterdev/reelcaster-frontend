@@ -692,7 +692,7 @@ export default function ScoreBreakdownEnhanced({
   }
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl border border-slate-700/50 overflow-hidden max-w-3xl">
+    <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl border border-slate-700/50 overflow-hidden max-w-[95vw] sm:max-w-3xl">
       {/* Header */}
       <div className="p-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-slate-900/50">
         <div className="flex items-center justify-between">
@@ -705,7 +705,7 @@ export default function ScoreBreakdownEnhanced({
           </div>
           <div className="flex items-center gap-3">
             <div className="text-center">
-              <div className={`text-5xl font-bold ${getScoreColor(score.total)}`}>
+              <div className={`text-4xl sm:text-5xl font-bold ${getScoreColor(score.total)}`}>
                 {score.total.toFixed(1)}
               </div>
               <div className="text-sm text-slate-400">{getScoreLabel(score.total)}</div>
@@ -761,7 +761,7 @@ export default function ScoreBreakdownEnhanced({
 
       {/* Quick Summary */}
       <div className="p-4 bg-slate-800/30 border-b border-slate-700/50">
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
           <div>
             <div className="text-xs text-slate-500 mb-1">Top Factor</div>
             <div className="font-medium text-white">

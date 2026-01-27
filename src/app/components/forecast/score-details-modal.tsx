@@ -56,7 +56,7 @@ export default function ScoreDetailsModal({
       />
 
       {/* Modal Content */}
-      <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-auto">
+      <div className="relative z-10 w-full max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-auto">
         <div className="space-y-4">
           {/* Main Score Breakdown */}
           <ScoreBreakdownEnhanced
