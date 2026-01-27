@@ -13,26 +13,26 @@ import { CustomAlertForm } from '@/app/components/alerts/custom-alert-form'
 import type { AlertProfile } from '@/lib/custom-alert-engine'
 
 export default function CustomAlertsPage() {
-  const { user, session } = useAuth()
+  const { user, session, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const [profilesLoading, setProfilesLoading] = useState(true)
   const [profiles, setProfiles] = useState<AlertProfile[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState<AlertProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Redirect if not logged in
+  // Redirect if not logged in (wait for auth to resolve first)
   useEffect(() => {
-    if (!user && !loading) {
+    if (!user && !authLoading) {
       router.push('/')
     }
-  }, [user, loading, router])
+  }, [user, authLoading, router])
 
   // Load profiles
   useEffect(() => {
     const loadProfiles = async () => {
       if (!session?.access_token) {
-        setLoading(false)
+        setProfilesLoading(false)
         return
       }
 
@@ -53,14 +53,14 @@ export default function CustomAlertsPage() {
         console.error('Error loading profiles:', err)
         setError('Failed to load alert profiles')
       } finally {
-        setLoading(false)
+        setProfilesLoading(false)
       }
     }
 
     if (user && session) {
       loadProfiles()
     } else if (!user) {
-      setLoading(false)
+      setProfilesLoading(false)
     }
   }, [user, session])
 
@@ -211,7 +211,7 @@ export default function CustomAlertsPage() {
                 setEditingProfile(null)
               }}
             />
-          ) : loading ? (
+          ) : profilesLoading ? (
             <Card className="bg-rc-bg-dark border-rc-bg-light">
               <CardContent className="py-12">
                 <div className="flex flex-col items-center justify-center text-rc-text-muted">

@@ -57,10 +57,10 @@ export default function DayOutlookNew({
   }, [])
 
   return (
-    <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-6">
+    <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-4 sm:p-6">
       {/* Header */}
       <div className="mb-4">
-        <h2 className="text-xl font-semibold text-rc-text">14-Day Outlook</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-rc-text">14-Day Outlook</h2>
         <p className="text-sm text-rc-text-muted mt-1">
           Best fishing periods and outlook for the next two weeks.
         </p>
@@ -68,11 +68,11 @@ export default function DayOutlookNew({
 
       {/* Cards Container with Navigation */}
       <div className="relative flex items-center">
-        {/* Left Arrow */}
+        {/* Left Arrow - hidden on mobile, swipe to scroll instead */}
         <button
           onClick={() => scroll('left')}
           disabled={!canScrollLeft}
-          className={`flex-shrink-0 w-10 h-24 flex items-center justify-center rounded-xl mr-2 transition-colors ${
+          className={`flex-shrink-0 w-10 h-24 hidden sm:flex items-center justify-center rounded-xl mr-2 transition-colors ${
             canScrollLeft
               ? 'bg-rc-bg-light hover:bg-rc-bg-dark text-rc-text'
               : 'bg-rc-bg-light/50 text-rc-text-muted cursor-not-allowed'
@@ -149,23 +149,33 @@ export default function DayOutlookNew({
 
           {/* Overlay for blurred cards */}
           {hasBlurredCards && (
-            <div
-              className="absolute top-0 bottom-0 bg-transparent pointer-events-auto"
-              style={{
-                left: `${52 + ((shouldBlurAfterDay || 0) + 1) * 172}px`,
-                right: '52px',
-              }}
-            >
-              <ForecastSectionOverlay />
-            </div>
+            <>
+              {/* Mobile: percentage-based positioning (no arrow buttons) */}
+              <div
+                className="absolute top-0 bottom-0 right-0 pointer-events-auto sm:hidden"
+                style={{ left: '40%' }}
+              >
+                <ForecastSectionOverlay />
+              </div>
+              {/* Desktop: precise pixel positioning (accounts for arrow buttons) */}
+              <div
+                className="absolute top-0 bottom-0 bg-transparent pointer-events-auto hidden sm:block"
+                style={{
+                  left: `${52 + ((shouldBlurAfterDay || 0) + 1) * 172}px`,
+                  right: '52px',
+                }}
+              >
+                <ForecastSectionOverlay />
+              </div>
+            </>
           )}
         </div>
 
-        {/* Right Arrow */}
+        {/* Right Arrow - hidden on mobile, swipe to scroll instead */}
         <button
           onClick={() => scroll('right')}
           disabled={!canScrollRight}
-          className={`flex-shrink-0 w-10 h-24 flex items-center justify-center rounded-xl ml-2 transition-colors ${
+          className={`flex-shrink-0 w-10 h-24 hidden sm:flex items-center justify-center rounded-xl ml-2 transition-colors ${
             canScrollRight
               ? 'bg-rc-bg-light hover:bg-rc-bg-dark text-rc-text'
               : 'bg-rc-bg-light/50 text-rc-text-muted cursor-not-allowed'

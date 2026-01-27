@@ -99,7 +99,7 @@ export default function FourteenDayReportPage() {
 
         <div className="space-y-6">
         {/* Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <p className="text-rc-text-muted text-sm">
             Extended forecast for Victoria, Sidney
           </p>
@@ -109,20 +109,20 @@ export default function FourteenDayReportPage() {
               className="flex items-center gap-2 px-3 py-2 bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-lg text-sm text-rc-text-light transition-colors"
             >
               <Download className="w-4 h-4" />
-              Export
+              <span className="hidden sm:inline">Export</span>
             </button>
             <button
               onClick={handleShare}
               className="flex items-center gap-2 px-3 py-2 bg-rc-bg-dark hover:bg-rc-bg-light border border-rc-bg-light rounded-lg text-sm text-rc-text-light transition-colors"
             >
               <Share2 className="w-4 h-4" />
-              Share
+              <span className="hidden sm:inline">Share</span>
             </button>
           </div>
         </div>
 
-        {/* Forecast Table */}
-        <div className="bg-rc-bg-dark rounded-xl border border-rc-bg-light overflow-hidden">
+        {/* Forecast Table - Desktop */}
+        <div className="hidden md:block bg-rc-bg-dark rounded-xl border border-rc-bg-light overflow-hidden">
           {/* Header */}
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-rc-bg-darkest border-b border-rc-bg-light text-xs font-medium text-rc-text-muted uppercase tracking-wider">
             <div className="col-span-2">Date</div>
@@ -211,6 +211,75 @@ export default function FourteenDayReportPage() {
                     <div className="bg-rc-bg-dark rounded-lg p-3 border border-rc-bg-light">
                       <p className="text-xs text-rc-text-muted mb-1">Visibility</p>
                       <p className="text-rc-text font-medium">Good</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Forecast Cards - Mobile */}
+        <div className="md:hidden space-y-3">
+          {forecasts.map((day, index) => (
+            <div key={index} className="bg-rc-bg-dark rounded-xl border border-rc-bg-light overflow-hidden">
+              <button
+                onClick={() => setExpandedDay(expandedDay === index ? null : index)}
+                className="w-full p-4 text-left"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <div className="font-medium text-rc-text">
+                      {index === 0 ? 'Today' : day.dayName}
+                    </div>
+                    <div className="text-xs text-rc-text-muted">
+                      {day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2 h-2 rounded-full ${getScoreBg(day.score)}`} />
+                      <span className={`text-lg font-bold ${getScoreColor(day.score)}`}>
+                        {day.score.toFixed(1)}
+                      </span>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-rc-text-muted transition-transform ${
+                        expandedDay === index ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    {getConditionIcon(day.conditions)}
+                    <span className="text-rc-text">{day.highTemp}°/{day.lowTemp}°</span>
+                  </div>
+                  <span className="text-rc-text-muted">{day.windSpeed} km/h {day.windDir}</span>
+                  <span className={day.precip > 50 ? 'text-blue-400' : 'text-rc-text-muted'}>
+                    {day.precip}%
+                  </span>
+                </div>
+              </button>
+
+              {expandedDay === index && (
+                <div className="px-4 pb-4 pt-0">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-rc-bg-darkest rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">Best Time</p>
+                      <p className="text-rc-text font-medium text-sm">6:00 AM - 9:00 AM</p>
+                    </div>
+                    <div className="bg-rc-bg-darkest rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">High Tide</p>
+                      <p className="text-rc-text font-medium text-sm">{day.tideEvents[0].time}</p>
+                    </div>
+                    <div className="bg-rc-bg-darkest rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">Low Tide</p>
+                      <p className="text-rc-text font-medium text-sm">{day.tideEvents[1].time}</p>
+                    </div>
+                    <div className="bg-rc-bg-darkest rounded-lg p-3 border border-rc-bg-light">
+                      <p className="text-xs text-rc-text-muted mb-1">Visibility</p>
+                      <p className="text-rc-text font-medium text-sm">Good</p>
                     </div>
                   </div>
                 </div>

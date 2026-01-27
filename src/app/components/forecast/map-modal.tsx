@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import ForecastMapSwitcher from './forecast-map-switcher'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
+import { CHSWaterData } from '../../utils/chsTideApi'
 
 interface Hotspot {
   name: string
@@ -19,6 +20,7 @@ interface MapModalProps {
   centerCoordinates: { lat: number; lon: number }
   onHotspotChange: (hotspot: Hotspot) => void
   openMeteoData: ProcessedOpenMeteoData | null
+  tideData?: CHSWaterData | null
 }
 
 export default function MapModal({
@@ -30,6 +32,7 @@ export default function MapModal({
   centerCoordinates,
   onHotspotChange,
   openMeteoData,
+  tideData,
 }: MapModalProps) {
   // Handle escape key
   useEffect(() => {
@@ -59,10 +62,10 @@ export default function MapModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full h-full max-w-[90vw] max-h-[90vh] m-8 bg-rc-bg-darkest rounded-2xl border border-rc-bg-light overflow-hidden flex flex-col shadow-2xl">
+      <div className="relative w-full h-full max-w-[95vw] max-h-[95vh] sm:max-w-[90vw] sm:max-h-[90vh] m-2 sm:m-8 bg-rc-bg-darkest rounded-xl sm:rounded-2xl border border-rc-bg-light overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-rc-bg-light">
-          <h2 className="text-xl font-semibold text-rc-text">Weather Map</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-rc-bg-light">
+          <h2 className="text-lg sm:text-xl font-semibold text-rc-text">Weather Map</h2>
           <button
             onClick={onClose}
             className="p-2.5 rounded-lg bg-rc-bg-light hover:bg-rc-bg-dark text-rc-text-muted hover:text-rc-text transition-colors"
@@ -81,6 +84,7 @@ export default function MapModal({
               centerCoordinates={centerCoordinates}
               onHotspotChange={onHotspotChange}
               openMeteoData={openMeteoData}
+              tideData={tideData}
             />
           </div>
         </div>

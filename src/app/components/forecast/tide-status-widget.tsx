@@ -81,11 +81,11 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
   }
 
   return (
-    <div className={cn("bg-rc-bg-darkest rounded-xl p-6 border border-rc-bg-light", className)}>
+    <div className={cn("bg-rc-bg-darkest rounded-xl p-4 sm:p-6 border border-rc-bg-light", className)}>
       <div className="space-y-4">
         {/* Header with current status */}
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-rc-text">Tide Status</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-rc-text">Tide Status</h2>
           <div className="flex items-center gap-2">
             <div className={cn("h-2 w-2 rounded-full", quality.bgColor)} />
             <span className={cn("text-sm font-semibold", quality.color)}>{quality.label}</span>
@@ -93,7 +93,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         </div>
 
         {/* Current height and direction */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
           <div>
             <div className="text-rc-text-muted text-sm mb-1">Current Height</div>
             <div className="flex items-center gap-2">
@@ -149,7 +149,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
 
         {/* Current speed and direction (if available) */}
         {currentSpeed !== undefined && (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Gauge className="h-4 w-4 text-rc-text-muted" />
@@ -170,7 +170,7 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
         )}
 
         {/* Additional information */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
           <div>
             <div className="text-rc-text-muted text-sm mb-1">Tidal Range</div>
             <ConvertibleValue value={tidalRange} type="height" sourceUnit="m" className="text-rc-text text-xl font-semibold" />

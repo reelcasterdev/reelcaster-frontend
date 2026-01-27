@@ -135,7 +135,7 @@ const NotificationLocationSelector: React.FC<NotificationLocationSelectorProps> 
   return (
     <div className="space-y-4">
       {/* Map Container */}
-      <div className="relative w-full h-[500px] rounded-lg overflow-hidden border border-slate-600">
+      <div className="relative w-full h-[300px] sm:h-[500px] rounded-lg overflow-hidden border border-slate-600">
         <Map
           ref={mapRef}
           {...viewport}

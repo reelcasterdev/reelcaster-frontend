@@ -5,6 +5,7 @@ import { Map, Wind } from 'lucide-react';
 import ForecastMap from './forecast-map';
 import ForecastMapWindy from './forecast-map-windy';
 import { ProcessedOpenMeteoData } from '@/app/utils/openMeteoApi';
+import { CHSWaterData } from '@/app/utils/chsTideApi';
 
 interface FishingHotspot {
   name: string;
@@ -18,6 +19,7 @@ interface ForecastMapSwitcherProps {
   centerCoordinates: { lat: number; lon: number };
   onHotspotChange: (hotspot: FishingHotspot) => void;
   openMeteoData: ProcessedOpenMeteoData | null;
+  tideData?: CHSWaterData | null;
 }
 
 type MapType = 'mapbox' | 'windy';
@@ -75,9 +77,11 @@ const ForecastMapSwitcher: React.FC<ForecastMapSwitcherProps> = (props) => {
       {/* Render Selected Map */}
       {selectedMap === 'mapbox' ? (
         <ForecastMap {...props} />
-      ) : (
-        <ForecastMapWindy {...props} />
-      )}
+      ) : (() => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { tideData, ...windyProps } = props;
+        return <ForecastMapWindy {...windyProps} />;
+      })()}
     </div>
   );
 };

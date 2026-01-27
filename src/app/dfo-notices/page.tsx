@@ -207,14 +207,14 @@ function DFONoticesContent() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               {/* Priority Filter */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-rc-text-muted" />
                 <select
                   value={filterPriority}
                   onChange={(e) => setFilterPriority(e.target.value as PriorityLevel | 'all')}
-                  className="pl-10 pr-8 py-2.5 bg-rc-bg-dark border border-rc-bg-light rounded-lg text-sm text-rc-text appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full sm:w-auto pl-10 pr-8 py-2.5 bg-rc-bg-dark border border-rc-bg-light rounded-lg text-sm text-rc-text appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 >
                   <option value="all">All Priorities</option>
                   <option value="critical">Critical</option>
@@ -228,7 +228,7 @@ function DFONoticesContent() {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as NoticeTypeFilter)}
-                className="px-4 py-2.5 bg-rc-bg-dark border border-rc-bg-light rounded-lg text-sm text-rc-text appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="w-full sm:w-auto px-4 py-2.5 bg-rc-bg-dark border border-rc-bg-light rounded-lg text-sm text-rc-text appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
               >
                 <option value="all">All Types</option>
                 <option value="closure">Closures</option>

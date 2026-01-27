@@ -581,7 +581,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
           {/* Logic Mode */}
           <div className="space-y-3">
             <Label className="text-base font-semibold text-rc-text">Logic Mode</Label>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
                 <input
                   type="radio"
@@ -669,7 +669,7 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-rc-bg-light">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-rc-bg-light">
             <Button type="button" variant="outline" onClick={onCancel} disabled={saving} className="border-rc-bg-light text-rc-text-muted hover:bg-rc-bg-light">
               <X className="h-4 w-4 mr-2" />
               Cancel

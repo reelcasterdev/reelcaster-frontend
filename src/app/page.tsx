@@ -23,10 +23,8 @@ import DayOutlookNew from './components/forecast/day-outlook-new'
 import HourlyChartNew from './components/forecast/hourly-chart-new'
 import HourlyTableNew from './components/forecast/hourly-table-new'
 import WeatherConditions from './components/forecast/weather-conditions'
-import SpeciesRegulations from './components/forecast/species-regulations'
 import FishingReports from './components/forecast/fishing-reports'
 import { FishingReportDisplay } from './components/forecast/fishing-report-display'
-import { TideStatusWidget } from './components/forecast/tide-status-widget'
 import SeasonalStatusBanner from './components/forecast/seasonal-status-banner'
 import AlgorithmInfoModal from './components/forecast/algorithm-info-modal'
 import { setAlgorithmVersion } from './utils/speciesAlgorithms'
@@ -34,7 +32,6 @@ import type { AlgorithmVersion } from './components/forecast/algorithm-version-t
 import { useAuthForecast } from '@/hooks/use-auth-forecast'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
-import { useLocationRegulations } from '@/hooks/use-regulations'
 
 // New widget components
 import OverallScoreWidget from './components/forecast/overall-score-widget'
@@ -77,6 +74,8 @@ function NewForecastContent() {
   // Single source of truth for tide data - using CHS API
   const [tideData, setTideData] = useState<CHSWaterData | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
+  const [hoveredHourIndex, setHoveredHourIndex] = useState<number | null>(null)
+  const [mobilePeriod, setMobilePeriod] = useState<'am' | 'pm'>('am')
   const [showAlgorithmModal, setShowAlgorithmModal] = useState(false)
   const [isMapModalOpen, setIsMapModalOpen] = useState(false)
 
@@ -87,9 +86,6 @@ function NewForecastContent() {
   
   // Use auth forecast hook to manage data based on authentication
   const { forecastData, shouldBlurAfterDay } = useAuthForecast(forecasts)
-
-  // Fetch regulations dynamically
-  const { regulations: dynamicRegulations } = useLocationRegulations(selectedLocation)
 
   // Coordinate validation
   const hasValidCoordinates = lat !== 0 && lon !== 0
@@ -410,15 +406,7 @@ function NewForecastContent() {
       />
 
       {/* Tide Widget */}
-      <TideWidget tideData={tideData} />
-
-      {/* Species Regulations */}
-      <SpeciesRegulations
-        species={dynamicRegulations?.species || []}
-        areaUrl={dynamicRegulations?.url}
-        lastVerified={dynamicRegulations?.lastVerified}
-        nextReviewDate={dynamicRegulations?.nextReviewDate}
-      />
+      <TideWidget tideData={tideData} selectedDay={selectedDay} />
     </div>
   ) : null
 
@@ -489,8 +477,19 @@ function NewForecastContent() {
                     shouldBlurAfterDay={shouldBlurAfterDay}
                   />
 
-                  {/* Hourly Fishing Score Chart - Now above the fold */}
-                  <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} tideData={tideData} />
+                  {/* Hourly Fishing Score Chart */}
+                  <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} tideData={tideData} onHoverChange={setHoveredHourIndex} mobilePeriod={mobilePeriod} onPeriodChange={setMobilePeriod} />
+
+                  {/* Hourly Data Table - directly below chart */}
+                  <HourlyTableNew
+                    forecasts={forecastData}
+                    openMeteoData={openMeteoData}
+                    tideData={tideData || tideData}
+                    selectedDay={selectedDay}
+                    highlightedIndex={hoveredHourIndex}
+                    mobilePeriod={mobilePeriod}
+                    onPeriodChange={setMobilePeriod}
+                  />
                 </div>
 
                 <div className="lg:col-span-2 space-y-3 sm:space-y-6">
@@ -503,33 +502,6 @@ function NewForecastContent() {
                       selectedDay={selectedDay}
                     />
                   </div>
-
-                  {/* Tide Status Widget - Mobile */}
-                  {tideData && (
-                    <div className="lg:hidden mb-4">
-                      <TideStatusWidget
-                        tideData={tideData}
-                      />
-                    </div>
-                  )}
-
-                  {/* Species Regulations - Show here on mobile, hide on desktop */}
-                  <div className="lg:hidden">
-                    <SpeciesRegulations
-                      species={dynamicRegulations?.species || []}
-                      areaUrl={dynamicRegulations?.url}
-                      lastVerified={dynamicRegulations?.lastVerified}
-                      nextReviewDate={dynamicRegulations?.nextReviewDate}
-                    />
-                  </div>
-
-                  {/* Hourly Data Table */}
-                  <HourlyTableNew
-                    forecasts={forecastData}
-                    openMeteoData={openMeteoData}
-                    tideData={tideData || tideData}
-                    selectedDay={selectedDay}
-                  />
 
                 </div>
 
@@ -565,6 +537,7 @@ function NewForecastContent() {
           centerCoordinates={coordinates}
           onHotspotChange={handleHotspotChange}
           openMeteoData={openMeteoData}
+          tideData={tideData}
         />
       )}
     </AppShell>

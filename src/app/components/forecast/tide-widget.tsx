@@ -10,28 +10,42 @@ import { convertHeight, convertWind } from '@/app/utils/unit-conversions'
 
 interface TideWidgetProps {
   tideData?: CHSWaterData | null
+  selectedDay?: number
   className?: string
 }
 
-export default function TideWidget({ tideData, className }: TideWidgetProps) {
+export default function TideWidget({ tideData, selectedDay = 0, className }: TideWidgetProps) {
   const { heightUnit, windUnit, cycleUnit } = useUnitPreferences()
 
-  // Prepare chart data - actual tide heights
+  // Prepare chart data - tide heights for the selected day
   const chartData = useMemo(() => {
     if (!tideData?.waterLevels) return []
 
-    const now = Date.now() / 1000
-    const twelveHoursLater = now + 12 * 3600
+    let startTs: number
+    let endTs: number
+
+    if (selectedDay === 0) {
+      // Today: show from now to 12 hours ahead
+      startTs = Date.now() / 1000
+      endTs = startTs + 12 * 3600
+    } else {
+      // Future day: show the full 24-hour window for that day
+      const dayDate = new Date()
+      dayDate.setDate(dayDate.getDate() + selectedDay)
+      dayDate.setHours(0, 0, 0, 0)
+      startTs = dayDate.getTime() / 1000
+      endTs = startTs + 24 * 3600
+    }
 
     return tideData.waterLevels
-      .filter(level => level.timestamp >= now && level.timestamp <= twelveHoursLater)
+      .filter(level => level.timestamp >= startTs && level.timestamp <= endTs)
       .filter((_, index) => index % 4 === 0)
-      .slice(0, 13)
+      .slice(0, selectedDay === 0 ? 13 : 25)
       .map(level => ({
         time: format(new Date(level.timestamp * 1000), 'HH:mm'),
         height: convertHeight(level.height, 'm', heightUnit),
       }))
-  }, [tideData, heightUnit])
+  }, [tideData, heightUnit, selectedDay])
 
   // Get fishing quality based on time to next tide
   const getFishingQuality = () => {

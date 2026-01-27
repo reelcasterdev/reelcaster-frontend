@@ -132,14 +132,14 @@ export function CustomAlertsList({
                       {profile.logic_mode}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-rc-text-muted">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-rc-text-muted">
                     <span className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {profile.location_name || `${profile.location_lat.toFixed(4)}, ${profile.location_lng.toFixed(4)}`}
+                      <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                      <span className="truncate">{profile.location_name || `${profile.location_lat.toFixed(4)}, ${profile.location_lng.toFixed(4)}`}</span>
                     </span>
                     {profile.active_hours && (
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" />
+                        <Clock className="h-3.5 w-3.5 flex-shrink-0" />
                         {profile.active_hours.start} - {profile.active_hours.end}
                       </span>
                     )}
@@ -172,21 +172,21 @@ export function CustomAlertsList({
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-3 border-t border-rc-bg-light">
-                <div className="text-xs text-rc-text-muted">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-rc-bg-light">
+                <div className="text-xs text-rc-text-muted flex flex-wrap items-center gap-1">
                   {profile.last_triggered_at ? (
                     <span className="flex items-center gap-1">
-                      <History className="h-3.5 w-3.5" />
+                      <History className="h-3.5 w-3.5 flex-shrink-0" />
                       Last triggered {formatDistanceToNow(new Date(profile.last_triggered_at))} ago
                     </span>
                   ) : (
                     <span>Never triggered</span>
                   )}
-                  <span className="mx-2">•</span>
+                  <span className="mx-1">•</span>
                   <span>Cooldown: {profile.cooldown_hours}h</span>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 self-end sm:self-auto">
                   <Button
                     variant="ghost"
                     size="sm"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { CHSWaterData } from '../../utils/chsTideApi'
@@ -13,6 +13,9 @@ interface HourlyTableNewProps {
   openMeteoData: ProcessedOpenMeteoData | null
   tideData: CHSWaterData | null
   selectedDay?: number
+  highlightedIndex?: number | null
+  mobilePeriod?: 'am' | 'pm'
+  onPeriodChange?: (period: 'am' | 'pm') => void
 }
 
 export default function HourlyTableNew({
@@ -20,8 +23,20 @@ export default function HourlyTableNew({
   openMeteoData,
   tideData,
   selectedDay = 0,
+  highlightedIndex = null,
+  mobilePeriod = 'am',
+  onPeriodChange,
 }: HourlyTableNewProps) {
   const { windUnit, tempUnit, heightUnit, cycleUnit } = useUnitPreferences()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   const selectedForecast = forecasts[selectedDay]
 
@@ -49,6 +64,26 @@ export default function HourlyTableNew({
       return closestLevel.height
     }
 
+    // Build timestamp lookup map for meteo data (works correctly for all days)
+    const meteoByTimestamp = new Map(
+      openMeteoData?.minutely15.map(m => [m.timestamp, m]) ?? []
+    )
+    const findMeteoData = (timestamp: number) => {
+      // Try exact match first, then find closest within 15 minutes
+      const exact = meteoByTimestamp.get(timestamp)
+      if (exact) return exact
+      let closest = null
+      let closestDiff = Infinity
+      for (const [ts, data] of meteoByTimestamp) {
+        const diff = Math.abs(ts - timestamp)
+        if (diff < closestDiff) {
+          closestDiff = diff
+          closest = data
+        }
+      }
+      return closestDiff <= 900 ? closest : null // within 15 min
+    }
+
     // Use exact same data source as chart - filter minutelyScores every 4th item
     return selectedForecast.minutelyScores
       .filter((_, index) => index % 4 === 0) // Every hour (same as chart)
@@ -69,8 +104,8 @@ export default function HourlyTableNew({
         const windSpeed = score.windSpeed || 10
         const waveHeight = score.waveHeight ?? Math.min((windSpeed / 3.6) * 0.1, 5.0)
 
-        // Get additional weather data from openMeteoData
-        const meteoData = openMeteoData?.minutely15[hourIndex * 4]
+        // Get additional weather data from openMeteoData (timestamp-based for correct day)
+        const meteoData = findMeteoData(score.timestamp)
 
         return {
           time: displayHour,
@@ -87,6 +122,12 @@ export default function HourlyTableNew({
           waveHeight,
           tideHeight: tideHeightMeters,
           tideRising: isRising,
+          // New fields
+          pressure: meteoData?.pressure ?? 0,
+          seaSurfaceTemp: meteoData?.seaSurfaceTemp ?? null,
+          visibility: meteoData?.visibility ?? 0,
+          swellHeight: meteoData?.swellHeight ?? null,
+          humidity: meteoData?.humidity ?? 0,
         }
       })
   }, [selectedForecast, openMeteoData, tideData])
@@ -109,8 +150,9 @@ export default function HourlyTableNew({
     return converted.toFixed(1)
   }
 
-  // Row definitions matching the chart tabs order
+  // Row definitions - most important at top, secondary at bottom
   const rows = [
+    // --- Core fishing data ---
     {
       id: 'score',
       label: 'Score',
@@ -141,6 +183,43 @@ export default function HourlyTableNew({
       onClick: () => cycleUnit('temp'),
     },
     {
+      id: 'wave',
+      label: 'Wave',
+      unit: heightUnit,
+      getValue: (d: typeof tableData[0]) => formatHeightValue(d.waveHeight),
+      onClick: () => cycleUnit('height'),
+    },
+    {
+      id: 'tide',
+      label: 'Tide',
+      unit: heightUnit,
+      getValue: (d: typeof tableData[0]) => d.tideHeight !== null ? formatHeightValue(d.tideHeight) : '--',
+      getExtra: (d: typeof tableData[0]) => d.tideHeight !== null ? (d.tideRising ? 'up' : 'down') : null,
+      onClick: () => cycleUnit('height'),
+    },
+    {
+      id: 'pressure',
+      label: 'Pressure',
+      unit: 'hPa',
+      getValue: (d: typeof tableData[0]) => d.pressure ? Math.round(d.pressure).toString() : '--',
+      onClick: undefined,
+    },
+    // --- Secondary data ---
+    {
+      id: 'sst',
+      label: 'Sea Temp',
+      unit: tempUnit === 'C' ? '°C' : '°F',
+      getValue: (d: typeof tableData[0]) => d.seaSurfaceTemp !== null ? formatTempValue(d.seaSurfaceTemp) : '--',
+      onClick: () => cycleUnit('temp'),
+    },
+    {
+      id: 'swell',
+      label: 'Swell',
+      unit: heightUnit,
+      getValue: (d: typeof tableData[0]) => d.swellHeight !== null ? formatHeightValue(d.swellHeight) : '--',
+      onClick: () => cycleUnit('height'),
+    },
+    {
       id: 'rain',
       label: 'Rain',
       unit: '%',
@@ -155,22 +234,29 @@ export default function HourlyTableNew({
       onClick: undefined,
     },
     {
-      id: 'wave',
-      label: 'Wave',
-      unit: heightUnit,
-      getValue: (d: typeof tableData[0]) => formatHeightValue(d.waveHeight),
-      getExtra: (d: typeof tableData[0]) => d.tideRising !== undefined ? (d.tideRising ? 'up' : 'down') : null,
-      onClick: () => cycleUnit('height'),
+      id: 'humidity',
+      label: 'Humidity',
+      unit: '%',
+      getValue: (d: typeof tableData[0]) => d.humidity.toString(),
+      onClick: undefined,
     },
     {
-      id: 'tide',
-      label: 'Tide',
-      unit: heightUnit,
-      getValue: (d: typeof tableData[0]) => d.tideHeight !== null ? formatHeightValue(d.tideHeight) : '--',
-      getExtra: (d: typeof tableData[0]) => d.tideHeight !== null ? (d.tideRising ? 'up' : 'down') : null,
-      onClick: () => cycleUnit('height'),
+      id: 'visibility',
+      label: 'Visibility',
+      unit: 'km',
+      getValue: (d: typeof tableData[0]) => d.visibility ? (d.visibility / 1000).toFixed(0) : '--',
+      onClick: undefined,
     },
   ]
+
+  // On mobile, split into AM/PM halves; on desktop show all
+  const visibleData = useMemo(() => {
+    if (!isMobile) return tableData.map((d, i) => ({ ...d, originalIndex: i }))
+    const half = Math.ceil(tableData.length / 2)
+    const slice = mobilePeriod === 'am' ? tableData.slice(0, half) : tableData.slice(half)
+    const offset = mobilePeriod === 'am' ? 0 : half
+    return slice.map((d, i) => ({ ...d, originalIndex: offset + i }))
+  }, [tableData, isMobile, mobilePeriod])
 
   if (!tableData.length) {
     return (
@@ -183,6 +269,35 @@ export default function HourlyTableNew({
 
   return (
     <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden">
+      {/* AM/PM toggle - mobile only */}
+      {isMobile && (
+        <div className="flex items-center justify-between px-3 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50">
+          <span className="text-xs text-rc-text-muted">Hourly Data</span>
+          <div className="flex bg-rc-bg-darkest rounded-lg overflow-hidden border border-rc-bg-light">
+            <button
+              onClick={() => onPeriodChange?.('am')}
+              className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                mobilePeriod === 'am'
+                  ? 'bg-blue-600 text-rc-text'
+                  : 'text-rc-text-muted hover:text-rc-text'
+              }`}
+            >
+              AM
+            </button>
+            <button
+              onClick={() => onPeriodChange?.('pm')}
+              className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                mobilePeriod === 'pm'
+                  ? 'bg-blue-600 text-rc-text'
+                  : 'text-rc-text-muted hover:text-rc-text'
+              }`}
+            >
+              PM
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table aligned with chart above */}
       <div className="flex">
         {/* Left label column - matches chart Y-axis width */}
@@ -210,34 +325,37 @@ export default function HourlyTableNew({
         {/* Data columns - flex to fill remaining space */}
         <div className="flex-1 overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max">
-            {tableData.map((d, i) => (
-              <div key={i} className="flex-1 min-w-[40px]">
-                {/* Time header */}
-                <div className="px-1 py-2 text-center border-b border-rc-bg-light border-l border-rc-bg-light/50 h-[32px] flex items-center justify-center">
-                  <span className="text-xs text-rc-text-muted">{d.time.replace(':00', '')}</span>
-                </div>
-                {/* Data cells */}
-                {rows.map((row) => (
-                  <div
-                    key={row.id}
-                    className="px-1 py-2 text-center border-b border-rc-bg-dark border-l border-rc-bg-light/30 h-[44px] flex flex-col items-center justify-center"
-                  >
-                    <span className="text-xs text-rc-text">{row.getValue(d)}</span>
-                    {row.getExtra && row.getExtra(d) && (
-                      row.id === 'tide' ? (
-                        row.getExtra(d) === 'up' ? (
-                          <ArrowUpRight className="w-3 h-3 text-green-500" />
-                        ) : (
-                          <ArrowDownRight className="w-3 h-3 text-red-500" />
-                        )
-                      ) : (
-                        <span className="text-[10px] text-rc-text-muted">{row.getExtra(d)}</span>
-                      )
-                    )}
+            {visibleData.map((d, i) => {
+              const isHighlighted = highlightedIndex === d.originalIndex
+              return (
+                <div key={i} className={`flex-1 min-w-[40px] transition-colors ${isHighlighted ? 'bg-blue-500/15' : ''}`}>
+                  {/* Time header */}
+                  <div className={`px-1 py-2 text-center border-b border-rc-bg-light border-l border-rc-bg-light/50 h-[32px] flex items-center justify-center ${isHighlighted ? 'bg-blue-500/20' : ''}`}>
+                    <span className={`text-xs ${isHighlighted ? 'text-rc-text font-medium' : 'text-rc-text-muted'}`}>{d.time.replace(':00', '')}</span>
                   </div>
-                ))}
-              </div>
-            ))}
+                  {/* Data cells */}
+                  {rows.map((row) => (
+                    <div
+                      key={row.id}
+                      className={`px-1 py-2 text-center border-b border-rc-bg-dark border-l border-rc-bg-light/30 h-[44px] flex flex-col items-center justify-center`}
+                    >
+                      <span className="text-xs text-rc-text">{row.getValue(d)}</span>
+                      {row.getExtra && row.getExtra(d) && (
+                        row.id === 'tide' ? (
+                          row.getExtra(d) === 'up' ? (
+                            <ArrowUpRight className="w-3 h-3 text-green-500" />
+                          ) : (
+                            <ArrowDownRight className="w-3 h-3 text-red-500" />
+                          )
+                        ) : (
+                          <span className="text-[10px] text-rc-text-muted">{row.getExtra(d)}</span>
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>

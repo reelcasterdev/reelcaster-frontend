@@ -132,7 +132,7 @@ export default function CustomizeReportsPage() {
         </div>
 
         {/* Summary */}
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
           <span className="text-rc-text-muted">
             {enabledCount} of {widgets.length} widgets enabled
           </span>
@@ -142,7 +142,7 @@ export default function CustomizeReportsPage() {
               className="flex items-center gap-1.5 px-3 py-1.5 text-rc-text-muted hover:text-rc-text transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
-              Reset to default
+              Reset
             </button>
             {hasChanges && (
               <button
@@ -150,7 +150,7 @@ export default function CustomizeReportsPage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-white font-medium transition-colors"
               >
                 <Save className="w-4 h-4" />
-                Save Changes
+                Save
               </button>
             )}
           </div>

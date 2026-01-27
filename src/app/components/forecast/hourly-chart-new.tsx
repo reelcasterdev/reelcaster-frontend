@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell, Area, AreaChart, ReferenceLine, CartesianGrid } from 'recharts'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { CHSWaterData } from '../../utils/chsTideApi'
@@ -12,6 +12,9 @@ interface HourlyChartNewProps {
   selectedDay?: number
   species?: string | null
   tideData?: CHSWaterData | null
+  onHoverChange?: (index: number | null) => void
+  mobilePeriod?: 'am' | 'pm'
+  onPeriodChange?: (period: 'am' | 'pm') => void
 }
 
 type LayerType = 'score' | 'wind' | 'temp' | 'wave' | 'tide'
@@ -24,10 +27,24 @@ const LAYER_TABS: { id: LayerType; label: string }[] = [
   { id: 'tide', label: 'Tide' },
 ]
 
-export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }: HourlyChartNewProps) {
+export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData, onHoverChange, mobilePeriod = 'am', onPeriodChange }: HourlyChartNewProps) {
   const [activeLayer, setActiveLayer] = useState<LayerType>('score')
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const { heightUnit } = useUnitPreferences()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  const handleHover = (index: number | null) => {
+    setHoveredIndex(index)
+    onHoverChange?.(index !== null ? index + visibleOffset : null)
+  }
 
   const selectedForecast = forecasts[selectedDay]
 
@@ -101,6 +118,18 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
       })
   }, [selectedForecast, heightUnit, tideData])
 
+  // On mobile, split into AM/PM halves; on desktop show all
+  const visibleChartData = useMemo(() => {
+    if (!isMobile) return chartData
+    const half = Math.ceil(chartData.length / 2)
+    return mobilePeriod === 'am' ? chartData.slice(0, half) : chartData.slice(half)
+  }, [chartData, isMobile, mobilePeriod])
+
+  const visibleOffset = useMemo(() => {
+    if (!isMobile || mobilePeriod === 'am') return 0
+    return Math.ceil(chartData.length / 2)
+  }, [chartData, isMobile, mobilePeriod])
+
   // Calculate Y-axis max: 20% higher than the highest value
   const yAxisMax = useMemo(() => {
     if (!chartData.length) return 10
@@ -173,9 +202,9 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
 
   // Get formatted value for the hovered bar
   const getHoveredValueText = () => {
-    if (hoveredIndex === null || !chartData[hoveredIndex]) return null
+    if (hoveredIndex === null || !visibleChartData[hoveredIndex]) return null
 
-    const data = chartData[hoveredIndex]
+    const data = visibleChartData[hoveredIndex]
     const value = data[activeLayer]
     const time = data.time.replace(':00', '') // Show as "11" instead of "11:00"
 
@@ -279,6 +308,35 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
         </div>
       </div>
 
+      {/* AM/PM toggle - mobile only */}
+      {isMobile && (
+        <div className="flex items-center justify-between mt-2 mb-1">
+          <span className="text-xs text-rc-text-muted">Hourly Chart</span>
+          <div className="flex bg-rc-bg-darkest rounded-lg overflow-hidden border border-rc-bg-light">
+            <button
+              onClick={() => onPeriodChange?.('am')}
+              className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                mobilePeriod === 'am'
+                  ? 'bg-blue-600 text-rc-text'
+                  : 'text-rc-text-muted hover:text-rc-text'
+              }`}
+            >
+              AM
+            </button>
+            <button
+              onClick={() => onPeriodChange?.('pm')}
+              className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                mobilePeriod === 'pm'
+                  ? 'bg-blue-600 text-rc-text'
+                  : 'text-rc-text-muted hover:text-rc-text'
+              }`}
+            >
+              PM
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Chart */}
       <div className="h-[320px] mt-4 flex">
         {/* Y-axis label - matches table label column width */}
@@ -310,14 +368,14 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
             {activeLayer === 'tide' ? (
               // Area chart for tide - styled like reference image
               <AreaChart
-                data={chartData}
+                data={visibleChartData}
                 margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
                 onMouseMove={(state: any) => {
                   if (state?.activeTooltipIndex !== undefined) {
-                    setHoveredIndex(state.activeTooltipIndex)
+                    handleHover(state.activeTooltipIndex)
                   }
                 }}
-                onMouseLeave={() => setHoveredIndex(null)}
+                onMouseLeave={() => handleHover(null)}
               >
                 <defs>
                   <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
@@ -352,13 +410,15 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
                   width={35}
                   tickFormatter={(value) => value.toFixed(1)}
                 />
-                {/* "Now" reference line */}
-                <ReferenceLine
-                  x={new Date().getHours().toString().padStart(2, '0') + ':00'}
-                  stroke="#9ca3af"
-                  strokeDasharray="4 4"
-                  label={{ value: 'Now', position: 'top', fill: '#9ca3af', fontSize: 11 }}
-                />
+                {/* "Now" reference line - only on today */}
+                {selectedDay === 0 && (
+                  <ReferenceLine
+                    x={new Date().getHours().toString().padStart(2, '0') + ':00'}
+                    stroke="#9ca3af"
+                    strokeDasharray="4 4"
+                    label={{ value: 'Now', position: 'top', fill: '#9ca3af', fontSize: 11 }}
+                  />
+                )}
                 {/* Zero reference line for negative tides */}
                 {yAxisMin < 0 && (
                   <ReferenceLine y={0} stroke="#4b5563" strokeDasharray="3 3" />
@@ -381,7 +441,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
             ) : (
               // Bar chart for other metrics
               <BarChart
-                data={chartData}
+                data={visibleChartData}
                 margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
                 barCategoryGap="2%"
               >
@@ -403,10 +463,10 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
                   shape={<CustomBar />}
                   activeBar={false}
                   background={{ fill: '#1a1a1f' }}
-                  onMouseEnter={(_, index) => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
+                  onMouseEnter={(_, index) => handleHover(index)}
+                  onMouseLeave={() => handleHover(null)}
                 >
-                  {chartData.map((entry, index) => (
+                  {visibleChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={getBarColor(entry[activeLayer], activeLayer)}
@@ -425,7 +485,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData }:
           <div className="flex items-center gap-3 px-4 py-1.5 bg-rc-bg-dark rounded-lg">
             <div
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: getBarColor(chartData[hoveredIndex]?.[activeLayer] ?? 0, activeLayer) }}
+              style={{ backgroundColor: getBarColor(visibleChartData[hoveredIndex]?.[activeLayer] ?? 0, activeLayer) }}
             />
             <span className="text-sm font-medium text-rc-text">
               {getHoveredValueText()}

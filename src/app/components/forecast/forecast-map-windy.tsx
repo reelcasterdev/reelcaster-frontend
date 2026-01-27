@@ -396,7 +396,7 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
         <div
           ref={mapContainerRef}
           id="windy"
-          className="w-full h-[500px] rounded-lg border border-slate-600"
+          className="w-full h-[350px] sm:h-[500px] rounded-lg border border-slate-600"
           style={{ position: 'relative', overflow: 'visible' }}
         />
 

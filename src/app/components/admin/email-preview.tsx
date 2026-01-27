@@ -15,7 +15,7 @@ export default function EmailPreview({ isOpen, onClose, html, subject }: EmailPr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-4xl max-h-[90vh] bg-slate-800 border border-slate-700 rounded-lg shadow-2xl flex flex-col">
+      <div className="w-full max-w-[95vw] sm:max-w-4xl max-h-[90vh] bg-slate-800 border border-slate-700 rounded-lg shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div>
@@ -38,7 +38,7 @@ export default function EmailPreview({ isOpen, onClose, html, subject }: EmailPr
             <iframe
               srcDoc={html}
               title="Email Preview"
-              className="w-full h-[70vh] border-0 rounded"
+              className="w-full h-[50vh] sm:h-[70vh] border-0 rounded"
               sandbox="allow-same-origin"
             />
           </div>

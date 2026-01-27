@@ -87,16 +87,16 @@ export default function FavoriteSpotsPage() {
               key={spot.id}
               className="bg-rc-bg-dark rounded-xl border border-rc-bg-light p-4 hover:border-rc-text-muted/30 transition-colors"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-rc-bg-light rounded-lg">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <div className="p-2 bg-rc-bg-light rounded-lg flex-shrink-0">
                     <Heart className="w-5 h-5 text-rc-text-light" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-rc-text">{spot.name}</h3>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-rc-text truncate">{spot.name}</h3>
                     <div className="flex items-center gap-1 text-sm text-rc-text-muted mt-0.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{spot.location}</span>
+                      <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{spot.location}</span>
                     </div>
                     {spot.notes && (
                       <p className="text-sm text-rc-text-muted mt-2">{spot.notes}</p>
@@ -104,7 +104,7 @@ export default function FavoriteSpotsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 flex-shrink-0">
                   {/* Score */}
                   {spot.lastScore && (
                     <div className="text-right">

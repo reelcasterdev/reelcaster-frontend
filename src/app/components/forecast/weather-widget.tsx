@@ -95,7 +95,7 @@ export default function WeatherWidget({
         <button
           key={option}
           onClick={onCycle}
-          className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+          className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
             value.toLowerCase() === option.toLowerCase()
               ? 'bg-rc-bg-light text-rc-text'
               : 'text-rc-text-muted hover:text-rc-text'
