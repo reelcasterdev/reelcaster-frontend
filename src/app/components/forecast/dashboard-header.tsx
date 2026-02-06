@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, MapPin, Settings, Beaker, Bell } from 'lucide-react'
 import { type AlgorithmVersion } from './algorithm-version-toggle'
 import { ReportIcon } from '@/app/components/common/report-icon'
-import LocationSelectorModal from './location-selector-modal'
+import SetDefaultLocationModal from '@/app/components/location/set-default-location-modal'
 
 interface DashboardHeaderProps {
   title?: string
@@ -216,9 +216,9 @@ export default function DashboardHeader({
         )}
       </div>
 
-      {/* Location Selector Modal */}
+      {/* Set Default Location Modal */}
       <Suspense fallback={null}>
-        <LocationSelectorModal
+        <SetDefaultLocationModal
           isOpen={isLocationModalOpen}
           onClose={() => setIsLocationModalOpen(false)}
         />

@@ -48,6 +48,7 @@ export interface CHSWaterData {
   timeToNextTide: number // minutes
   currentSpeed?: number
   currentDirection?: number
+  _tzCorrectionSec?: number // timezone correction offset for aligning with OpenMeteo timestamps
 }
 
 // BC Fishing locations mapped to CHS station IDs
@@ -126,8 +127,23 @@ export const CHS_STATIONS: Record<string, { id: string; code: string; name: stri
   },
 }
 
+// All BC stations are in the Pacific timezone
+const BC_TIMEZONE = 'America/Vancouver'
+
+// Compute timezone correction offset (in seconds) so CHS UTC timestamps
+// align with OpenMeteo's "browser-local-interpreted-location-local" convention.
+// OpenMeteo returns local time strings without timezone suffix (e.g., "2026-01-27T05:20")
+// which JavaScript's Date() interprets in the browser's timezone. CHS returns true UTC.
+// This offset bridges the gap so tide lookups match regardless of browser timezone.
+const computeTimezoneCorrection = (timezone: string, referenceDate: Date): number => {
+  const localStr = referenceDate.toLocaleString('sv-SE', { timeZone: timezone })
+  const localEpoch = new Date(localStr.replace(' ', 'T')).getTime()
+  const utcEpoch = referenceDate.getTime()
+  return (localEpoch - utcEpoch) / 1000
+}
+
 // CHS API configuration
-const CHS_API_BASE = typeof window !== 'undefined' 
+const CHS_API_BASE = typeof window !== 'undefined'
   ? '/api/chs-tide' // Use proxy in browser
   : 'https://api.iwls-sine.azure.cloud-nuage.dfo-mpo.gc.ca/api/v1' // Direct in SSR
 const RATE_LIMIT_DELAY = 350 // ms between requests (respecting 3 req/sec limit)
@@ -486,6 +502,13 @@ export const fetchCHSTideData = async (
     // Calculate current speed and direction
     const current = calculateCurrentFromWaterLevels(waterLevels, nowTimestamp)
 
+    // Compute timezone correction offset (seconds) so components can align
+    // CHS UTC timestamps with OpenMeteo's "browser-local" timestamps.
+    // OpenMeteo returns local-time strings (e.g., "2026-01-27T05:20" for PST)
+    // that JavaScript parses in the browser's timezone. CHS returns true UTC.
+    // Without this correction, tide lookups fail when browser ≠ location timezone.
+    const tzCorrectionSec = computeTimezoneCorrection(BC_TIMEZONE, now)
+
     return {
       station,
       waterLevels,
@@ -499,8 +522,7 @@ export const fetchCHSTideData = async (
       timeToNextTide,
       currentSpeed: current.speed,
       currentDirection: current.direction,
-      // Note: Water temperature would need to come from a different endpoint
-      // or sensor data - not typically available from tide stations
+      _tzCorrectionSec: tzCorrectionSec,
     }
   } catch (error) {
     console.error('Error fetching CHS tide data:', error)

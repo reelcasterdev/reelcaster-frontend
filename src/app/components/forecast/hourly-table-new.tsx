@@ -53,14 +53,17 @@ export default function HourlyTableNew({
     const getTideHeight = (timestamp: number): number | null => {
       if (!tideData?.waterLevels?.length) return null
 
+      // Convert OpenMeteo "browser-local" timestamp to true UTC to match CHS timestamps
+      const searchTs = timestamp - (tideData._tzCorrectionSec ?? 0)
+
       const closestLevel = tideData.waterLevels.reduce((prev, curr) => {
-        const prevDiff = Math.abs(prev.timestamp - timestamp)
-        const currDiff = Math.abs(curr.timestamp - timestamp)
+        const prevDiff = Math.abs(prev.timestamp - searchTs)
+        const currDiff = Math.abs(curr.timestamp - searchTs)
         return currDiff < prevDiff ? curr : prev
       })
 
       // Only use if within 1 hour (3600 seconds) - same as chart
-      if (Math.abs(closestLevel.timestamp - timestamp) > 3600) return null
+      if (Math.abs(closestLevel.timestamp - searchTs) > 3600) return null
       return closestLevel.height
     }
 
