@@ -15,7 +15,11 @@ const TideStationMarker: React.FC<TideStationMarkerProps> = ({
   currentTimestamp,
 }) => {
   const tideInfo = useMemo(() => {
-    const ts = currentTimestamp ?? Date.now() / 1000;
+    // Convert OpenMeteo "browser-local" timestamp to true UTC to match CHS timestamps.
+    // Date.now() is already true UTC, so no correction needed for the fallback.
+    const ts = currentTimestamp !== null
+      ? currentTimestamp - (tideData._tzCorrectionSec ?? 0)
+      : Date.now() / 1000;
 
     // Binary search for closest water level entry
     let closestLevel = tideData.waterLevels[0];

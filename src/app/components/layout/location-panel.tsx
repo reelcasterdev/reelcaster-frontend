@@ -2,6 +2,7 @@
 
 import { useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { MapPin } from 'lucide-react'
 import { Logo } from '@/app/components/common/logo'
 import { getRegulationsByLocation } from '@/app/data/regulations'
 import {
@@ -169,6 +170,16 @@ export default function LocationPanel() {
                 </SelectableItem>
               </li>
             ))}
+            {currentHotspot === 'Custom Pin' && (
+              <li>
+                <SelectableItem isSelected onClick={() => {}}>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-sm text-amber-400">Custom Pin</span>
+                  </div>
+                </SelectableItem>
+              </li>
+            )}
           </ul>
         </section>
 

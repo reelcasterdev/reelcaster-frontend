@@ -38,7 +38,9 @@ import OverallScoreWidget from './components/forecast/overall-score-widget'
 import MapViewWidget from './components/forecast/map-view-widget'
 import WeatherWidget from './components/forecast/weather-widget'
 import TideWidget from './components/forecast/tide-widget'
+import TideForecastChart from './components/forecast/tide-forecast-chart'
 import MapModal from './components/forecast/map-modal'
+import ForecastMap from './components/forecast/forecast-map'
 
 // Centralized config
 import {
@@ -56,6 +58,7 @@ function NewForecastContent() {
   const pageLoadStartTime = useRef<number>(Date.now())
   const hasTrackedPageView = useRef<boolean>(false)
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null)
+  const hasInitialDataLoaded = useRef<boolean>(false)
 
   // Default to Victoria Waterfront if no parameters provided
   const location = searchParams.get('location') || 'Victoria, Sidney'
@@ -205,7 +208,15 @@ function NewForecastContent() {
 
   // Main forecast data fetching with caching
   const fetchForecastData = useCallback(async () => {
-    setLoading(true)
+    // Only show full loader on initial load (no existing data)
+    // For subsequent fetches (e.g., tab refocus), refresh in background without loader
+    const isInitialLoad = !hasInitialDataLoaded.current
+    if (isInitialLoad) {
+      setLoading(true)
+    } else {
+      // Background refresh - show subtle indicator instead of full loader
+      setIsRefreshing(true)
+    }
     setError(null)
     setIsCachedData(false)
 
@@ -229,6 +240,7 @@ function NewForecastContent() {
           createdAt: cacheResult.createdAt,
           expiresAt: cacheResult.expiresAt
         })
+        hasInitialDataLoaded.current = true
         setLoading(false)
 
         // Track cache hit event
@@ -298,6 +310,7 @@ function NewForecastContent() {
           setTideData(freshData.tideData)
           setIsCachedData(false)
           setCacheInfo({})
+          hasInitialDataLoaded.current = true
 
           // Track forecast loaded event (fresh data)
           const loadTime = Date.now() - pageLoadStartTime.current
@@ -324,9 +337,16 @@ function NewForecastContent() {
       }
     } catch (err) {
       console.error('Error fetching forecast data:', err)
-      setError('Failed to fetch weather data')
+      // Only show error if this is the initial load (no existing data to display)
+      if (isInitialLoad) {
+        setError('Failed to fetch weather data')
+      }
     } finally {
-      setLoading(false)
+      if (isInitialLoad) {
+        setLoading(false)
+      } else {
+        setIsRefreshing(false)
+      }
     }
   }, [coordinates, species, selectedLocation, selectedHotspot, fetchFreshForecastData, trackEvent])
 
@@ -335,6 +355,17 @@ function NewForecastContent() {
     setAlgorithmVersion(version)
     fetchForecastData()
   }, [fetchForecastData])
+
+  // Reset initial data flag when location changes (so new locations show loader)
+  const prevLocationRef = useRef<string | null>(null)
+  useEffect(() => {
+    const currentLocationKey = `${selectedLocation}-${selectedHotspot}`
+    if (prevLocationRef.current !== null && prevLocationRef.current !== currentLocationKey) {
+      // Location changed - reset so we show loader for new location if not cached
+      hasInitialDataLoaded.current = false
+    }
+    prevLocationRef.current = currentLocationKey
+  }, [selectedLocation, selectedHotspot])
 
   // Debounced fetch to prevent rapid re-fetches on URL param changes
   useEffect(() => {
@@ -469,6 +500,22 @@ function NewForecastContent() {
           ) : (
             <>
               <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+                  {/* Weather Map */}
+                  {currentLocation && (
+                    <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4" onClick={(e) => e.stopPropagation()}>
+                      <ForecastMap
+                        key={`${selectedLocation}-${selectedHotspot}`}
+                        location={selectedLocation}
+                        hotspot={selectedHotspot}
+                        hotspots={currentLocation.hotspots}
+                        centerCoordinates={coordinates}
+                        onHotspotChange={handleHotspotChange}
+                        openMeteoData={openMeteoData}
+                        tideData={tideData}
+                      />
+                    </div>
+                  )}
+
                   {/* Forecast Outlook */}
                   <DayOutlookNew
                     forecasts={forecastData}
@@ -490,6 +537,9 @@ function NewForecastContent() {
                     mobilePeriod={mobilePeriod}
                     onPeriodChange={setMobilePeriod}
                   />
+
+                  {/* 14-Day Tide Forecast Chart */}
+                  <TideForecastChart tideData={tideData} />
                 </div>
 
                 <div className="lg:col-span-2 space-y-3 sm:space-y-6">
