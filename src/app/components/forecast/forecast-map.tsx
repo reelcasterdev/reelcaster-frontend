@@ -44,7 +44,6 @@ const MAP_STYLES: MapStyle[] = [
   { id: 'nav-night', name: 'Navigation', url: 'mapbox://styles/mapbox/navigation-night-v1' },
 ];
 
-const MAP_STYLE_STORAGE_KEY = 'reelcaster-map-style';
 
 const ForecastMap: React.FC<ForecastMapProps> = ({
   location,
@@ -72,34 +71,14 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   const [windAnimationEnabled, setWindAnimationEnabled] = useState(false);
   const [oceanCurrentEnabled, setOceanCurrentEnabled] = useState(false);
   const [tideStationEnabled, setTideStationEnabled] = useState(false);
-  const [bathymetryEnabled, setBathymetryEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('reelcaster-bathymetry-enabled');
-      // Default to true if not set
-      return saved === null ? true : saved === 'true';
-    }
-    return true;
-  });
-  const [bathymetrySource, setBathymetrySource] = useState<'mapbox' | 'chs'>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('reelcaster-bathymetry-source');
-      return saved === 'chs' ? 'chs' : 'mapbox';
-    }
-    return 'mapbox';
-  });
+  const [bathymetryEnabled, setBathymetryEnabled] = useState(true);
+  const [bathymetrySource, setBathymetrySource] = useState<'mapbox' | 'chs'>('chs');
   const [showBathymetryPicker, setShowBathymetryPicker] = useState(false);
   const [showStylePicker, setShowStylePicker] = useState(false);
-  const [mapStyle, setMapStyle] = useState<MapStyle>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(MAP_STYLE_STORAGE_KEY);
-      if (saved) {
-        const found = MAP_STYLES.find(s => s.id === saved);
-        if (found) return found;
-      }
-    }
-    // Default to Navigation style
-    return MAP_STYLES.find(s => s.id === 'nav-night') || MAP_STYLES[0];
-  });
+  // Always use Navigation style - no localStorage memoization
+  const [mapStyle, setMapStyle] = useState<MapStyle>(
+    MAP_STYLES.find(s => s.id === 'nav-night') || MAP_STYLES[0]
+  );
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   // Custom pin state
@@ -130,14 +109,12 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   const handleStyleChange = useCallback((style: MapStyle) => {
     setMapStyle(style);
     setShowStylePicker(false);
-    localStorage.setItem(MAP_STYLE_STORAGE_KEY, style.id);
   }, []);
 
   // Toggle bathymetry layer
   const toggleBathymetry = useCallback(() => {
     setBathymetryEnabled(prev => {
       const newValue = !prev;
-      localStorage.setItem('reelcaster-bathymetry-enabled', String(newValue));
       if (!newValue) {
         setShowBathymetryPicker(false);
       }
@@ -149,7 +126,6 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   const handleBathymetrySourceChange = useCallback((source: 'mapbox' | 'chs') => {
     setBathymetrySource(source);
     setShowBathymetryPicker(false);
-    localStorage.setItem('reelcaster-bathymetry-source', source);
   }, []);
 
   // Handle hotspot click

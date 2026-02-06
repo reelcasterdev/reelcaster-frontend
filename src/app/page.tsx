@@ -470,103 +470,95 @@ function NewForecastContent() {
             <ErrorState message={error} />
           )}
 
-          {/* Show loading skeleton or actual content */}
-          {loading ? (
-            // Simple loading skeleton instead of full-screen loader
-            <div className="space-y-6">
-              {/* Top Section Skeleton */}
-              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
-                <div className="lg:col-span-2">
-                  <div className="bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
-                </div>
-                <div className="lg:col-span-1">
-                  <div className="bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
-                </div>
+          {/* Map shows immediately - doesn't need forecast data */}
+          <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+            {/* Weather Map - renders immediately */}
+            {currentLocation && (
+              <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4" onClick={(e) => e.stopPropagation()}>
+                <ForecastMap
+                  key={`${selectedLocation}-${selectedHotspot}`}
+                  location={selectedLocation}
+                  hotspot={selectedHotspot}
+                  hotspots={currentLocation.hotspots}
+                  centerCoordinates={coordinates}
+                  onHotspotChange={handleHotspotChange}
+                  openMeteoData={openMeteoData}
+                  tideData={tideData}
+                />
               </div>
+            )}
 
-              {/* Main Content Skeleton */}
-              <div className="space-y-3 sm:space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
-                <div className="lg:col-span-2 space-y-3 sm:space-y-6">
-                  <div className="bg-rc-bg-dark rounded-lg h-64 animate-pulse" />
-                  <div className="lg:hidden bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
-                  <div className="bg-rc-bg-dark rounded-lg h-96 animate-pulse" />
-                </div>
-                <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
-                  <div className="bg-rc-bg-dark rounded-lg h-48 animate-pulse" />
-                  <div className="bg-rc-bg-dark rounded-lg h-64 animate-pulse" />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-                  {/* Weather Map */}
-                  {currentLocation && (
-                    <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4" onClick={(e) => e.stopPropagation()}>
-                      <ForecastMap
-                        key={`${selectedLocation}-${selectedHotspot}`}
-                        location={selectedLocation}
-                        hotspot={selectedHotspot}
-                        hotspots={currentLocation.hotspots}
-                        centerCoordinates={coordinates}
-                        onHotspotChange={handleHotspotChange}
-                        openMeteoData={openMeteoData}
-                        tideData={tideData}
-                      />
-                    </div>
-                  )}
-
-                  {/* Forecast Outlook */}
-                  <DayOutlookNew
-                    forecasts={forecastData}
-                    selectedDay={selectedDay}
-                    onDaySelect={setSelectedDay}
-                    shouldBlurAfterDay={shouldBlurAfterDay}
-                  />
-
-                  {/* Hourly Fishing Score Chart */}
-                  <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} tideData={tideData} onHoverChange={setHoveredHourIndex} mobilePeriod={mobilePeriod} onPeriodChange={setMobilePeriod} />
-
-                  {/* Hourly Data Table - directly below chart */}
-                  <HourlyTableNew
-                    forecasts={forecastData}
-                    openMeteoData={openMeteoData}
-                    tideData={tideData || tideData}
-                    selectedDay={selectedDay}
-                    highlightedIndex={hoveredHourIndex}
-                    mobilePeriod={mobilePeriod}
-                    onPeriodChange={setMobilePeriod}
-                  />
-
-                  {/* 14-Day Tide Forecast Chart */}
-                  <TideForecastChart tideData={tideData} />
-                </div>
-
-                <div className="lg:col-span-2 space-y-3 sm:space-y-6">
-                  {/* Weather and Conditions - Show here on mobile, hide on desktop */}
-                  <div className="lg:hidden">
-                    <WeatherConditions
-                      forecasts={forecastData}
-                      openMeteoData={openMeteoData}
-                      tideData={tideData}
-                      selectedDay={selectedDay}
-                    />
+            {/* Show loading skeleton or actual content for data-dependent components */}
+            {loading ? (
+              <div className="space-y-3 sm:space-y-4">
+                {/* Day Outlook Skeleton */}
+                <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={i} className="flex-shrink-0 w-20 h-24 bg-rc-bg-light rounded-lg animate-pulse" />
+                    ))}
                   </div>
-
                 </div>
+                {/* Hourly Chart Skeleton */}
+                <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl h-64 animate-pulse" />
+                {/* Hourly Table Skeleton */}
+                <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl h-96 animate-pulse" />
+                {/* Tide Chart Skeleton */}
+                <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl h-64 animate-pulse" />
+              </div>
+            ) : (
+              <>
+                {/* Forecast Outlook */}
+                <DayOutlookNew
+                  forecasts={forecastData}
+                  selectedDay={selectedDay}
+                  onDaySelect={setSelectedDay}
+                  shouldBlurAfterDay={shouldBlurAfterDay}
+                />
 
+                {/* Hourly Fishing Score Chart */}
+                <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} tideData={tideData} onHoverChange={setHoveredHourIndex} mobilePeriod={mobilePeriod} onPeriodChange={setMobilePeriod} />
 
-              {/* Reports - Show at bottom on mobile */}
+                {/* Hourly Data Table - directly below chart */}
+                <HourlyTableNew
+                  forecasts={forecastData}
+                  openMeteoData={openMeteoData}
+                  tideData={tideData || tideData}
+                  selectedDay={selectedDay}
+                  highlightedIndex={hoveredHourIndex}
+                  mobilePeriod={mobilePeriod}
+                  onPeriodChange={setMobilePeriod}
+                />
+
+                {/* 14-Day Tide Forecast Chart */}
+                <TideForecastChart tideData={tideData} />
+              </>
+            )}
+          </div>
+
+          <div className="lg:col-span-2 space-y-3 sm:space-y-6">
+            {/* Weather and Conditions - Show here on mobile, hide on desktop */}
+            {!loading && (
               <div className="lg:hidden">
-                <FishingReports />
+                <WeatherConditions
+                  forecasts={forecastData}
+                  openMeteoData={openMeteoData}
+                  tideData={tideData}
+                  selectedDay={selectedDay}
+                />
               </div>
+            )}
+          </div>
 
-              {/* Fishing Report Display */}
-              <div className="mt-6">
-                <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
-              </div>
-            </>
-          )}
+          {/* Reports - Show at bottom on mobile */}
+          <div className="lg:hidden">
+            <FishingReports />
+          </div>
+
+          {/* Fishing Report Display */}
+          <div className="mt-6">
+            <FishingReportDisplay location={selectedLocation} hotspot={selectedHotspot} />
+          </div>
       </div>
 
       {/* Algorithm Info Modal */}
