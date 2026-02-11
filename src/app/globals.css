@@ -127,6 +127,21 @@
   body {
     @apply bg-background text-foreground;
   }
+  .maplibregl-popup-content {
+    @apply bg-transparent! shadow-none! p-0! rounded-none!;
+  }
+  .maplibregl-popup-tip {
+    @apply hidden!;
+  }
+  .maplibregl-ctrl-attrib {
+    @apply bg-rc-bg-dark/80! text-rc-text-muted! text-[10px]!;
+  }
+  .maplibregl-ctrl-attrib a {
+    @apply text-rc-text-muted!;
+  }
+  .maplibregl-ctrl-attrib-button {
+    @apply bg-rc-bg-dark/80!;
+  }
 }
 
 /* Mobile safe area utilities */

@@ -4,7 +4,8 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/auth-context'
 import { MixpanelProvider } from '@/contexts/mixpanel-context'
 import { UnitPreferencesProvider } from '@/contexts/unit-preferences-context'
-import FishOnButtonWrapper from '@/app/components/catch-log/fish-on-button-wrapper'
+// Fish On button hidden for now
+// import FishOnButtonWrapper from '@/app/components/catch-log/fish-on-button-wrapper'
 import PinGate from '@/app/components/common/pin-gate'
 import { GoogleAnalytics } from '@next/third-parties/google'
 
@@ -39,7 +40,7 @@ export default function RootLayout({
           <MixpanelProvider>
             <UnitPreferencesProvider>
               {children}
-              <FishOnButtonWrapper />
+              {/* <FishOnButtonWrapper /> */}
             </UnitPreferencesProvider>
           </MixpanelProvider>
         </AuthProvider>

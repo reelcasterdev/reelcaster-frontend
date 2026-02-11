@@ -33,6 +33,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import type { AlertProfile, AlertTriggers } from '@/lib/custom-alert-engine'
+import { AlertLocationMap } from './alert-location-map'
 
 interface CustomAlertFormProps {
   profile?: AlertProfile | null
@@ -177,31 +178,17 @@ export function CustomAlertForm({ profile, onSubmit, onCancel }: CustomAlertForm
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="lat" className="text-rc-text">Latitude</Label>
-                <Input
-                  id="lat"
-                  type="number"
-                  step="0.0001"
-                  value={locationLat}
-                  onChange={(e) => setLocationLat(parseFloat(e.target.value))}
-                  required
-                  className="bg-rc-bg-light border-rc-bg-light text-rc-text"
-                />
-              </div>
-              <div>
-                <Label htmlFor="lng" className="text-rc-text">Longitude</Label>
-                <Input
-                  id="lng"
-                  type="number"
-                  step="0.0001"
-                  value={locationLng}
-                  onChange={(e) => setLocationLng(parseFloat(e.target.value))}
-                  required
-                  className="bg-rc-bg-light border-rc-bg-light text-rc-text"
-                />
-              </div>
+            {/* Pin drop map selector */}
+            <div>
+              <Label className="text-rc-text mb-2 block">Drop Pin on Map</Label>
+              <AlertLocationMap
+                latitude={locationLat}
+                longitude={locationLng}
+                onLocationChange={(lat, lng) => {
+                  setLocationLat(lat)
+                  setLocationLng(lng)
+                }}
+              />
             </div>
 
             <div>
