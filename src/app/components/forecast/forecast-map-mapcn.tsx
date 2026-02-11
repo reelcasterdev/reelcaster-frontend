@@ -41,6 +41,7 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
   centerCoordinates,
   onHotspotChange,
   openMeteoData,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tideData,
 }) => {
   const mapRef = useRef<MapRef>(null)
@@ -68,9 +69,6 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [defaultStatus, setDefaultStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
-  // Selected hotspot popup
-  const [selectedHotspotPopup, setSelectedHotspotPopup] = useState<string | null>(hotspot)
-
   // Update viewport when center coordinates change
   React.useEffect(() => {
     setViewport(prev => ({
@@ -85,7 +83,6 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
     setShowSaveForm(false)
     setSaveStatus('idle')
     setDefaultStatus('idle')
-    setSelectedHotspotPopup(hotspotData.name)
     onHotspotChange(hotspotData)
   }, [onHotspotChange])
 
@@ -194,7 +191,6 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
       setShowSaveForm(false)
       setSaveStatus('idle')
       setDefaultStatus('idle')
-      setSelectedHotspotPopup(null)
       onHotspotChange({
         name: 'Custom Pin',
         coordinates: { lat: lngLat.lat, lon: lngLat.lng },
@@ -258,7 +254,6 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
           {/* Hotspot Markers */}
           {hotspots.map((hotspotData) => {
             const isSelected = hotspotData.name === hotspot
-            const showPopup = selectedHotspotPopup === hotspotData.name
 
             return (
               <MapMarker

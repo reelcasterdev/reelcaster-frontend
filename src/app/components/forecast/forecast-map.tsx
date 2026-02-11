@@ -33,6 +33,7 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   centerCoordinates,
   onHotspotChange,
   openMeteoData,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tideData,
 }) => {
   const mapRef = useRef<MapRef>(null);

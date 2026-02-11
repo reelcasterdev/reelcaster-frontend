@@ -40,7 +40,6 @@ import WeatherWidget from './components/forecast/weather-widget'
 import TideWidget from './components/forecast/tide-widget'
 import TideForecastChart from './components/forecast/tide-forecast-chart'
 import MapModal from './components/forecast/map-modal'
-import ForecastMap from './components/forecast/forecast-map'
 import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
 
 // Centralized config
