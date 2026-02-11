@@ -41,6 +41,7 @@ import TideWidget from './components/forecast/tide-widget'
 import TideForecastChart from './components/forecast/tide-forecast-chart'
 import MapModal from './components/forecast/map-modal'
 import ForecastMap from './components/forecast/forecast-map'
+import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
 
 // Centralized config
 import {
@@ -470,25 +471,8 @@ function NewForecastContent() {
             <ErrorState message={error} />
           )}
 
-          {/* Map shows immediately - doesn't need forecast data */}
+          {/* Show loading skeleton or actual content for data-dependent components */}
           <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-            {/* Weather Map - renders immediately */}
-            {currentLocation && (
-              <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4" onClick={(e) => e.stopPropagation()}>
-                <ForecastMap
-                  key={`${selectedLocation}-${selectedHotspot}`}
-                  location={selectedLocation}
-                  hotspot={selectedHotspot}
-                  hotspots={currentLocation.hotspots}
-                  centerCoordinates={coordinates}
-                  onHotspotChange={handleHotspotChange}
-                  openMeteoData={openMeteoData}
-                  tideData={tideData}
-                />
-              </div>
-            )}
-
-            {/* Show loading skeleton or actual content for data-dependent components */}
             {loading ? (
               <div className="space-y-3 sm:space-y-4">
                 {/* Day Outlook Skeleton */}
@@ -515,6 +499,22 @@ function NewForecastContent() {
                   onDaySelect={setSelectedDay}
                   shouldBlurAfterDay={shouldBlurAfterDay}
                 />
+
+                {/* Weather Map - between 14-day outlook and hourly data */}
+                {currentLocation && (
+                  <div className="bg-rc-bg-dark border border-rc-bg-light rounded-xl p-4" onClick={(e) => e.stopPropagation()}>
+                    <ForecastMapSwitcher
+                      key={`${selectedLocation}-${selectedHotspot}`}
+                      location={selectedLocation}
+                      hotspot={selectedHotspot}
+                      hotspots={currentLocation.hotspots}
+                      centerCoordinates={coordinates}
+                      onHotspotChange={handleHotspotChange}
+                      openMeteoData={openMeteoData}
+                      tideData={tideData}
+                    />
+                  </div>
+                )}
 
                 {/* Hourly Fishing Score Chart */}
                 <HourlyChartNew forecasts={forecastData} selectedDay={selectedDay} species={species} tideData={tideData} onHoverChange={setHoveredHourIndex} mobilePeriod={mobilePeriod} onPeriodChange={setMobilePeriod} />
