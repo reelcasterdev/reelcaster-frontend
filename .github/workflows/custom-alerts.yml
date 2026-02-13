@@ -23,6 +23,7 @@ jobs:
           RESPONSE=$(curl -s -X POST "${{ secrets.APP_URL }}/api/alerts/evaluate" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -L \
             --max-time 300)
 
           echo "Response: $RESPONSE"

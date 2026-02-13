@@ -39,6 +39,7 @@ jobs:
           # Call the production API endpoint for area 19 (public, no auth)
           curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape?area_id=19" \
             -H "Content-Type: application/json" \
+            -L \
             --fail \
             --show-error \
             --max-time 300 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
@@ -53,6 +54,7 @@ jobs:
           # Call the production API endpoint for area 20 (public, no auth)
           curl -X POST "${{ secrets.APP_URL }}/api/regulations/scrape?area_id=20" \
             -H "Content-Type: application/json" \
+            -L \
             --fail \
             --show-error \
             --max-time 300 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
@@ -69,6 +71,7 @@ jobs:
           # Optimized to check Sundays only and stop after finding first report per location
           curl -X POST "${{ secrets.APP_URL }}/api/fishing-reports/scrape?weeks=$WEEKS" \
             -H "Content-Type: application/json" \
+            -L \
             --fail \
             --show-error \
             --max-time 600 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
@@ -84,6 +87,7 @@ jobs:
           curl -X POST "${{ secrets.APP_URL }}/api/dfo-notices/scrape?limit=30" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -L \
             --fail \
             --show-error \
             --max-time 600 || echo "scrape_failed=true" >> $GITHUB_OUTPUT
@@ -98,6 +102,7 @@ jobs:
           curl -X POST "${{ secrets.APP_URL }}/api/notifications/send-scheduled" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -L \
             --fail \
             --show-error \
             --max-time 600 || echo "notifications_failed=true" >> $GITHUB_OUTPUT
