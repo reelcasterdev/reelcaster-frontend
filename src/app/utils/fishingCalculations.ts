@@ -1,6 +1,6 @@
 // Open-Meteo integration imports
 import { ProcessedOpenMeteoData, OpenMeteo15MinData, getWeatherDescription } from './openMeteoApi'
-import { CHSWaterData } from './chsTideApi'
+import { CHSWaterData, CHSTideEvent } from './chsTideApi'
 import { calculateSpeciesSpecificScore, ExtendedAlgorithmContext } from './speciesAlgorithms'
 import { FishingReportData } from './chinookAlgorithmV2'
 
@@ -305,6 +305,9 @@ export interface FishingScore {
       description?: string
     }
   } // Raw species-specific factors with actual weights
+  // Confidence scoring (Phase 3)
+  confidence?: import('./confidenceScoring').DataConfidence
+  adjustedTotal?: number // Score after confidence regression toward neutral
 }
 
 export interface MinutelyForecast {
@@ -872,6 +875,117 @@ export const calculateCurrentScore = (
 }
 
 
+/**
+ * Compute tide state (timeToNextTide, isRising, changeRate, etc.) at a specific timestamp.
+ * This replaces the "now" snapshot so each 15-min scoring slot uses correct tide data.
+ */
+export interface TideStateAtTime {
+  currentHeight: number
+  nextTide: CHSTideEvent
+  previousTide: CHSTideEvent
+  tidalRange: number
+  isRising: boolean
+  changeRate: number    // meters per hour
+  timeToNextTide: number // minutes
+  currentSpeed?: number
+  currentDirection?: number
+}
+
+export const calculateTideStateAtTimestamp = (
+  tideData: CHSWaterData,
+  targetTimestamp: number, // unix seconds
+): TideStateAtTime | null => {
+  const { waterLevels, tideEvents } = tideData
+  if (!waterLevels.length || !tideEvents.length) return null
+
+  // Binary search for water level height at target time
+  let currentHeight: number
+  const wlIdx = waterLevels.findIndex(wl => wl.timestamp >= targetTimestamp)
+  if (wlIdx === -1) {
+    // Target is after all data — use last known
+    currentHeight = waterLevels[waterLevels.length - 1].height
+  } else if (wlIdx === 0 || waterLevels[wlIdx].timestamp === targetTimestamp) {
+    currentHeight = waterLevels[wlIdx].height
+  } else {
+    // Linearly interpolate between the two surrounding points
+    const before = waterLevels[wlIdx - 1]
+    const after = waterLevels[wlIdx]
+    const frac = (targetTimestamp - before.timestamp) / (after.timestamp - before.timestamp)
+    currentHeight = before.height + frac * (after.height - before.height)
+  }
+
+  // Find next and previous tide events relative to target
+  const nextTideIndex = tideEvents.findIndex(tide => tide.timestamp > targetTimestamp)
+  const nextTide = nextTideIndex >= 0 ? tideEvents[nextTideIndex] : tideEvents[tideEvents.length - 1]
+  const previousTide = nextTideIndex > 0
+    ? tideEvents[nextTideIndex - 1]
+    : tideEvents[0]
+
+  // Tidal range from events on the same day
+  const dayStart = targetTimestamp - (targetTimestamp % 86400)
+  const dayEnd = dayStart + 86400
+  const dayTides = tideEvents.filter(t => t.timestamp >= dayStart && t.timestamp < dayEnd)
+  const dayHighs = dayTides.filter(t => t.type === 'high').map(t => t.height)
+  const dayLows = dayTides.filter(t => t.type === 'low').map(t => t.height)
+  const tidalRange = dayHighs.length && dayLows.length
+    ? Math.max(...dayHighs) - Math.min(...dayLows)
+    : Math.abs(nextTide.height - previousTide.height)
+
+  const isRising = nextTide.type === 'high'
+  const timeDiffHours = (nextTide.timestamp - previousTide.timestamp) / 3600
+  const heightDiff = Math.abs(nextTide.height - previousTide.height)
+  const changeRate = timeDiffHours > 0 ? heightDiff / timeDiffHours : 0
+  const timeToNextTide = (nextTide.timestamp - targetTimestamp) / 60 // minutes
+
+  // Estimate current speed from water level derivative near target time
+  let currentSpeed: number | undefined
+  let currentDirection: number | undefined
+  if (wlIdx > 0 && wlIdx < waterLevels.length) {
+    const before = waterLevels[Math.max(0, wlIdx - 1)]
+    const after = waterLevels[wlIdx]
+    const rate = (after.height - before.height) / ((after.timestamp - before.timestamp) / 3600)
+    currentSpeed = Math.abs(rate) * 2.5
+    currentDirection = rate > 0 ? 45 : 225
+  }
+
+  return {
+    currentHeight,
+    nextTide,
+    previousTide,
+    tidalRange,
+    isRising,
+    changeRate,
+    timeToNextTide,
+    currentSpeed,
+    currentDirection,
+  }
+}
+
+/**
+ * Create a CHSWaterData overlay with tide state computed at a specific timestamp.
+ * The waterLevels and tideEvents arrays are shared (not copied) for efficiency.
+ */
+export const createTideDataAtTimestamp = (
+  baseTideData: CHSWaterData,
+  targetTimestamp: number,
+): CHSWaterData | null => {
+  const state = calculateTideStateAtTimestamp(baseTideData, targetTimestamp)
+  if (!state) return null
+
+  return {
+    ...baseTideData,
+    currentHeight: state.currentHeight,
+    nextTide: state.nextTide,
+    previousTide: state.previousTide,
+    tidalRange: state.tidalRange,
+    isRising: state.isRising,
+    changeRate: state.changeRate,
+    timeToNextTide: state.timeToNextTide,
+    currentSpeed: state.currentSpeed ?? baseTideData.currentSpeed,
+    currentDirection: state.currentDirection ?? baseTideData.currentDirection,
+  }
+}
+
 // Enhanced tide scoring with CHS data
 export const calculateEnhancedTideScore = (
   chsData: CHSWaterData | null,
@@ -984,7 +1098,13 @@ export const generateOpenMeteoDailyForecasts = (
         pressureHistory: historicalPressure.length > 0 ? historicalPressure : undefined
       }
 
-      const fullScore = calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName, contextForThisMinute)
+      // Compute per-timestamp tide state so each 15-min slot gets correct
+      // timeToNextTide, isRising, changeRate (fixes static tide scoring bug)
+      const tideForThisSlot = tideData
+        ? createTideDataAtTimestamp(tideData, minuteData.timestamp)
+        : null
+
+      const fullScore = calculateOpenMeteoFishingScore(minuteData, sunriseTimestamp, sunsetTimestamp, tideForThisSlot ?? tideData, speciesName, contextForThisMinute)
       return {
         time: minuteData.time,
         timestamp: minuteData.timestamp,
@@ -1045,7 +1165,11 @@ export const generateOpenMeteoDailyForecasts = (
           cape: segments.reduce((sum, seg) => sum + seg.cape, 0) / segments.length,
         }
 
-        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp, tideData, speciesName, dayExtendedContext)
+        // Compute per-timestamp tide state for 2-hour block midpoint
+        const twoHrTide = tideData
+          ? createTideDataAtTimestamp(tideData, avgData.timestamp)
+          : null
+        const score = calculateOpenMeteoFishingScore(avgData, sunriseTimestamp, sunsetTimestamp, twoHrTide ?? tideData, speciesName, dayExtendedContext)
         const weather = getWeatherDescription(avgData.weatherCode)
 
         twoHourForecasts.push({

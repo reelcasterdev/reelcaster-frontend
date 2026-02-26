@@ -17,6 +17,7 @@ interface ForecastMapWindyProps {
   centerCoordinates: { lat: number; lon: number };
   onHotspotChange: (hotspot: FishingHotspot) => void;
   openMeteoData: ProcessedOpenMeteoData | null;
+  variant?: 'card' | 'fullscreen';
 }
 
 // Extend Window interface for Windy API
@@ -34,7 +35,9 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
   centerCoordinates,
   onHotspotChange,
   openMeteoData,
+  variant = 'card',
 }) => {
+  const isFullscreen = variant === 'fullscreen';
   const windyApiKey = process.env.NEXT_PUBLIC_WINDY_API_KEY;
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
@@ -334,49 +337,53 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
         />
       )}
 
-      <div className="space-y-3">
-        {/* Map Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-blue-400" />
-            <h3 className="text-sm font-medium text-white">
-              Windy Weather Map - {location}
-            </h3>
-            <span className="text-xs bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">
-              Official Windy Visualization
-            </span>
-          </div>
-          {currentWeather && (
-            <div className="flex items-center gap-3 text-xs text-slate-300">
-              <div className="flex items-center gap-1">
-                <Thermometer className="w-3 h-3" />
-                <span>{currentWeather.temp.toFixed(1)}°C</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Wind className="w-3 h-3" />
-                <span>{currentWeather.windSpeed.toFixed(0)} km/h</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CloudRain className="w-3 h-3" />
-                <span>{currentWeather.precipitation.toFixed(1)} mm</span>
-              </div>
+      <div className={isFullscreen ? 'h-full w-full' : 'space-y-3'}>
+        {/* Map Header - only in card mode */}
+        {!isFullscreen && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-blue-400" />
+              <h3 className="text-sm font-medium text-white">
+                Windy Weather Map - {location}
+              </h3>
+              <span className="text-xs bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">
+                Official Windy Visualization
+              </span>
             </div>
-          )}
-        </div>
+            {currentWeather && (
+              <div className="flex items-center gap-3 text-xs text-slate-300">
+                <div className="flex items-center gap-1">
+                  <Thermometer className="w-3 h-3" />
+                  <span>{currentWeather.temp.toFixed(1)}°C</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Wind className="w-3 h-3" />
+                  <span>{currentWeather.windSpeed.toFixed(0)} km/h</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <CloudRain className="w-3 h-3" />
+                  <span>{currentWeather.precipitation.toFixed(1)} mm</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Info Banner */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors"
-          >
-            <Info className="w-4 h-4" />
-            <span>How to use</span>
-          </button>
-        </div>
+        {/* Info Banner - only in card mode */}
+        {!isFullscreen && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors"
+            >
+              <Info className="w-4 h-4" />
+              <span>How to use</span>
+            </button>
+          </div>
+        )}
 
-        {/* Settings Panel */}
-        {showSettings && (
+        {/* Settings Panel - only in card mode */}
+        {!isFullscreen && showSettings && (
           <div className="p-3 bg-slate-800 border border-slate-700 rounded-lg space-y-2">
             <p className="text-xs text-slate-300 font-medium mb-2">Windy Map Features:</p>
             <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside">
@@ -396,12 +403,15 @@ const ForecastMapWindy: React.FC<ForecastMapWindyProps> = ({
         <div
           ref={mapContainerRef}
           id="windy"
-          className="w-full h-[350px] sm:h-[500px] rounded-lg border border-slate-600"
+          className={isFullscreen
+            ? 'w-full h-full'
+            : 'w-full h-[350px] sm:h-[500px] rounded-lg border border-slate-600'
+          }
           style={{ position: 'relative', overflow: 'visible' }}
         />
 
-        {/* Timeline Scrubber */}
-        {openMeteoData && openMeteoData.minutely15 && openMeteoData.minutely15.length > 0 && (
+        {/* Timeline Scrubber - only in card mode */}
+        {!isFullscreen && openMeteoData && openMeteoData.minutely15 && openMeteoData.minutely15.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

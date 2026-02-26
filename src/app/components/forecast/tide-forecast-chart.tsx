@@ -286,9 +286,21 @@ export default function TideForecastChart({ tideData, className }: TideForecastC
       </div>
 
       {/* Station Info */}
-      <div className="px-4 py-2 bg-rc-bg-darkest/50 border-b border-rc-bg-light">
+      <div className="px-4 py-2 bg-rc-bg-darkest/50 border-b border-rc-bg-light flex items-center gap-2">
         <span className="text-xs text-rc-text-muted">
-          Station: <span className="text-rc-text-light">{tideData.station?.name || 'Unknown'}</span>
+          {tideData.dataSource === 'stormglass'
+            ? 'Source: Stormglass (estimated)'
+            : (
+              <>
+                Station: <span className="text-rc-text-light">
+                  {tideData.station?.name || 'Unknown'}
+                  {tideData.stationCode && ` (${tideData.stationCode})`}
+                </span>
+                {tideData.stationDistanceKm != null && (
+                  <span className="text-rc-text-muted"> — {tideData.stationDistanceKm}km</span>
+                )}
+              </>
+            )}
         </span>
       </div>
 

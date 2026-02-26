@@ -24,6 +24,7 @@ interface ForecastMapProps {
   onHotspotChange: (hotspot: FishingHotspot) => void;
   openMeteoData: ProcessedOpenMeteoData | null;
   tideData?: CHSWaterData | null;
+  variant?: 'card' | 'fullscreen';
 }
 
 const ForecastMap: React.FC<ForecastMapProps> = ({
@@ -35,7 +36,9 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   openMeteoData,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tideData,
+  variant = 'card',
 }) => {
+  const isFullscreen = variant === 'fullscreen';
   const mapRef = useRef<MapRef>(null);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const { user } = useAuth();
@@ -196,34 +199,39 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Map Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
-          <h3 className="text-sm font-medium text-rc-text truncate">Weather Map - {location}</h3>
-        </div>
-        {currentWeather && (
-          <div className="flex items-center gap-3 text-xs text-rc-text-light">
-            <div className="flex items-center gap-1">
-              <Thermometer className="w-3 h-3" />
-              <span>{currentWeather.temp.toFixed(1)}°C</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Wind className="w-3 h-3" />
-              <span>{currentWeather.windSpeed.toFixed(0)} km/h</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <CloudRain className="w-3 h-3" />
-              <span>{currentWeather.precipitation.toFixed(1)} mm</span>
-            </div>
+    <div className={isFullscreen ? 'h-full w-full' : 'space-y-3'}>
+      {/* Map Header - only in card mode */}
+      {!isFullscreen && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
+            <h3 className="text-sm font-medium text-rc-text truncate">Weather Map - {location}</h3>
           </div>
-        )}
-      </div>
+          {currentWeather && (
+            <div className="flex items-center gap-3 text-xs text-rc-text-light">
+              <div className="flex items-center gap-1">
+                <Thermometer className="w-3 h-3" />
+                <span>{currentWeather.temp.toFixed(1)}°C</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Wind className="w-3 h-3" />
+                <span>{currentWeather.windSpeed.toFixed(0)} km/h</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CloudRain className="w-3 h-3" />
+                <span>{currentWeather.precipitation.toFixed(1)} mm</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Map Container */}
       <div
-        className="relative w-full h-[350px] sm:h-[500px] rounded-lg overflow-hidden border border-rc-bg-light"
+        className={isFullscreen
+          ? 'relative w-full h-full'
+          : 'relative w-full h-[350px] sm:h-[500px] rounded-lg overflow-hidden border border-rc-bg-light'
+        }
       >
         <Map
           ref={mapRef}
@@ -443,11 +451,13 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
         </Map>
 
         {/* Custom Pin Instructions */}
-        <div className="absolute bottom-3 left-3 bg-rc-bg-dark/80 backdrop-blur-sm px-3 py-1.5 rounded-lg pointer-events-none">
-          <p className="text-[10px] text-rc-text-muted">
-            {customPin ? 'Drag pin to adjust \u2022 Click map to reposition' : 'Click map to place custom pin'}
-          </p>
-        </div>
+        {!isFullscreen && (
+          <div className="absolute bottom-3 left-3 bg-rc-bg-dark/80 backdrop-blur-sm px-3 py-1.5 rounded-lg pointer-events-none">
+            <p className="text-[10px] text-rc-text-muted">
+              {customPin ? 'Drag pin to adjust \u2022 Click map to reposition' : 'Click map to place custom pin'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

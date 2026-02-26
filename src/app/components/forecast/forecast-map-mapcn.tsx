@@ -32,6 +32,7 @@ interface ForecastMapMapcnProps {
   onHotspotChange: (hotspot: FishingHotspot) => void
   openMeteoData: ProcessedOpenMeteoData | null
   tideData?: CHSWaterData | null
+  variant?: 'card' | 'fullscreen'
 }
 
 const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
@@ -43,7 +44,9 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
   openMeteoData,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tideData,
+  variant = 'card',
 }) => {
+  const isFullscreen = variant === 'fullscreen'
   const mapRef = useRef<MapRef>(null)
   const { user } = useAuth()
 
@@ -203,9 +206,9 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
   }, [onHotspotChange])
 
   return (
-    <div className="space-y-3">
-      {/* Map Header - Beautiful gradient header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div className={isFullscreen ? 'h-full w-full' : 'space-y-3'}>
+      {/* Map Header - Beautiful gradient header - only in card mode */}
+      {!isFullscreen && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
             <Navigation className="w-4 h-4 text-blue-400" />
@@ -233,10 +236,13 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Map Container */}
-      <div className="relative w-full h-[350px] sm:h-[500px] rounded-xl overflow-hidden border border-rc-bg-light shadow-lg shadow-black/20">
+      <div className={isFullscreen
+        ? 'relative w-full h-full'
+        : 'relative w-full h-[350px] sm:h-[500px] rounded-xl overflow-hidden border border-rc-bg-light shadow-lg shadow-black/20'
+      }>
         <Map
           ref={mapRef}
           theme="dark"
@@ -449,19 +455,25 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
         </Map>
 
         {/* Gradient overlay at bottom for text readability */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+        {!isFullscreen && (
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+        )}
 
         {/* Custom Pin Instructions */}
-        <div className="absolute bottom-3 left-3 bg-rc-bg-dark/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-rc-bg-light/30 pointer-events-none">
-          <p className="text-[10px] text-rc-text-muted">
-            {customPin ? 'Drag pin to adjust \u2022 Click map to reposition' : 'Click anywhere to drop a pin'}
-          </p>
-        </div>
+        {!isFullscreen && (
+          <div className="absolute bottom-3 left-3 bg-rc-bg-dark/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-rc-bg-light/30 pointer-events-none">
+            <p className="text-[10px] text-rc-text-muted">
+              {customPin ? 'Drag pin to adjust \u2022 Click map to reposition' : 'Click anywhere to drop a pin'}
+            </p>
+          </div>
+        )}
 
         {/* Experimental badge */}
-        <div className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-600/80 to-blue-600/80 backdrop-blur-sm border border-purple-400/20">
-          <p className="text-[10px] font-medium text-white">Experimental</p>
-        </div>
+        {!isFullscreen && (
+          <div className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-600/80 to-blue-600/80 backdrop-blur-sm border border-purple-400/20">
+            <p className="text-[10px] font-medium text-white">Experimental</p>
+          </div>
+        )}
       </div>
     </div>
   )

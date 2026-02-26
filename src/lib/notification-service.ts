@@ -8,8 +8,9 @@
 import { createClient } from '@supabase/supabase-js';
 import type { NotificationPreferences } from './user-preferences';
 import { fetchOpenMeteoWeather } from '@/app/utils/openMeteoApi';
-import { calculateOpenMeteoFishingScore } from '@/app/utils/fishingCalculations';
+import { calculateOpenMeteoFishingScore, createTideDataAtTimestamp } from '@/app/utils/fishingCalculations';
 import type { ProcessedOpenMeteoData, OpenMeteo15MinData } from '@/app/utils/openMeteoApi';
+import { fetchCHSTideDataByCoordinates, type CHSWaterData } from '@/app/utils/chsTideApi';
 import { getRelevantDFONoticesForUser, type DFONotice } from './dfo-notice-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -138,13 +139,20 @@ export function shouldSendNotification(
 export async function fetchForecastForLocation(
   lat: number,
   lng: number
-): Promise<ProcessedOpenMeteoData> {
+): Promise<{ forecast: ProcessedOpenMeteoData; tideData: CHSWaterData | null }> {
   try {
-    const result = await fetchOpenMeteoWeather({ lat, lon: lng }, 7);
+    const [result, tideResult] = await Promise.all([
+      fetchOpenMeteoWeather({ lat, lon: lng }, 7),
+      fetchCHSTideDataByCoordinates(lat, lng).catch(err => {
+        console.warn('Tide data not available for notification:', err);
+        return null;
+      }),
+    ]);
+
     if (!result.success || !result.data) {
       throw new Error(result.error || 'Failed to fetch forecast');
     }
-    return result.data;
+    return { forecast: result.data, tideData: tideResult };
   } catch (error) {
     console.error('Error fetching forecast:', error);
     throw error;
@@ -207,7 +215,8 @@ export function checkWeatherThresholds(
  */
 export function calculateDailyScores(
   forecast: ProcessedOpenMeteoData,
-  species: string[]
+  species: string[],
+  tideData?: CHSWaterData | null,
 ): ForecastDay[] {
   const dailyScores: ForecastDay[] = [];
 
@@ -232,26 +241,28 @@ export function calculateDailyScores(
     // Calculate scores for each species and average them
     const scores = species.length > 0
       ? species.map((sp) =>
-          dataPoints.map((dp) =>
-            calculateOpenMeteoFishingScore(
+          dataPoints.map((dp) => {
+            const tideForSlot = tideData ? createTideDataAtTimestamp(tideData, dp.timestamp) : null;
+            return calculateOpenMeteoFishingScore(
               dp,
               sunrise,
               sunset,
-              null, // No tide data for now
+              tideForSlot ?? tideData ?? null,
               sp
-            ).total
-          )
+            ).total;
+          })
         )
       : [
-          dataPoints.map((dp) =>
-            calculateOpenMeteoFishingScore(
+          dataPoints.map((dp) => {
+            const tideForSlot = tideData ? createTideDataAtTimestamp(tideData, dp.timestamp) : null;
+            return calculateOpenMeteoFishingScore(
               dp,
               sunrise,
               sunset,
-              null, // No tide data for now
-              null  // No species specified
-            ).total
-          ),
+              tideForSlot ?? tideData ?? null,
+              null
+            ).total;
+          }),
         ];
 
     // Average scores across species and time periods
@@ -351,10 +362,10 @@ export async function generateNotificationForUser(
       };
     }
 
-    const forecast = await fetchForecastForLocation(prefs.location_lat, prefs.location_lng);
+    const { forecast, tideData } = await fetchForecastForLocation(prefs.location_lat, prefs.location_lng);
 
-    // Calculate daily scores
-    const dailyScores = calculateDailyScores(forecast, prefs.favorite_species);
+    // Calculate daily scores (now with tide data for accurate scoring)
+    const dailyScores = calculateDailyScores(forecast, prefs.favorite_species, tideData);
 
     // Find best day
     const bestDay = dailyScores.reduce((best, day) => (day.score > best.score ? day : best));

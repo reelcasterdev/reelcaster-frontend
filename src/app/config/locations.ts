@@ -13,6 +13,8 @@ export interface Coordinates {
 export interface FishingHotspot {
   name: string
   coordinates: Coordinates
+  /** Optional explicit DFO/CHS tide station code override (e.g. '07080' for Pedder Bay) */
+  tideStationCode?: string
 }
 
 /** @deprecated Use FishingHotspot instead */
@@ -39,13 +41,13 @@ export const FISHING_LOCATIONS: FishingLocation[] = [
     available: true,
     dfoAreas: [19],
     hotspots: [
-      { name: 'Breakwater (Shore Fishing)', coordinates: { lat: 48.4113, lon: -123.398 } },
-      { name: 'Waterfront', coordinates: { lat: 48.4284, lon: -123.3656 } },
+      { name: 'Breakwater (Shore Fishing)', coordinates: { lat: 48.4113, lon: -123.398 }, tideStationCode: '07120' },
+      { name: 'Waterfront', coordinates: { lat: 48.4284, lon: -123.3656 }, tideStationCode: '07120' },
       { name: 'Ten Mile Point (Shore Fishing)', coordinates: { lat: 48.4167, lon: -123.3 } },
       { name: 'Oak Bay', coordinates: { lat: 48.4264, lon: -123.3145 } },
       { name: 'Waterfront Bay', coordinates: { lat: 48.4632, lon: -123.3127 } },
-      { name: 'Constance Bank', coordinates: { lat: 48.3833, lon: -123.4167 } },
-      { name: 'Sidney', coordinates: { lat: 48.65, lon: -123.4 } },
+      { name: 'Constance Bank', coordinates: { lat: 48.3833, lon: -123.4167 }, tideStationCode: '07090' },
+      { name: 'Sidney', coordinates: { lat: 48.65, lon: -123.4 }, tideStationCode: '07108' },
       { name: 'Trial Island', coordinates: { lat: 48.3936, lon: -123.3056 } },
     ],
   },
@@ -56,12 +58,12 @@ export const FISHING_LOCATIONS: FishingLocation[] = [
     available: true,
     dfoAreas: [20],
     hotspots: [
-      { name: 'Sooke Harbor', coordinates: { lat: 48.3722, lon: -123.7356 } },
-      { name: 'East Sooke', coordinates: { lat: 48.35, lon: -123.6167 } },
-      { name: 'Becher Bay', coordinates: { lat: 48.3167, lon: -123.6333 } },
-      { name: 'Pedder Bay', coordinates: { lat: 48.3415, lon: -123.5507 } },
-      { name: 'Church Rock', coordinates: { lat: 48.3, lon: -123.6 } },
-      { name: 'Secretary Island', coordinates: { lat: 48.3500, lon: -123.7833 } },
+      { name: 'Sooke Harbor', coordinates: { lat: 48.3722, lon: -123.7356 }, tideStationCode: '07024' },
+      { name: 'East Sooke', coordinates: { lat: 48.35, lon: -123.6167 }, tideStationCode: '07030' },
+      { name: 'Becher Bay', coordinates: { lat: 48.3167, lon: -123.6333 }, tideStationCode: '07030' },
+      { name: 'Pedder Bay', coordinates: { lat: 48.3415, lon: -123.5507 }, tideStationCode: '07080' },
+      { name: 'Church Rock', coordinates: { lat: 48.3, lon: -123.6 }, tideStationCode: '07030' },
+      { name: 'Secretary Island', coordinates: { lat: 48.3500, lon: -123.7833 }, tideStationCode: '07024' },
     ],
   },
   {

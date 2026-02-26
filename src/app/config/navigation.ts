@@ -8,6 +8,7 @@ import {
   Database,
   User,
   Anchor,
+  LayoutDashboard,
   LucideIcon,
 } from 'lucide-react'
 import { ReportIcon } from '@/app/components/common/report-icon'
@@ -106,6 +107,13 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     // disabled: true,
   },
   {
+    id: 'classic-view',
+    label: 'Classic View',
+    mobileLabel: 'Classic',
+    href: '/v1',
+    icon: LayoutDashboard,
+  },
+  {
     id: 'profile',
     label: 'Profile',
     href: '/profile',
@@ -153,6 +161,7 @@ export function isAdminEmail(email: string | null | undefined): boolean {
  * Check if a route is active based on current pathname
  */
 export function isRouteActive(href: string, pathname: string): boolean {
-  if (href === '/') return pathname === '/'
+  if (href === '/') return pathname === '/' || pathname === ''
+  if (href === '/v1') return pathname === '/v1'
   return pathname.startsWith(href)
 }
