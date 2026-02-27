@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { CHSWaterData } from '@/app/utils/chsTideApi'
+import { tidConfidenceByDistance } from '@/app/utils/confidenceScoring'
 import {
   Waves,
   TrendingUp,
@@ -10,7 +11,8 @@ import {
   Droplets,
   Clock,
   Compass,
-  Gauge
+  Gauge,
+  MapPin
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -186,12 +188,32 @@ export function TideStatusWidget({ tideData, className, compact = false }: TideS
           )}
         </div>
 
-        {/* Station information */}
+        {/* Station information with confidence indicator */}
         {tideData.station && (
           <div className="pt-3 border-t border-rc-bg-light">
-            <p className="text-xs text-rc-text-muted">
-              Station: {tideData.station.name}
-            </p>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-3 w-3 text-rc-text-muted flex-shrink-0" />
+              <p className="text-xs text-rc-text-muted">
+                {tideData.dataSource === 'stormglass'
+                  ? 'Estimated tides (no nearby DFO station)'
+                  : (
+                    <>
+                      {tideData.station.name}
+                      {tideData.stationCode && ` (${tideData.stationCode})`}
+                      {tideData.stationDistanceKm != null && ` — ${tideData.stationDistanceKm}km away`}
+                    </>
+                  )}
+              </p>
+              {(() => {
+                const confidence = tidConfidenceByDistance(tideData.stationDistanceKm, tideData.dataSource)
+                const dotColor = confidence > 0.8
+                  ? 'bg-green-400'
+                  : confidence >= 0.5
+                    ? 'bg-yellow-400'
+                    : 'bg-red-400'
+                return <div className={cn("h-2 w-2 rounded-full flex-shrink-0", dotColor)} title={`Tide confidence: ${Math.round(confidence * 100)}%`} />
+              })()}
+            </div>
           </div>
         )}
       </div>

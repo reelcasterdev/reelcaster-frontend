@@ -1,6 +1,8 @@
 // Canadian Hydrographic Service (CHS) IWLS API Integration
 // Documentation: https://api.iwls-sine.azure.cloud-nuage.dfo-mpo.gc.ca/swagger-ui/index.html
 
+import { resolveStationForLocation } from './dfoStationRegistry'
+
 export interface CHSStation {
   id: string
   code: string
@@ -49,6 +51,9 @@ export interface CHSWaterData {
   currentSpeed?: number
   currentDirection?: number
   _tzCorrectionSec?: number // timezone correction offset for aligning with OpenMeteo timestamps
+  stationCode?: string           // DFO station code (e.g. '07080')
+  stationDistanceKm?: number     // Distance from query coordinates to station
+  dataSource?: 'iwls' | 'stormglass' // Where tide data came from
 }
 
 // BC Fishing locations mapped to CHS station IDs
@@ -288,45 +293,11 @@ export const fetchTideEvents = async (
     if (!response.ok) throw new Error(`Failed to fetch tide events: ${response.status}`)
     
     const data = await response.json()
-    const tideEvents: CHSTideEvent[] = []
-    
-    // Process the tide data - wlp-hilo returns high and low tides
-    // The API returns multiple values, we need to determine which are highs and lows
-    // based on the pattern of values
-    
-    for (let i = 0; i < data.length; i++) {
-      const item = data[i]
-      const currentValue = item.value
-      const currentTime = new Date(item.eventDate)
-      
-      if (i > 0 && i < data.length - 1) {
-        const nextValue = data[i + 1].value
-        const prevValue = data[i - 1].value
-        
-        // Determine if this is a high or low tide based on neighboring values
-        const isHigh = currentValue > prevValue && currentValue > nextValue
-        const isLow = currentValue < prevValue && currentValue < nextValue
-        
-        if (isHigh || isLow) {
-          tideEvents.push({
-            timestamp: currentTime.getTime() / 1000,
-            height: currentValue,
-            type: isHigh ? 'high' : 'low',
-          })
-        }
-      } else if (i === 0 || i === data.length - 1) {
-        // For first and last points, determine based on adjacent value
-        const adjacentValue = i === 0 ? data[1].value : data[data.length - 2].value
-        const isHigh = currentValue > adjacentValue
-        
-        tideEvents.push({
-          timestamp: currentTime.getTime() / 1000,
-          height: currentValue,
-          type: isHigh ? 'high' : 'low',
-        })
-      }
-    }
-    
+
+    // wlp-hilo returns ONLY high/low tide events. Every point IS a tide event.
+    // Determine type by comparing to adjacent values (higher than neighbors = high).
+    const tideEvents: CHSTideEvent[] = classifyHiloEvents(data)
+
     responseCache.set(cacheKey, { data: tideEvents, timestamp: Date.now() })
     return tideEvents.sort((a, b) => a.timestamp - b.timestamp)
   } catch (error) {
@@ -364,38 +335,9 @@ export const fetchTideEventsRange = async (
     if (!response.ok) throw new Error(`Failed to fetch tide events: ${response.status}`)
 
     const data = await response.json()
-    const tideEvents: CHSTideEvent[] = []
 
-    for (let i = 0; i < data.length; i++) {
-      const item = data[i]
-      const currentValue = item.value
-      const currentTime = new Date(item.eventDate)
-
-      if (i > 0 && i < data.length - 1) {
-        const nextValue = data[i + 1].value
-        const prevValue = data[i - 1].value
-
-        const isHigh = currentValue > prevValue && currentValue > nextValue
-        const isLow = currentValue < prevValue && currentValue < nextValue
-
-        if (isHigh || isLow) {
-          tideEvents.push({
-            timestamp: currentTime.getTime() / 1000,
-            height: currentValue,
-            type: isHigh ? 'high' : 'low',
-          })
-        }
-      } else if (i === 0 || i === data.length - 1) {
-        const adjacentValue = i === 0 ? data[1].value : data[data.length - 2].value
-        const isHigh = currentValue > adjacentValue
-
-        tideEvents.push({
-          timestamp: currentTime.getTime() / 1000,
-          height: currentValue,
-          type: isHigh ? 'high' : 'low',
-        })
-      }
-    }
+    // wlp-hilo returns ONLY high/low tide events — reuse shared classifier
+    const tideEvents: CHSTideEvent[] = classifyHiloEvents(data)
 
     responseCache.set(cacheKey, { data: tideEvents, timestamp: Date.now() })
     return tideEvents.sort((a, b) => a.timestamp - b.timestamp)
@@ -403,6 +345,58 @@ export const fetchTideEventsRange = async (
     console.error('Error fetching CHS tide events range:', error)
     return []
   }
+}
+
+/**
+ * Classify wlp-hilo data points as high or low tide events.
+ * The wlp-hilo endpoint returns ONLY tide extremes, so every point is an event.
+ * We determine type by comparing each point to its neighbors and validating
+ * that events alternate (high-low-high-low).
+ */
+function classifyHiloEvents(data: any[]): CHSTideEvent[] {
+  if (!data || data.length === 0) return []
+
+  const events: CHSTideEvent[] = []
+
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i]
+    const value = item.value
+    const timestamp = new Date(item.eventDate).getTime() / 1000
+
+    let isHigh: boolean
+
+    if (data.length === 1) {
+      // Single event — can't determine type, default to high
+      isHigh = true
+    } else if (i === 0) {
+      // First point: compare to next neighbor
+      isHigh = value > data[i + 1].value
+    } else if (i === data.length - 1) {
+      // Last point: compare to previous neighbor
+      isHigh = value > data[i - 1].value
+    } else {
+      // Middle point: compare to both neighbors
+      isHigh = value > data[i - 1].value && value >= data[i + 1].value
+    }
+
+    events.push({
+      timestamp,
+      height: value,
+      type: isHigh ? 'high' : 'low',
+    })
+  }
+
+  // Validation: consecutive events should alternate types.
+  // If we detect violations, trust neighbor comparison and fix.
+  for (let i = 1; i < events.length; i++) {
+    if (events[i].type === events[i - 1].type) {
+      // Two consecutive same types — the one with smaller amplitude difference
+      // from its neighbors is more likely misclassified. Flip the second one.
+      events[i] = { ...events[i], type: events[i].type === 'high' ? 'low' : 'high' }
+    }
+  }
+
+  return events
 }
 
 // Calculate current speeds from water level changes
@@ -526,6 +520,100 @@ export const fetchCHSTideData = async (
     }
   } catch (error) {
     console.error('Error fetching CHS tide data:', error)
+    return null
+  }
+}
+
+/**
+ * Fetch CHS tide data using GPS coordinates and optional station code override.
+ * Uses the DFO Station Registry to find the nearest station via Haversine distance.
+ * This replaces the hardcoded locationId-based `fetchCHSTideData()`.
+ */
+export const fetchCHSTideDataByCoordinates = async (
+  lat: number,
+  lon: number,
+  stationCodeOverride?: string,
+  targetTime?: Date,
+  maxRadiusKm = 20,
+): Promise<CHSWaterData | null> => {
+  try {
+    const resolved = await resolveStationForLocation(lat, lon, stationCodeOverride, maxRadiusKm)
+
+    if (!resolved) {
+      console.warn(`No DFO station found within ${maxRadiusKm}km of (${lat}, ${lon})`)
+      return null
+    }
+
+    const { station, distanceKm } = resolved
+    const now = targetTime || new Date()
+    const startTime = new Date(now.getTime() - 6 * 60 * 60 * 1000)
+    const midTime = new Date(startTime.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const endTime = new Date(midTime.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+    const [stationMeta, waterLevelsWeek1, waterLevelsWeek2, tideEvents] = await Promise.all([
+      fetchStationMetadata(station.id),
+      fetchWaterLevels(station.id, startTime, midTime),
+      fetchWaterLevels(station.id, midTime, endTime),
+      fetchTideEventsRange(station.id, startTime, endTime),
+    ])
+
+    const waterLevels = [...waterLevelsWeek1, ...waterLevelsWeek2]
+
+    if (!stationMeta || waterLevels.length === 0) {
+      return null
+    }
+
+    const allTides = tideEvents
+    const nowTimestamp = now.getTime() / 1000
+
+    const currentWaterLevel = waterLevels.find(wl => wl.timestamp >= nowTimestamp) || waterLevels[waterLevels.length - 1]
+    const currentHeight = currentWaterLevel.height
+
+    const nextTideIndex = allTides.findIndex(tide => tide.timestamp > nowTimestamp)
+    const nextTide = allTides[nextTideIndex] || allTides[0]
+    const previousTide = nextTideIndex > 0 ? allTides[nextTideIndex - 1] : allTides[allTides.length - 1]
+
+    const todayStart = new Date(now)
+    todayStart.setHours(0, 0, 0, 0)
+    const todayEnd = new Date(now)
+    todayEnd.setHours(23, 59, 59, 999)
+    const todayStartTs = todayStart.getTime() / 1000
+    const todayEndTs = todayEnd.getTime() / 1000
+    const todayTides = allTides.filter(t => t.timestamp >= todayStartTs && t.timestamp <= todayEndTs)
+    const dayHighs = todayTides.filter(t => t.type === 'high').map(t => t.height)
+    const dayLows = todayTides.filter(t => t.type === 'low').map(t => t.height)
+    const tidalRange = dayHighs.length && dayLows.length
+      ? Math.max(...dayHighs) - Math.min(...dayLows)
+      : nextTide.height - previousTide.height
+
+    const isRising = nextTide.type === 'high'
+    const timeDiff = (nextTide.timestamp - previousTide.timestamp) / 3600
+    const heightDiff = Math.abs(nextTide.height - previousTide.height)
+    const changeRate = heightDiff / timeDiff
+    const timeToNextTide = (nextTide.timestamp - nowTimestamp) / 60
+    const current = calculateCurrentFromWaterLevels(waterLevels, nowTimestamp)
+    const tzCorrectionSec = computeTimezoneCorrection(BC_TIMEZONE, now)
+
+    return {
+      station: stationMeta,
+      waterLevels,
+      tideEvents: allTides,
+      currentHeight,
+      nextTide,
+      previousTide,
+      tidalRange,
+      isRising,
+      changeRate,
+      timeToNextTide,
+      currentSpeed: current.speed,
+      currentDirection: current.direction,
+      _tzCorrectionSec: tzCorrectionSec,
+      stationCode: station.code,
+      stationDistanceKm: distanceKm,
+      dataSource: 'iwls',
+    }
+  } catch (error) {
+    console.error('Error fetching CHS tide data by coordinates:', error)
     return null
   }
 }

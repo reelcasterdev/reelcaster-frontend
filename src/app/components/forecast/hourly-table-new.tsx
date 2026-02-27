@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { OpenMeteoDailyForecast } from '../../utils/fishingCalculations'
 import { ProcessedOpenMeteoData } from '../../utils/openMeteoApi'
 import { CHSWaterData } from '../../utils/chsTideApi'
+import { DataSourceMetadata } from '../../utils/forecastDataProvider'
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useUnitPreferences } from '@/contexts/unit-preferences-context'
 import { convertWind, convertTemp, convertHeight } from '@/app/utils/unit-conversions'
@@ -12,20 +13,24 @@ interface HourlyTableNewProps {
   forecasts: OpenMeteoDailyForecast[]
   openMeteoData: ProcessedOpenMeteoData | null
   tideData: CHSWaterData | null
+  dataMetadata?: DataSourceMetadata | null
   selectedDay?: number
   highlightedIndex?: number | null
   mobilePeriod?: 'am' | 'pm'
   onPeriodChange?: (period: 'am' | 'pm') => void
+  compact?: boolean
 }
 
 export default function HourlyTableNew({
   forecasts,
   openMeteoData,
   tideData,
+  dataMetadata,
   selectedDay = 0,
   highlightedIndex = null,
   mobilePeriod = 'am',
   onPeriodChange,
+  compact = false,
 }: HourlyTableNewProps) {
   const { windUnit, tempUnit, heightUnit, cycleUnit } = useUnitPreferences()
   const [isMobile, setIsMobile] = useState(false)
@@ -153,6 +158,31 @@ export default function HourlyTableNew({
     return converted.toFixed(1)
   }
 
+  // Resolve display label for a data source
+  const getSourceLabel = (rowId: string): string | null => {
+    if (!dataMetadata) return null
+    switch (rowId) {
+      case 'score':
+        return null // composite, skip
+      case 'tide':
+        if (dataMetadata.tide === 'iwls') {
+          return dataMetadata.tideStationCode ? `DFO ${dataMetadata.tideStationCode}` : 'DFO'
+        }
+        if (dataMetadata.tide === 'stormglass') return 'Stormglass'
+        return null
+      case 'sst':
+        if (dataMetadata.waterTemperature === 'stormglass') return 'Stormglass'
+        if (dataMetadata.waterTemperature === 'open-meteo') return 'Open Meteo'
+        return null
+      case 'wave':
+      case 'swell':
+        return dataMetadata.marine ? 'Open Meteo' : null
+      default:
+        // wind, gusts, temp, pressure, rain, clouds, humidity, visibility
+        return 'Open Meteo'
+    }
+  }
+
   // Row definitions - most important at top, secondary at bottom
   const rows = [
     // --- Core fishing data ---
@@ -271,9 +301,9 @@ export default function HourlyTableNew({
 
 
   return (
-    <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden">
-      {/* AM/PM toggle - mobile only */}
-      {isMobile && (
+    <div className={compact ? 'overflow-hidden' : 'bg-rc-bg-darkest rounded-xl border border-rc-bg-light overflow-hidden'}>
+      {/* AM/PM toggle - mobile only, not in compact mode */}
+      {isMobile && !compact && (
         <div className="flex items-center justify-between px-3 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50">
           <span className="text-xs text-rc-text-muted">Hourly Data</span>
           <div className="flex bg-rc-bg-darkest rounded-lg overflow-hidden border border-rc-bg-light">
@@ -304,25 +334,39 @@ export default function HourlyTableNew({
       {/* Table aligned with chart above */}
       <div className="flex">
         {/* Left label column - matches chart Y-axis width */}
-        <div className="flex-shrink-0" style={{ width: '55px' }}>
+        <div className="flex-shrink-0" style={{ width: dataMetadata ? '72px' : '55px' }}>
           {/* Time header */}
           <div className="px-1.5 py-2 border-b border-rc-bg-light bg-rc-bg-dark/50 h-[32px] flex items-center">
             <span className="text-[10px] text-rc-text-muted">Time</span>
           </div>
           {/* Row labels */}
-          {rows.map((row) => (
-            <div
-              key={row.id}
-              className={`px-1.5 py-2 border-b border-rc-bg-dark bg-rc-bg-dark/30 h-[44px] flex flex-col justify-center ${
-                row.onClick ? 'cursor-pointer hover:bg-rc-bg-dark/50' : ''
-              }`}
-              onClick={row.onClick}
-              title={row.onClick ? 'Click to change unit' : undefined}
-            >
-              <div className="text-[10px] font-medium text-rc-text">{row.label}</div>
-              <div className="text-[10px] text-rc-text-muted">{row.unit}</div>
-            </div>
-          ))}
+          {rows.map((row) => {
+            const source = getSourceLabel(row.id)
+            return (
+              <div
+                key={row.id}
+                className={`px-1.5 py-1 border-b border-rc-bg-dark bg-rc-bg-dark/30 h-[44px] flex flex-col justify-center ${
+                  row.onClick ? 'cursor-pointer hover:bg-rc-bg-dark/50' : ''
+                }`}
+                onClick={row.onClick}
+                title={row.onClick ? 'Click to change unit' : source ? `Source: ${source}` : undefined}
+              >
+                <div className="text-[10px] font-medium text-rc-text">{row.label}</div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-rc-text-muted">{row.unit}</span>
+                  {source && (
+                    <span className={`text-[7px] leading-none px-1 py-[1px] rounded ${
+                      source.startsWith('DFO') ? 'bg-blue-500/20 text-blue-300' :
+                      source === 'Stormglass' ? 'bg-amber-500/20 text-amber-300' :
+                      'bg-rc-bg-light text-rc-text-muted'
+                    }`}>
+                      {source}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {/* Data columns - flex to fill remaining space */}

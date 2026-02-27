@@ -7,7 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { fetchOpenMeteoWeather, fetchOpenMeteoHistoricalWeather } from '@/app/utils/openMeteoApi';
-import { fetchCHSTideData, type CHSWaterData } from '@/app/utils/chsTideApi';
+import { fetchCHSTideDataByCoordinates, type CHSWaterData } from '@/app/utils/chsTideApi';
 import { calculateOpenMeteoFishingScore } from '@/app/utils/fishingCalculations';
 import { getMoonPhase } from '@/app/utils/astronomicalCalculations';
 import type { OpenMeteo15MinData } from '@/app/utils/openMeteoApi';
@@ -842,34 +842,6 @@ export async function getUserEmail(userId: string): Promise<string | null> {
 /**
  * Find the nearest CHS station for a location
  */
-export function findNearestStation(lat: number, lng: number): string | null {
-  // Import the station mapping from chsTideApi
-  const stations: Record<string, { lat: number; lng: number }> = {
-    'victoria-sidney': { lat: 48.4284, lng: -123.3656 },
-    'sooke-port-renfrew': { lat: 48.3714, lng: -123.7258 },
-    'vancouver': { lat: 49.2827, lng: -123.1207 },
-    'nanaimo': { lat: 49.1659, lng: -123.9401 },
-    'tofino': { lat: 49.1530, lng: -125.9066 },
-    'campbell-river': { lat: 50.0244, lng: -125.2475 },
-    'port-hardy': { lat: 50.7248, lng: -127.4941 },
-  };
-
-  let nearestStation: string | null = null;
-  let minDistance = Infinity;
-
-  for (const [stationId, coords] of Object.entries(stations)) {
-    const distance = Math.sqrt(
-      Math.pow(lat - coords.lat, 2) + Math.pow(lng - coords.lng, 2)
-    );
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearestStation = stationId;
-    }
-  }
-
-  return nearestStation;
-}
-
 // =============================================================================
 // Main Processing Function
 // =============================================================================
@@ -944,9 +916,11 @@ export async function processAlerts(): Promise<{
         const sunrise = dailyData?.sunrise ? new Date(dailyData.sunrise).getTime() / 1000 : 0;
         const sunset = dailyData?.sunset ? new Date(dailyData.sunset).getTime() / 1000 : 0;
 
-        // Fetch tide data
-        const stationId = findNearestStation(lat, lng);
-        const tideData = stationId ? await fetchCHSTideData(stationId) : null;
+        // Fetch tide data using GPS-based station registry
+        const tideData = await fetchCHSTideDataByCoordinates(lat, lng).catch(err => {
+          console.warn(`Tide data not available for alert at (${lat}, ${lng}):`, err);
+          return null;
+        });
 
         // Process each profile at this location
         for (const profile of locationProfiles) {

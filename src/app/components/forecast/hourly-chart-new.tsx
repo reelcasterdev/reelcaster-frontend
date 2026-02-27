@@ -15,6 +15,7 @@ interface HourlyChartNewProps {
   onHoverChange?: (index: number | null) => void
   mobilePeriod?: 'am' | 'pm'
   onPeriodChange?: (period: 'am' | 'pm') => void
+  compact?: boolean
 }
 
 type LayerType = 'score' | 'wind' | 'temp' | 'wave' | 'tide'
@@ -27,7 +28,7 @@ const LAYER_TABS: { id: LayerType; label: string }[] = [
   { id: 'tide', label: 'Tide' },
 ]
 
-export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData, onHoverChange, mobilePeriod = 'am', onPeriodChange }: HourlyChartNewProps) {
+export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData, onHoverChange, mobilePeriod = 'am', onPeriodChange, compact = false }: HourlyChartNewProps) {
   const [activeLayer, setActiveLayer] = useState<LayerType>('score')
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const { heightUnit } = useUnitPreferences()
@@ -287,16 +288,18 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData, o
   }
 
   return (
-    <div className="bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-6">
+    <div className={compact ? 'h-full' : 'bg-rc-bg-darkest rounded-xl border border-rc-bg-light p-6'}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2">
-        <div>
-          <h2 className="text-xl font-semibold text-rc-text">24H Overall Score</h2>
-          <p className="text-sm text-rc-text-muted mt-1">Best fishing periods and outlook for the next two weeks.</p>
-        </div>
+      <div className={`flex ${compact ? 'flex-row items-center' : 'flex-col sm:flex-row sm:items-start sm:justify-between'} gap-${compact ? '2' : '4'} mb-2`}>
+        {!compact && (
+          <div>
+            <h2 className="text-xl font-semibold text-rc-text">24H Overall Score</h2>
+            <p className="text-sm text-rc-text-muted mt-1">Best fishing periods and outlook for the next two weeks.</p>
+          </div>
+        )}
 
         {/* Layer Toggle Tabs */}
-        <div className="flex items-center gap-1 bg-rc-bg-dark rounded-lg p-1">
+        <div className={`flex items-center gap-1 bg-rc-bg-dark rounded-lg p-1 ${compact ? '' : ''}`}>
           {LAYER_TABS.map(tab => (
             <button
               key={tab.id}
@@ -313,8 +316,8 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData, o
         </div>
       </div>
 
-      {/* AM/PM toggle - mobile only */}
-      {isMobile && (
+      {/* AM/PM toggle - mobile only, not in compact mode */}
+      {isMobile && !compact && (
         <div className="flex items-center justify-between mt-2 mb-1">
           <span className="text-xs text-rc-text-muted">Hourly Chart</span>
           <div className="flex bg-rc-bg-darkest rounded-lg overflow-hidden border border-rc-bg-light">
@@ -343,7 +346,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData, o
       )}
 
       {/* Chart */}
-      <div className="h-[320px] mt-4 flex">
+      <div className={`${compact ? 'h-[160px]' : 'h-[320px]'} mt-${compact ? '1' : '4'} flex`}>
         {/* Y-axis label - matches table label column width */}
         <div className="flex-shrink-0 flex flex-col justify-between py-2 pr-1" style={{ width: '55px' }}>
           <span className="text-xs text-rc-text-muted">{yAxisMax}</span>
@@ -485,7 +488,7 @@ export default function HourlyChartNew({ forecasts, selectedDay = 0, tideData, o
       </div>
 
       {/* Hover Info Display */}
-      <div className="h-8 mt-4 flex items-center justify-center">
+      <div className={`h-${compact ? '6' : '8'} mt-${compact ? '1' : '4'} flex items-center justify-center`}>
         {hoveredIndex !== null ? (
           <div className="flex items-center gap-3 px-4 py-1.5 bg-rc-bg-dark rounded-lg">
             <div
