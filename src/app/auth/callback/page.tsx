@@ -11,15 +11,17 @@ export default function AuthCallbackPage() {
     // Supabase JS automatically picks up the token from the URL hash
     // and establishes the session. We just need to wait for it and redirect.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
-        router.replace('/')
+      if (event === 'PASSWORD_RECOVERY') {
+        router.replace('/auth/reset-password')
+      } else if (event === 'SIGNED_IN') {
+        router.replace('/favorite-spots')
       }
     })
 
     // Fallback: if already signed in, redirect immediately
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace('/')
+        router.replace('/favorite-spots')
       }
     })
 
@@ -34,7 +36,7 @@ export default function AuthCallbackPage() {
           <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse [animation-delay:150ms]" />
           <span className="w-2 h-2 rounded-full bg-blue-300 animate-pulse [animation-delay:300ms]" />
         </div>
-        <p className="text-sm text-rc-text-muted">Confirming your email...</p>
+        <p className="text-sm text-rc-text-muted">Processing...</p>
       </div>
     </div>
   )

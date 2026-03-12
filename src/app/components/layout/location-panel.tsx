@@ -1,10 +1,12 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { MapPin } from 'lucide-react'
+import { MapPin, Star } from 'lucide-react'
 import { Logo } from '@/app/components/common/logo'
 import { getRegulationsByLocation } from '@/app/data/regulations'
+import { useAuth } from '@/contexts/auth-context'
+import { supabase } from '@/lib/supabase'
 import {
   FISHING_LOCATIONS,
   getLocationByName,
@@ -12,6 +14,14 @@ import {
   type FishingLocation,
   type Hotspot,
 } from '@/app/config/locations'
+
+interface FavoriteSpot {
+  id: string
+  name: string
+  location: string | null
+  lat: number
+  lon: number
+}
 /** Selected item background color */
 const SELECTED_BG = 'bg-[#2F2F2F]'
 
@@ -62,10 +72,34 @@ function SelectableItem({ isSelected, disabled, onClick, children }: SelectableI
 export default function LocationPanel() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
 
   const currentLocation = searchParams.get('location') || 'Victoria, Sidney'
   const currentHotspot = searchParams.get('hotspot') || 'Breakwater'
   const currentSpecies = searchParams.get('species') || null
+
+  // Favorite spots
+  const [favoriteSpots, setFavoriteSpots] = useState<FavoriteSpot[]>([])
+
+  useEffect(() => {
+    if (!user) return
+    const fetchFavorites = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      try {
+        const res = await fetch('/api/favorite-spots', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setFavoriteSpots(data.spots || [])
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    fetchFavorites()
+  }, [user])
 
   const selectedLocationData = useMemo(() => {
     return getLocationByName(currentLocation) || getDefaultLocation()
@@ -182,6 +216,43 @@ export default function LocationPanel() {
             )}
           </ul>
         </section>
+
+        {/* Favorites Section */}
+        {favoriteSpots.length > 0 && (
+          <section className="p-3 border-t border-rc-bg-light" aria-label="Favorite spots">
+            <div className="flex items-center justify-between mb-2">
+              <SectionHeader>Favorites</SectionHeader>
+              <button
+                onClick={() => router.push('/favorite-spots')}
+                className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Edit
+              </button>
+            </div>
+            <ul className="space-y-0.5">
+              {favoriteSpots.map(spot => (
+                <li key={spot.id}>
+                  <SelectableItem
+                    isSelected={currentHotspot === spot.name}
+                    onClick={() => {
+                      const params = new URLSearchParams(searchParams.toString())
+                      params.set('hotspot', spot.name)
+                      params.set('lat', spot.lat.toString())
+                      params.set('lon', spot.lon.toString())
+                      if (spot.location) params.set('location', spot.location)
+                      router.push(`/?${params.toString()}`)
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                      <span className="text-sm truncate">{spot.name}</span>
+                    </div>
+                  </SelectableItem>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Species Section */}
         <section className="p-3 border-t border-rc-bg-light" aria-label="Species selection">

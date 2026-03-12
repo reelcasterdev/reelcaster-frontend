@@ -210,9 +210,24 @@ function V2ForecastContent() {
 function HomePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
+  const [redirectChecked, setRedirectChecked] = useState(false)
+
+  // Redirect logged-in users to /favorite-spots once per tab session
+  useEffect(() => {
+    if (authLoading) return
+
+    if (user && sessionStorage.getItem('rc-visited-favorites') !== 'true') {
+      router.replace('/favorite-spots')
+      return
+    }
+
+    setRedirectChecked(true)
+  }, [authLoading, user, router])
 
   useEffect(() => {
+    if (!redirectChecked) return
+
     const loadDefaultLocation = async () => {
       if (!searchParams.get('location') && !searchParams.get('hotspot')) {
         try {
@@ -244,7 +259,25 @@ function HomePage() {
     }
 
     loadDefaultLocation()
-  }, [searchParams, router, user])
+  }, [redirectChecked, searchParams, router, user])
+
+  if (!redirectChecked) {
+    return (
+      <AppShellV2 rightSidebar={null}>
+        <div className="relative h-full">
+          <div className="absolute inset-0 bg-rc-bg-darkest flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse [animation-delay:150ms]" />
+                <span className="w-2 h-2 rounded-full bg-blue-300 animate-pulse [animation-delay:300ms]" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </AppShellV2>
+    )
+  }
 
   return <V2ForecastContent />
 }

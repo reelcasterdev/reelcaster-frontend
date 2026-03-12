@@ -199,6 +199,9 @@ export type AnalyticsEventName =
   // Performance
   | 'Page Load Time'
   | 'API Call'
+  // Password Reset
+  | 'Password Reset Requested'
+  | 'Password Reset Completed'
   // Errors
   | 'Error';
 
