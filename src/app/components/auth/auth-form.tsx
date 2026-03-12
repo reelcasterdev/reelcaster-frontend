@@ -17,13 +17,13 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ defaultMode = 'signin', onSuccess, source = 'auth-form', className }: AuthFormProps) {
-  const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode)
+  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(defaultMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, resetPasswordForEmail } = useAuth()
   const { trackEvent } = useAnalytics()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,27 +33,40 @@ export function AuthForm({ defaultMode = 'signin', onSuccess, source = 'auth-for
     setLoading(true)
 
     try {
-      const { error } = mode === 'signin' ? await signIn(email, password) : await signUp(email, password)
-
-      if (error) {
-        setError(error.message)
-      } else {
-        if (mode === 'signup') {
-          setSuccess(true)
-          trackEvent('Sign Up', {
-            method: 'email',
-            source,
-            timestamp: new Date().toISOString(),
-          })
+      if (mode === 'forgot') {
+        const { error } = await resetPasswordForEmail(email)
+        if (error) {
+          setError(error.message)
         } else {
-          trackEvent('Sign In', {
-            method: 'email',
+          setSuccess(true)
+          trackEvent('Password Reset Requested', {
             source,
             timestamp: new Date().toISOString(),
           })
-          onSuccess?.()
-          setEmail('')
-          setPassword('')
+        }
+      } else {
+        const { error } = mode === 'signin' ? await signIn(email, password) : await signUp(email, password)
+
+        if (error) {
+          setError(error.message)
+        } else {
+          if (mode === 'signup') {
+            setSuccess(true)
+            trackEvent('Sign Up', {
+              method: 'email',
+              source,
+              timestamp: new Date().toISOString(),
+            })
+          } else {
+            trackEvent('Sign In', {
+              method: 'email',
+              source,
+              timestamp: new Date().toISOString(),
+            })
+            onSuccess?.()
+            setEmail('')
+            setPassword('')
+          }
         }
       }
     } catch {
@@ -82,11 +95,25 @@ export function AuthForm({ defaultMode = 'signin', onSuccess, source = 'auth-for
           <CheckCircle className="h-12 w-12 text-emerald-400" />
           <h3 className="font-semibold text-rc-text text-lg">Check Your Email!</h3>
           <p className="text-sm text-rc-text-light">
-            We&apos;ve sent a confirmation link to <span className="font-medium text-rc-text">{email}</span>
+            We&apos;ve sent a {mode === 'forgot' ? 'password reset' : 'confirmation'} link to <span className="font-medium text-rc-text">{email}</span>
           </p>
           <p className="text-xs text-rc-text-muted">
-            Click the link in the email to activate your account
+            {mode === 'forgot'
+              ? 'Click the link in the email to reset your password'
+              : 'Click the link in the email to activate your account'}
           </p>
+          {mode === 'forgot' && (
+            <button
+              type="button"
+              onClick={() => {
+                setMode('signin')
+                resetForm()
+              }}
+              className="text-sm text-blue-400 hover:text-blue-300 transition-colors mt-2"
+            >
+              Back to Sign In
+            </button>
+          )}
         </div>
       </div>
     )
@@ -120,22 +147,38 @@ export function AuthForm({ defaultMode = 'signin', onSuccess, source = 'auth-for
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor={`${source}-password`} className="text-sm font-medium text-rc-text">
-            Password
-          </Label>
-          <Input
-            id={`${source}-password`}
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            disabled={loading}
-            minLength={6}
-          />
-          {mode === 'signup' && <p className="text-xs text-rc-text-muted">Minimum 6 characters</p>}
-        </div>
+        {mode !== 'forgot' && (
+          <div className="space-y-2">
+            <Label htmlFor={`${source}-password`} className="text-sm font-medium text-rc-text">
+              Password
+            </Label>
+            <Input
+              id={`${source}-password`}
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              disabled={loading}
+              minLength={6}
+            />
+            <div className="flex items-center justify-between">
+              {mode === 'signup' && <p className="text-xs text-rc-text-muted">Minimum 6 characters</p>}
+              {mode === 'signin' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('forgot')
+                    resetForm()
+                  }}
+                  className="ml-auto text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <Button
           type="submit"
@@ -147,6 +190,8 @@ export function AuthForm({ defaultMode = 'signin', onSuccess, source = 'auth-for
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-rc-text border-t-transparent" />
               Processing...
             </span>
+          ) : mode === 'forgot' ? (
+            'Send Reset Link'
           ) : mode === 'signin' ? (
             'Sign In'
           ) : (
@@ -160,18 +205,25 @@ export function AuthForm({ defaultMode = 'signin', onSuccess, source = 'auth-for
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-rc-bg-dark px-2 text-rc-text-muted">
-              {mode === 'signin' ? 'New to ReelCaster?' : 'Already have an account?'}
+              {mode === 'forgot' ? 'Remember your password?' : mode === 'signin' ? 'New to ReelCaster?' : 'Already have an account?'}
             </span>
           </div>
         </div>
 
         <button
           type="button"
-          onClick={switchMode}
+          onClick={() => {
+            if (mode === 'forgot') {
+              setMode('signin')
+              resetForm()
+            } else {
+              switchMode()
+            }
+          }}
           disabled={loading}
           className="w-full h-11 rounded-md text-sm font-medium bg-rc-bg-light border border-rc-bg-light text-rc-text hover:bg-rc-bg-dark transition-colors disabled:opacity-50"
         >
-          {mode === 'signin' ? 'Create an Account' : 'Sign In Instead'}
+          {mode === 'forgot' ? 'Back to Sign In' : mode === 'signin' ? 'Create an Account' : 'Sign In Instead'}
         </button>
       </form>
     </div>
