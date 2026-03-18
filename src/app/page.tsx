@@ -76,6 +76,7 @@ function V2ForecastContent() {
       selectedDay={selectedDay}
       species={species}
       selectedLocation={selectedLocation}
+      coordinates={coordinates}
       onDetailsClick={() => setShowAlgorithmModal(true)}
     />
   ) : null
@@ -109,6 +110,7 @@ function V2ForecastContent() {
                   onHotspotChange={handleHotspotChange}
                   openMeteoData={openMeteoData}
                   tideData={tideData}
+                  activeLayers={activeLayers}
                 />
               </div>
             )}
@@ -167,6 +169,11 @@ function V2ForecastContent() {
                 compact
               />
 
+              <MapLayerControls
+                activeLayers={activeLayers}
+                onToggleLayer={toggleLayer}
+              />
+
               <div className="flex-1" />
             </div>
 
@@ -180,6 +187,7 @@ function V2ForecastContent() {
                 selectedDay={selectedDay}
                 species={species}
                 selectedLocation={selectedLocation}
+                coordinates={coordinates}
                 hoveredHourIndex={hoveredHourIndex}
                 onHoverChange={setHoveredHourIndex}
                 mobilePeriod={mobilePeriod}

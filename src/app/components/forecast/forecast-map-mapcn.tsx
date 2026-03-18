@@ -33,6 +33,7 @@ interface ForecastMapMapcnProps {
   openMeteoData: ProcessedOpenMeteoData | null
   tideData?: CHSWaterData | null
   variant?: 'card' | 'fullscreen'
+  activeLayers?: string[]
 }
 
 const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
@@ -45,6 +46,7 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tideData,
   variant = 'card',
+  activeLayers = [],
 }) => {
   const isFullscreen = variant === 'fullscreen'
   const mapRef = useRef<MapRef>(null)
@@ -204,6 +206,75 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
       map.off('click', handler)
     }
   }, [onHotspotChange])
+
+  // Manage CHS bathymetry layer
+  const showDepth = activeLayers.includes('depth')
+  React.useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    const addBathymetry = () => {
+      if (showDepth) {
+        if (!map.getSource('bathymetry-chs')) {
+          map.addSource('bathymetry-chs', {
+            type: 'raster',
+            tiles: ['/api/tiles/chs-bathymetry/{z}/{y}/{x}'],
+            tileSize: 256,
+            minzoom: 0,
+            maxzoom: 18,
+          })
+        }
+        if (!map.getLayer('bathymetry-chs-layer')) {
+          // Insert below markers by finding first symbol layer
+          const layers = map.getStyle().layers
+          let beforeId: string | undefined
+          if (layers) {
+            for (const layer of layers) {
+              if (layer.type === 'symbol') {
+                beforeId = layer.id
+                break
+              }
+            }
+          }
+          map.addLayer(
+            {
+              id: 'bathymetry-chs-layer',
+              type: 'raster',
+              source: 'bathymetry-chs',
+              paint: {
+                'raster-opacity': 0.7,
+              },
+            },
+            beforeId
+          )
+        }
+      } else {
+        if (map.getLayer('bathymetry-chs-layer')) {
+          map.removeLayer('bathymetry-chs-layer')
+        }
+        if (map.getSource('bathymetry-chs')) {
+          map.removeSource('bathymetry-chs')
+        }
+      }
+    }
+
+    // If map style is already loaded, add immediately; otherwise wait
+    if (map.isStyleLoaded()) {
+      addBathymetry()
+    } else {
+      map.once('styledata', addBathymetry)
+    }
+
+    return () => {
+      // Cleanup on unmount or when toggling off
+      if (!showDepth && map.getLayer('bathymetry-chs-layer')) {
+        map.removeLayer('bathymetry-chs-layer')
+      }
+      if (!showDepth && map.getSource('bathymetry-chs')) {
+        map.removeSource('bathymetry-chs')
+      }
+    }
+  }, [showDepth])
 
   return (
     <div className={isFullscreen ? 'h-full w-full' : 'space-y-3'}>
@@ -453,6 +524,29 @@ const ForecastMapMapcn: React.FC<ForecastMapMapcnProps> = ({
             </MapPopup>
           )}
         </Map>
+
+        {/* Depth Legend */}
+        {showDepth && (
+          <div className="absolute bottom-14 left-3 bg-rc-bg-dark/90 backdrop-blur-sm border border-rc-bg-light rounded-lg p-2.5 pointer-events-auto z-10">
+            <p className="text-[10px] font-medium text-rc-text mb-1.5">Depth</p>
+            <div className="space-y-0.5">
+              {[
+                { depth: '0-10m', color: '#ADD8E6', label: 'Shore' },
+                { depth: '10-50m', color: '#87CEEB', label: 'Shallow' },
+                { depth: '50-100m', color: '#64B4DC', label: 'Rockfish' },
+                { depth: '100-200m', color: '#468CC8', label: 'Lingcod' },
+                { depth: '200-500m', color: '#3264B4', label: 'Halibut' },
+                { depth: '500m+', color: '#1E4696', label: 'Deep' },
+              ].map(item => (
+                <div key={item.depth} className="flex items-center gap-1.5">
+                  <div className="w-3 h-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
+                  <span className="text-[9px] text-rc-text-muted">{item.depth}</span>
+                  <span className="text-[9px] text-rc-text-light">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Gradient overlay at bottom for text readability */}
         {!isFullscreen && (

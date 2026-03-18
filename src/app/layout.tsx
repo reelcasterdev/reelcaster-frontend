@@ -47,7 +47,7 @@ export default function RootLayout({
             </UnitPreferencesProvider>
           </MixpanelProvider>
         </AuthProvider>
-        <GoogleAnalytics gaId="G-XN9Y47EB8N" />
+        <GoogleAnalytics gaId="G-HLHG768MWJ" />
       </body>
     </html>
   )
