@@ -11,6 +11,7 @@ import HourlyTableNew from '../forecast/hourly-table-new'
 import V2ScoreDisplay from './v2-score-display'
 import V2DetailsGrid from './v2-details-grid'
 import V2SpeciesPanel from './v2-species-panel'
+import AITipPanel from './ai-tip-panel'
 
 interface BottomSheetMobileProps {
   forecastData: OpenMeteoDailyForecast[]
@@ -20,6 +21,7 @@ interface BottomSheetMobileProps {
   selectedDay: number
   species: string | null
   selectedLocation: string
+  coordinates: { lat: number; lon: number }
   hoveredHourIndex: number | null
   onHoverChange: (index: number | null) => void
   mobilePeriod: 'am' | 'pm'
@@ -44,6 +46,7 @@ export default function BottomSheetMobile({
   selectedDay,
   species,
   selectedLocation,
+  coordinates,
   hoveredHourIndex,
   onHoverChange,
   mobilePeriod,
@@ -195,6 +198,15 @@ export default function BottomSheetMobile({
                   openMeteoData={openMeteoData}
                   tideData={tideData}
                   selectedDay={selectedDay}
+                />
+                <AITipPanel
+                  forecastData={forecastData}
+                  openMeteoData={openMeteoData}
+                  tideData={tideData}
+                  selectedDay={selectedDay}
+                  species={species}
+                  selectedLocation={selectedLocation}
+                  coordinates={coordinates}
                 />
                 <V2SpeciesPanel
                   selectedLocation={selectedLocation}

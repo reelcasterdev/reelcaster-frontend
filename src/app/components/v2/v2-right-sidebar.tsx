@@ -6,6 +6,7 @@ import { CHSWaterData } from '@/app/utils/chsTideApi'
 import V2ScoreDisplay from './v2-score-display'
 import V2DetailsGrid from './v2-details-grid'
 import V2SpeciesPanel from './v2-species-panel'
+import AITipPanel from './ai-tip-panel'
 
 interface V2RightSidebarProps {
   forecastData: OpenMeteoDailyForecast[]
@@ -14,6 +15,7 @@ interface V2RightSidebarProps {
   selectedDay: number
   species: string | null
   selectedLocation: string
+  coordinates: { lat: number; lon: number }
   onDetailsClick: () => void
 }
 
@@ -24,6 +26,7 @@ export default function V2RightSidebar({
   selectedDay,
   species,
   selectedLocation,
+  coordinates,
   onDetailsClick,
 }: V2RightSidebarProps) {
   const score = forecastData[selectedDay]?.twoHourForecasts.length > 0
@@ -38,6 +41,15 @@ export default function V2RightSidebar({
         openMeteoData={openMeteoData}
         tideData={tideData}
         selectedDay={selectedDay}
+      />
+      <AITipPanel
+        forecastData={forecastData}
+        openMeteoData={openMeteoData}
+        tideData={tideData}
+        selectedDay={selectedDay}
+        species={species}
+        selectedLocation={selectedLocation}
+        coordinates={coordinates}
       />
       <V2SpeciesPanel
         selectedLocation={selectedLocation}

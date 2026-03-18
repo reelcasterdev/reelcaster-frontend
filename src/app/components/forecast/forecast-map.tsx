@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useMemo } from 'react';
-import Map, { Marker, MapRef } from 'react-map-gl/mapbox';
+import Map, { Marker, MapRef, Source, Layer } from 'react-map-gl/mapbox';
 import type { MapMouseEvent } from 'mapbox-gl';
 import { MapPin, Wind, CloudRain, Thermometer, X, Star, Heart, Check, Loader2 } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -25,6 +25,7 @@ interface ForecastMapProps {
   openMeteoData: ProcessedOpenMeteoData | null;
   tideData?: CHSWaterData | null;
   variant?: 'card' | 'fullscreen';
+  activeLayers?: string[];
 }
 
 const ForecastMap: React.FC<ForecastMapProps> = ({
@@ -37,6 +38,7 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tideData,
   variant = 'card',
+  activeLayers = [],
 }) => {
   const isFullscreen = variant === 'fullscreen';
   const mapRef = useRef<MapRef>(null);
@@ -301,6 +303,26 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
             );
           })}
 
+          {/* CHS Bathymetry Layer */}
+          {activeLayers.includes('depth') && (
+            <Source
+              id="bathymetry-chs"
+              type="raster"
+              tiles={['/api/tiles/chs-bathymetry/{z}/{y}/{x}']}
+              tileSize={256}
+              minzoom={0}
+              maxzoom={18}
+            >
+              <Layer
+                id="bathymetry-chs-layer"
+                type="raster"
+                paint={{
+                  'raster-opacity': 0.7,
+                }}
+              />
+            </Source>
+          )}
+
           {/* Custom Pin Marker */}
           {customPin && (
             <Marker
@@ -449,6 +471,29 @@ const ForecastMap: React.FC<ForecastMapProps> = ({
             </Marker>
           )}
         </Map>
+
+        {/* Depth Legend */}
+        {activeLayers.includes('depth') && (
+          <div className="absolute bottom-14 left-3 bg-rc-bg-dark/90 backdrop-blur-sm border border-rc-bg-light rounded-lg p-2.5 pointer-events-auto z-10">
+            <p className="text-[10px] font-medium text-rc-text mb-1.5">Depth</p>
+            <div className="space-y-0.5">
+              {[
+                { depth: '0-10m', color: '#ADD8E6', label: 'Shore' },
+                { depth: '10-50m', color: '#87CEEB', label: 'Shallow' },
+                { depth: '50-100m', color: '#64B4DC', label: 'Rockfish' },
+                { depth: '100-200m', color: '#468CC8', label: 'Lingcod' },
+                { depth: '200-500m', color: '#3264B4', label: 'Halibut' },
+                { depth: '500m+', color: '#1E4696', label: 'Deep' },
+              ].map(item => (
+                <div key={item.depth} className="flex items-center gap-1.5">
+                  <div className="w-3 h-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
+                  <span className="text-[9px] text-rc-text-muted">{item.depth}</span>
+                  <span className="text-[9px] text-rc-text-light">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Custom Pin Instructions */}
         {!isFullscreen && (

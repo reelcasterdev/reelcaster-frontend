@@ -24,6 +24,7 @@ interface ForecastMapSwitcherProps {
   openMeteoData: ProcessedOpenMeteoData | null;
   tideData?: CHSWaterData | null;
   variant?: 'card' | 'fullscreen';
+  activeLayers?: string[];
 }
 
 type MapType = 'mapbox' | 'windy' | 'mapcn';
@@ -92,7 +93,7 @@ const ForecastMapSwitcher: React.FC<ForecastMapSwitcherProps> = ({ variant = 'ca
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { variant: _variant, ...mapBaseProps } = props;
   const mapElement = selectedMap === 'mapbox' ? (
-    <ForecastMap {...mapBaseProps} variant={variant} />
+    <ForecastMap {...mapBaseProps} variant={variant} activeLayers={props.activeLayers} />
   ) : selectedMap === 'mapcn' ? (
     <Suspense fallback={
       <div className={`w-full ${isFullscreen ? 'h-full' : 'h-[350px] sm:h-[500px]'} rounded-xl bg-rc-bg-dark border border-rc-bg-light flex items-center justify-center`}>
@@ -106,7 +107,7 @@ const ForecastMapSwitcher: React.FC<ForecastMapSwitcherProps> = ({ variant = 'ca
         </div>
       </div>
     }>
-      <ForecastMapMapcn {...mapBaseProps} variant={variant} />
+      <ForecastMapMapcn {...mapBaseProps} variant={variant} activeLayers={props.activeLayers} />
     </Suspense>
   ) : (() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
