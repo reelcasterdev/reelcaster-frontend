@@ -21,7 +21,6 @@ import {
   type FishingScore,
 } from '@/app/utils/fishingCalculations'
 import { fetchForecastBundle } from '@/app/utils/forecastDataProvider'
-import type { CHSWaterData } from '@/app/utils/chsTideApi'
 
 import {
   FACTOR_META,
