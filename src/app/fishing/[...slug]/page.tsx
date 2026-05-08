@@ -20,6 +20,8 @@ import CityAccessPoints from "@/components/fishing/city-access-points";
 import CityLocalExperts from "@/components/fishing/city-local-experts";
 import CityFaq from "@/components/fishing/city-faq";
 import CityJsonLd from "@/components/fishing/city-json-ld";
+import CityRegulationAlerts from "@/components/fishing/city-regulation-alerts";
+import CityCatchReports from "@/components/fishing/city-catch-reports";
 import SpotHero from "@/components/fishing/spot-hero";
 import SpotScoreCta from "@/components/fishing/spot-score-cta";
 import SpotSeasonalAbundance from "@/components/fishing/spot-seasonal-abundance";
@@ -28,6 +30,8 @@ import SpotLocalExperts from "@/components/fishing/spot-local-experts";
 import SpotJsonLd from "@/components/fishing/spot-json-ld";
 import SpotBreakdownPanel from "@/components/fishing/spot-breakdown-panel";
 import SpotPaywallTeaser from "@/components/fishing/spot-paywall-teaser";
+import SpotRegulationAlerts from "@/components/fishing/spot-regulation-alerts";
+import SpotNearbySpots from "@/components/fishing/spot-nearby-spots";
 import AuthAwareReveal from "@/app/components/marketing/auth-aware-reveal";
 import SignedOutSpotBanner from "@/app/components/marketing/signed-out-spot-banner";
 import HorizonAwareForecast from "@/app/components/marketing/horizon-aware-forecast";
@@ -154,6 +158,7 @@ async function CityPage({ citySlug }: { citySlug: string }) {
       <article>
         <CityHero data={data} />
         <CityConditionsStrip conditions={data.conditions_now} />
+        <CityRegulationAlerts regulatoryAreas={data.regulatory_areas} />
         <CityAbout md={data.page.about_md} cityName={data.hierarchy.city.name} />
         <CityTechniques techniques={data.page.techniques} />
         <CityScoreCta score={data.rc_score_today} citySlug={data.page.slug} />
@@ -167,6 +172,10 @@ async function CityPage({ citySlug }: { citySlug: string }) {
           regulatoryAreas={data.regulatory_areas}
         />
         <CitySeasonalGuide quarters={data.seasonal_guide} />
+        <CityCatchReports
+          citySlug={data.hierarchy.city.slug}
+          cityName={data.hierarchy.city.name}
+        />
         <CityLocalIntel md={data.page.local_intel_md} />
         <CityAccessPoints points={data.access_points} />
         <CityLocalExperts charters={data.charters} />
@@ -250,6 +259,7 @@ async function SpotPage({
       <SpotJsonLd data={fullData} />
       <article>
         <SpotHero data={fullData} />
+        <SpotRegulationAlerts dfoAreaLabel={fullData.spot.dfo_area_label} />
         <CityAbout md={fullData.page.about_md} cityName={fullData.spot.name} />
         <CityTechniques techniques={fullData.page.techniques} />
         <SpotScoreCta score={fullData.rc_score_now} spotSlug={fullData.page.slug} />
@@ -291,6 +301,11 @@ async function SpotPage({
         <SpotAccessPoints points={fullData.access_points} />
         <SpotLocalExperts experts={fullData.local_experts} />
         <CityFaq faq={fullData.page.faq} />
+        <SpotNearbySpots
+          lat={fullData.spot.lat}
+          lng={fullData.spot.lng}
+          currentSlug={fullData.spot.slug}
+        />
       </article>
 
       {/* Sticky bottom CTA for signed-out only */}

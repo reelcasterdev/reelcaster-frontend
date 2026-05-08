@@ -57,6 +57,26 @@ test.describe('/fishing/bc/victoria-bc — data-rich city page', () => {
     });
   }
 
+  test('section-city-regulation-alerts — visible with cards or skipped', async ({ page }) => {
+    const strip = page.getByTestId('section-city-regulation-alerts');
+    if (!(await strip.isVisible().catch(() => false))) {
+      test.skip(true, 'no high-signal DFO notices for victoria-bc regulatory areas');
+      return;
+    }
+    await expect(strip).toBeVisible();
+    await expect(page.getByTestId('regulation-alert-card').first()).toBeVisible();
+  });
+
+  test('section-city-catch-reports — visible with cards or skipped', async ({ page }) => {
+    const section = page.getByTestId('section-city-catch-reports');
+    if (!(await section.isVisible().catch(() => false))) {
+      test.skip(true, 'no active fishing_reports for Victoria, Sidney');
+      return;
+    }
+    await expect(section).toBeVisible();
+    await expect(page.getByTestId('report-highlight-card').first()).toBeVisible();
+  });
+
   test('SEO basics: title + meta description', async ({ page }) => {
     await assertHasTitle(page);
     await assertHasMetaDescription(page);
