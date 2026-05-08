@@ -13,12 +13,12 @@ function cellsForWeight(weight: number): number {
 }
 
 function colorForWeight(weight: number): string {
-  if (weight >= 1.2) return "bg-blue-700";
-  if (weight >= 1.05) return "bg-emerald-600";
+  if (weight >= 1.2) return "bg-blue-500";
+  if (weight >= 1.05) return "bg-emerald-500";
   if (weight >= 0.85) return "bg-emerald-400";
   if (weight >= 0.55) return "bg-amber-400";
-  if (weight >= 0.25) return "bg-orange-300";
-  return "bg-stone-300";
+  if (weight >= 0.25) return "bg-orange-400";
+  return "bg-rc-bg-light";
 }
 
 export default function SpotSeasonalAbundance({
@@ -32,12 +32,15 @@ export default function SpotSeasonalAbundance({
   const currentMonth = new Date().getMonth(); // 0-indexed
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
+    <section
+      data-testid="section-spot-seasonal-abundance"
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
       <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900">
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text">
           Seasonal Abundance
         </h2>
-        <p className="text-sm text-slate-500 mt-1 font-mono tracking-wide">
+        <p className="text-sm text-rc-text-muted mt-1 font-mono tracking-wide">
           12-month relative abundance per species. Dashed column marks current month.
         </p>
       </div>
@@ -51,7 +54,7 @@ export default function SpotSeasonalAbundance({
             <tr>
               <th
                 scope="col"
-                className="text-left pr-4 pb-2 font-mono text-xs uppercase tracking-widest text-slate-400 font-medium w-32"
+                className="text-left pr-4 pb-2 font-mono text-xs uppercase tracking-widest text-rc-text-muted font-medium w-32"
               >
                 Species
               </th>
@@ -60,7 +63,7 @@ export default function SpotSeasonalAbundance({
                   key={m}
                   scope="col"
                   className={`text-center pb-2 font-mono text-xs uppercase tracking-widest font-medium ${
-                    i === currentMonth ? "text-slate-700" : "text-slate-400"
+                    i === currentMonth ? "text-rc-text" : "text-rc-text-muted"
                   }`}
                 >
                   {m}
@@ -70,10 +73,10 @@ export default function SpotSeasonalAbundance({
           </thead>
           <tbody>
             {populated.map((row) => (
-              <tr key={row.species_id} className="border-t border-stone-200">
+              <tr key={row.species_id} className="border-t border-rc-bg-light">
                 <th
                   scope="row"
-                  className="py-3 pr-4 text-left text-slate-900 font-semibold text-sm"
+                  className="py-3 pr-4 text-left text-rc-text font-semibold text-sm"
                 >
                   {row.species_name}
                 </th>
@@ -85,7 +88,7 @@ export default function SpotSeasonalAbundance({
                       key={i}
                       className={`py-3 px-1 text-center align-bottom ${
                         i === currentMonth
-                          ? "border-x border-dashed border-slate-400"
+                          ? "border-x border-dashed border-rc-text-muted"
                           : ""
                       }`}
                       title={`${MONTH_LABELS[i]}: ${w.toFixed(2)}`}
@@ -97,7 +100,7 @@ export default function SpotSeasonalAbundance({
                             <div
                               key={idx}
                               className={`w-full h-1.5 rounded-sm ${
-                                filled ? color : "bg-stone-200"
+                                filled ? color : "bg-rc-bg-light"
                               }`}
                             />
                           );

@@ -2,17 +2,31 @@
  * Favorite Spots CRUD API
  *
  * GET    /api/favorite-spots         - List user's spots
- * POST   /api/favorite-spots         - Create new spot
+ * POST   /api/favorite-spots         - Create new spot (with BlueCaster enrichment + tier gate)
  * PUT    /api/favorite-spots         - Update spot (requires id in body)
  * DELETE /api/favorite-spots?id=xxx  - Delete spot
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { fetchSpotsByCoordinates } from '@/lib/bluecaster'
+import { COVERED_PROVINCES } from '@/lib/regions'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+const FREE_TIER_LIMIT = 5
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .slice(0, 80) || 'spot'
+}
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
@@ -95,17 +109,78 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
 
-    // Validate required fields
     if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
       return NextResponse.json({ error: 'name is required' }, { status: 400 })
     }
-
     if (typeof body.lat !== 'number' || body.lat < -90 || body.lat > 90) {
       return NextResponse.json({ error: 'Valid lat is required' }, { status: 400 })
     }
-
     if (typeof body.lon !== 'number' || body.lon < -180 || body.lon > 180) {
       return NextResponse.json({ error: 'Valid lon is required' }, { status: 400 })
+    }
+
+    // Tier gate: free tier capped at FREE_TIER_LIMIT spots; paid is unlimited.
+    const [{ data: settings }, { count: existingCount }] = await Promise.all([
+      supabaseAdmin
+        .from('user_settings')
+        .select('subscription_tier, subscription_status')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from('favorite_spots')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId),
+    ])
+
+    const tier = settings?.subscription_tier ?? 'free'
+    const status = settings?.subscription_status ?? 'none'
+    const isPaid = (tier === 'pro_annual' || tier === 'pro_monthly') &&
+      (status === 'active' || status === 'trialing')
+
+    if (!isPaid && (existingCount ?? 0) >= FREE_TIER_LIMIT) {
+      return NextResponse.json(
+        {
+          error: `Free tier is limited to ${FREE_TIER_LIMIT} spots`,
+          upgrade_required: true,
+        },
+        { status: 402 },
+      )
+    }
+
+    // Enrich coordinates against BlueCaster reference data. Best-effort —
+    // a missing/erroring backend should not block spot creation.
+    const enrichment = await fetchSpotsByCoordinates(body.lat, body.lon)
+    const provinceCode = enrichment?.province?.code ?? null
+    const isCovered = provinceCode
+      ? (COVERED_PROVINCES as readonly string[]).includes(provinceCode)
+      : false
+
+    // Free user in uncovered region → push to waitlist instead.
+    if (!isPaid && !isCovered && enrichment) {
+      return NextResponse.json(
+        {
+          error: 'This region is not yet covered',
+          waitlist_required: true,
+          province_code: provinceCode,
+        },
+        { status: 403 },
+      )
+    }
+
+    const coverageTier = isCovered ? 't1' : !isPaid ? null : 't3'
+
+    // Generate a unique slug per user. Append counter on collision.
+    const baseSlug = slugify(body.name)
+    let slug = baseSlug
+    for (let i = 1; i < 50; i++) {
+      const { data: dupe } = await supabaseAdmin
+        .from('favorite_spots')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('slug', slug)
+        .maybeSingle()
+      if (!dupe) break
+      slug = `${baseSlug}-${i}`
     }
 
     const { data: spot, error } = await supabaseAdmin
@@ -113,10 +188,17 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: userId,
         name: body.name.trim(),
-        location: body.location || null,
+        location: body.location || enrichment?.nearest_city?.name || null,
         lat: body.lat,
         lon: body.lon,
         notes: body.notes || null,
+        slug,
+        coverage_tier: coverageTier,
+        dfo_area: enrichment?.dfo?.name ?? null,
+        tide_offset_minutes: enrichment?.nearest_tide_station?.time_offset_minutes ?? null,
+        suggested_species_fingerprint: enrichment?.suggested_species ?? null,
+        expected_species: Array.isArray(body.expected_species) ? body.expected_species : null,
+        access_notes: typeof body.access_notes === 'string' ? body.access_notes : null,
       })
       .select()
       .single()
@@ -126,7 +208,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create favorite spot' }, { status: 500 })
     }
 
-    return NextResponse.json({ spot }, { status: 201 })
+    return NextResponse.json({ spot, enrichment }, { status: 201 })
   } catch (error) {
     console.error('Error in POST /api/favorite-spots:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

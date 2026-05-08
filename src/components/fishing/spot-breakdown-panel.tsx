@@ -12,12 +12,15 @@ export default function SpotBreakdownPanel({
   if (rows.length === 0) return null;
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
+    <section
+      data-testid="section-spot-breakdown-panel"
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
       <div className="flex items-baseline justify-between mb-6">
-        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900">
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text">
           Why this score
         </h2>
-        <p className="font-mono text-xs uppercase tracking-widest text-slate-400">
+        <p className="font-mono text-xs uppercase tracking-widest text-rc-text-muted">
           {scoreNow.species_name} · {scoreNow.state}
         </p>
       </div>
@@ -31,14 +34,14 @@ export default function SpotBreakdownPanel({
           return (
             <div
               key={row.key}
-              className="bg-white border border-stone-200 rounded-lg px-4 py-3"
+              className="bg-rc-bg-dark border border-rc-bg-light rounded-lg px-4 py-3"
             >
               <div className="flex items-baseline justify-between mb-2">
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-rc-text">
                   {row.label}
                 </p>
                 {row.state && (
-                  <p className="font-mono text-xs uppercase tracking-widest text-slate-500">
+                  <p className="font-mono text-xs uppercase tracking-widest text-rc-text-muted">
                     {row.state}
                   </p>
                 )}
@@ -47,12 +50,12 @@ export default function SpotBreakdownPanel({
               {row.contribution !== null && (
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-mono text-[10px] tracking-widest uppercase text-slate-400"
+                    className="font-mono text-[10px] tracking-widest uppercase text-rc-text-muted"
                     aria-hidden="true"
                   >
                     {positive ? "▲" : "▼"}
                   </span>
-                  <div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-rc-bg-light rounded-full overflow-hidden">
                     <div
                       className={`h-full ${
                         positive ? "bg-emerald-500" : "bg-amber-500"
@@ -60,7 +63,7 @@ export default function SpotBreakdownPanel({
                       style={{ width: `${widthPct}%` }}
                     />
                   </div>
-                  <span className="font-mono text-xs text-slate-600 tabular-nums w-10 text-right">
+                  <span className="font-mono text-xs text-rc-text-light tabular-nums w-10 text-right">
                     {positive ? "+" : "−"}
                     {widthPct}
                   </span>
@@ -71,7 +74,7 @@ export default function SpotBreakdownPanel({
         })}
       </div>
 
-      <p className="mt-6 text-xs text-slate-400 max-w-3xl">
+      <p className="mt-6 text-xs text-rc-text-muted max-w-3xl">
         Contributions show how each factor pushed today&apos;s score relative to
         baseline. Green bars helped; amber bars hurt.
       </p>

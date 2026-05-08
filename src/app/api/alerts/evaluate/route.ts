@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { processAlerts, getUserEmail } from '@/lib/custom-alert-engine';
 import { sendEmail } from '@/lib/email-service';
 import { generateCustomAlertEmail } from '@/lib/email-templates/custom-alert';
+import { sendSms, isTwilioConfigured } from '@/lib/twilio';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -87,7 +88,13 @@ export async function POST(request: NextRequest) {
           .limit(1)
           .single();
 
-        // Generate email
+        const speciesName = profile.target_species
+          ? profile.target_species
+              .split('-')
+              .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')
+          : null;
+
         const emailContent = generateCustomAlertEmail({
           alertName: profile.name,
           locationName: profile.location_name || `${profile.location_lat.toFixed(4)}, ${profile.location_lng.toFixed(4)}`,
@@ -95,15 +102,41 @@ export async function POST(request: NextRequest) {
           conditionSnapshot: historyEntry?.condition_snapshot || {},
           logicMode: profile.logic_mode,
           forecastUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://reelcaster.com'}?lat=${profile.location_lat}&lng=${profile.location_lng}`,
-          manageAlertsUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://reelcaster.com'}/profile/custom-alerts`,
+          manageAlertsUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://reelcaster.com'}/alerts`,
+          alertKind: profile.alert_kind ?? 'composite',
+          scoreThreshold: profile.score_threshold ?? null,
+          speciesName,
         });
 
-        // Send email
-        const sendResult = await sendEmail({
-          to: email,
-          subject: emailContent.subject,
-          html: emailContent.html,
-        });
+        const channels: string[] = profile.delivery_channels ?? ['email'];
+
+        // Send email when channel is enabled (default behavior preserved)
+        const sendResult = channels.includes('email')
+          ? await sendEmail({
+              to: email,
+              subject: emailContent.subject,
+              html: emailContent.html,
+            })
+          : { success: true };
+
+        // SMS: only fire when channel requested + Twilio configured + phone verified
+        if (channels.includes('sms') && isTwilioConfigured()) {
+          const { data: settings } = await supabaseAdmin
+            .from('user_settings')
+            .select('phone_e164, phone_verified')
+            .eq('user_id', profile.user_id)
+            .maybeSingle();
+          if (settings?.phone_verified && settings.phone_e164) {
+            const smsBody =
+              emailContent.subject.length > 160
+                ? `${emailContent.subject.slice(0, 157)}...`
+                : emailContent.subject;
+            const smsResult = await sendSms(settings.phone_e164, smsBody);
+            if (!smsResult.ok) {
+              console.error(`SMS dispatch failed for ${result.profileId}:`, smsResult);
+            }
+          }
+        }
 
         if (sendResult.success) {
           notificationResults.push({

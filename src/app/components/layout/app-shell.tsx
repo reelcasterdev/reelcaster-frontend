@@ -1,10 +1,16 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import IconSidebar from './icon-sidebar'
 import LocationPanel from './location-panel'
 import MobileTabBar from './mobile-tab-bar'
 import MobileLocationSheet from './mobile-location-sheet'
+
+const GlobalSearch = dynamic(
+  () => import('@/app/components/search/global-search'),
+  { ssr: false },
+)
 
 interface AppShellProps {
   children: React.ReactNode
@@ -19,10 +25,27 @@ export default function AppShell({
 }: AppShellProps) {
   const [isLocationSheetOpen, setIsLocationSheetOpen] = useState(false)
   const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const toggleLocationPanel = () => {
     setIsLocationPanelCollapsed(prev => !prev)
   }
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setIsSearchOpen(true)
+      }
+    }
+    const handleEvent = () => setIsSearchOpen(true)
+    document.addEventListener('keydown', handleKey)
+    window.addEventListener('openGlobalSearch', handleEvent as EventListener)
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      window.removeEventListener('openGlobalSearch', handleEvent as EventListener)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-rc-bg-darkest text-rc-text">
@@ -76,6 +99,9 @@ export default function AppShell({
           onClose={() => setIsLocationSheetOpen(false)}
         />
       </Suspense>
+
+      {/* Global Search Palette (cmd/ctrl+k) */}
+      <GlobalSearch open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   )
 }

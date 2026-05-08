@@ -1,17 +1,13 @@
 import {
   Heart,
-  Calendar,
   Bell,
-  AlertCircle,
   Mail,
   Settings,
   Database,
-  User,
   Anchor,
   LayoutDashboard,
   LucideIcon,
 } from 'lucide-react'
-import { ReportIcon } from '@/app/components/common/report-icon'
 import { ComponentType, SVGProps } from 'react'
 
 /** Icon type that accepts both Lucide icons and custom SVG components */
@@ -33,54 +29,23 @@ export interface NavItem {
  */
 export const MAIN_NAV_ITEMS: NavItem[] = [
   {
-    id: 'reports',
-    label: 'Reports',
-    href: '/',
-    icon: ReportIcon,
+    id: 'dashboard',
+    label: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
   },
   {
-    id: 'species-calendar',
-    label: 'Species Calendar',
-    mobileLabel: 'Calendar',
-    href: '/species-calendar',
-    icon: Calendar,
-  },
-  // {
-  //   id: 'historical-reports',
-  //   label: 'Historical Reports',
-  //   mobileLabel: 'History',
-  //   href: '/historical-reports',
-  //   icon: History,
-  // },
-  {
-    id: 'favorite-spots',
-    label: 'Favorite Spots',
+    id: 'my-spots',
+    label: 'My Spots',
     mobileLabel: 'Spots',
-    href: '/favorite-spots',
+    href: '/my-spots',
     icon: Heart,
-    // disabled: true,
-  },
-  // {
-  //   id: 'species-id',
-  //   label: 'Species ID',
-  //   mobileLabel: 'Species',
-  //   href: '/species-id',
-  //   icon: Fish,
-  //   // disabled: true,
-  // },
-  {
-    id: '14-day-report',
-    label: '14 Day Report',
-    mobileLabel: '14 Day',
-    href: '/14-day-report',
-    icon: Calendar,
-    // disabled: true,
   },
   {
-    id: 'custom-alerts',
-    label: 'Custom Alerts',
+    id: 'alerts',
+    label: 'Alerts',
     mobileLabel: 'Alerts',
-    href: '/profile/custom-alerts',
+    href: '/alerts',
     icon: Bell,
   },
   {
@@ -89,35 +54,6 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     mobileLabel: 'Catches',
     href: '/profile/catch-log',
     icon: Anchor,
-  },
-  // {
-  //   id: 'notifications',
-  //   label: 'Notification Center',
-  //   mobileLabel: 'Alerts',
-  //   href: '/notifications',
-  //   icon: Bell,
-  //   // disabled: true,
-  // },
-  {
-    id: 'dfo-notices',
-    label: 'DFO Notices',
-    mobileLabel: 'DFO',
-    href: '/dfo-notices',
-    icon: AlertCircle,
-    // disabled: true,
-  },
-  {
-    id: 'classic-view',
-    label: 'Classic View',
-    mobileLabel: 'Classic',
-    href: '/v1',
-    icon: LayoutDashboard,
-  },
-  {
-    id: 'profile',
-    label: 'Profile',
-    href: '/profile',
-    icon: User,
   },
 ]
 
@@ -162,6 +98,5 @@ export function isAdminEmail(email: string | null | undefined): boolean {
  */
 export function isRouteActive(href: string, pathname: string): boolean {
   if (href === '/') return pathname === '/' || pathname === ''
-  if (href === '/v1') return pathname === '/v1'
   return pathname.startsWith(href)
 }

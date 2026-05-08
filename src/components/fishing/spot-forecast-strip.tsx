@@ -53,13 +53,13 @@ function bucketByDay(
 }
 
 function scoreColor(score: number | null): string {
-  if (score === null) return "bg-stone-200";
-  if (score >= 0.85) return "bg-blue-700";
-  if (score >= 0.7) return "bg-emerald-600";
+  if (score === null) return "bg-rc-bg-light";
+  if (score >= 0.85) return "bg-blue-500";
+  if (score >= 0.7) return "bg-emerald-500";
   if (score >= 0.55) return "bg-emerald-400";
   if (score >= 0.4) return "bg-amber-400";
-  if (score >= 0.25) return "bg-orange-300";
-  return "bg-stone-300";
+  if (score >= 0.25) return "bg-orange-400";
+  return "bg-rc-bg-light";
 }
 
 export default function SpotForecastStrip({
@@ -84,13 +84,16 @@ export default function SpotForecastStrip({
   const activeDay = days[Math.min(activeDayIndex, days.length - 1)];
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
+    <section
+      data-testid="section-spot-forecast-strip"
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900">
+          <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text">
             14-Day Forecast
           </h2>
-          <p className="text-sm text-slate-500 mt-1 font-mono tracking-wide">
+          <p className="text-sm text-rc-text-muted mt-1 font-mono tracking-wide">
             Hourly RC scores. Click a day for hour-by-hour detail.
           </p>
         </div>
@@ -98,7 +101,7 @@ export default function SpotForecastStrip({
           <div className="flex items-center gap-2">
             <label
               htmlFor="species-filter"
-              className="font-mono text-xs uppercase tracking-widest text-slate-400"
+              className="font-mono text-xs uppercase tracking-widest text-rc-text-muted"
             >
               Species
             </label>
@@ -106,7 +109,7 @@ export default function SpotForecastStrip({
               id="species-filter"
               value={speciesFilter}
               onChange={(e) => setSpeciesFilter(e.target.value)}
-              className="border border-stone-300 bg-white text-sm px-3 py-1.5 rounded text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="border border-rc-bg-light bg-rc-bg-light text-sm px-3 py-1.5 rounded text-rc-text focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Best across all species</option>
               {speciesOptions.map((s) => (
@@ -132,17 +135,17 @@ export default function SpotForecastStrip({
                 onClick={() => setActiveDayIndex(i)}
                 className={`flex flex-col items-center px-2 py-3 rounded transition-colors text-center w-20 shrink-0 border ${
                   isActive
-                    ? "border-slate-700 bg-stone-50"
-                    : "border-stone-200 hover:border-stone-400"
+                    ? "border-blue-500/60 bg-rc-bg-light"
+                    : "border-rc-bg-light hover:border-blue-500/40"
                 }`}
               >
-                <div className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
+                <div className="font-mono text-[10px] uppercase tracking-widest text-rc-text-muted mb-1">
                   {d.dateLabel.split(" ")[0]}
                 </div>
-                <div className="font-mono text-xs text-slate-700 mb-2">
+                <div className="font-mono text-xs text-rc-text-light mb-2">
                   {d.dateLabel.split(" ").slice(1).join(" ")}
                 </div>
-                <div className="h-12 w-3 bg-stone-100 rounded-sm overflow-hidden flex flex-col justify-end">
+                <div className="h-12 w-3 bg-rc-bg-light rounded-sm overflow-hidden flex flex-col justify-end">
                   {score != null && (
                     <div
                       className={`w-full ${scoreColor(score)} rounded-sm`}
@@ -150,7 +153,7 @@ export default function SpotForecastStrip({
                     />
                   )}
                 </div>
-                <div className="font-mono text-xs text-slate-700 mt-2 font-semibold">
+                <div className="font-mono text-xs text-rc-text mt-2 font-semibold">
                   {pct != null ? pct : "--"}
                 </div>
               </button>
@@ -160,12 +163,12 @@ export default function SpotForecastStrip({
       </div>
 
       {/* 24-hour bars for active day */}
-      <div className="mt-8 border border-stone-200 rounded-lg p-6 bg-stone-50">
+      <div className="mt-8 border border-rc-bg-light rounded-lg p-6 bg-rc-bg-dark">
         <div className="flex items-baseline justify-between mb-4">
-          <h3 className="text-lg font-black uppercase tracking-tight text-slate-900">
+          <h3 className="text-lg font-black uppercase tracking-tight text-rc-text">
             {activeDay.dateLabel}
           </h3>
-          <p className="font-mono text-xs uppercase tracking-widest text-slate-400">
+          <p className="font-mono text-xs uppercase tracking-widest text-rc-text-muted">
             Hourly · UTC
           </p>
         </div>
@@ -192,7 +195,7 @@ export default function SpotForecastStrip({
             );
           })}
         </div>
-        <div className="flex justify-between mt-2 font-mono text-[10px] tracking-widest text-slate-400">
+        <div className="flex justify-between mt-2 font-mono text-[10px] tracking-widest text-rc-text-muted">
           {[0, 6, 12, 18, 23].map((h) => (
             <span key={h} style={{ marginLeft: h === 0 ? 0 : undefined }}>
               {h.toString().padStart(2, "0")}:00

@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, MapPin, Mail, Calendar, Crown, Bell, LogOut, Save, Clock, Gauge } from 'lucide-react'
+import { User, MapPin, Mail, Calendar, Bell, LogOut, Save, Clock, Gauge } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Alert } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -15,6 +14,9 @@ import { useAnalytics } from '@/hooks/use-analytics'
 import { UserPreferences, UserPreferencesService } from '@/lib/user-preferences'
 import { AppShell } from '../components/layout'
 import DashboardHeader from '../components/forecast/dashboard-header'
+import SubscriptionCard from '../components/account/subscription-card'
+import PhoneVerifyCard from '../components/account/phone-verify-card'
+import DangerZoneCard from '../components/account/danger-zone-card'
 
 // Centralized config
 import { FISHING_LOCATIONS } from '../config/locations'
@@ -178,14 +180,6 @@ export default function ProfilePage() {
         />
 
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header Badge */}
-          <div className="flex items-center justify-end">
-            <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-              <Crown className="h-3 w-3 mr-1" />
-              Premium
-            </Badge>
-          </div>
-
           {/* Message */}
           {message && (
             <Alert
@@ -347,6 +341,9 @@ export default function ProfilePage() {
             </Card>
           </div>
 
+          {/* Subscription */}
+          <SubscriptionCard />
+
           {/* Unit Preferences */}
           <Card className="bg-rc-bg-dark border-rc-bg-light">
             <CardHeader className="pb-6">
@@ -451,6 +448,50 @@ export default function ProfilePage() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-rc-text-muted">Tide heights and wave heights</p>
+                </div>
+
+                {/* Distance Unit */}
+                <div className="space-y-2">
+                  <Label htmlFor="distance-unit" className="text-rc-text font-medium text-sm">
+                    Distance
+                  </Label>
+                  <Select
+                    value={preferences.distanceUnit || 'km'}
+                    onValueChange={value =>
+                      setPreferences(prev => ({ ...prev, distanceUnit: value as 'km' | 'miles' }))
+                    }
+                  >
+                    <SelectTrigger className="bg-rc-bg-light border-rc-bg-light text-rc-text h-11 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="km">Kilometers (km)</SelectItem>
+                      <SelectItem value="miles">Miles (mi)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-rc-text-muted">Map and travel distance</p>
+                </div>
+
+                {/* Pressure Unit */}
+                <div className="space-y-2">
+                  <Label htmlFor="pressure-unit" className="text-rc-text font-medium text-sm">
+                    Pressure
+                  </Label>
+                  <Select
+                    value={preferences.pressureUnit || 'mb'}
+                    onValueChange={value =>
+                      setPreferences(prev => ({ ...prev, pressureUnit: value as 'mb' | 'inHg' }))
+                    }
+                  >
+                    <SelectTrigger className="bg-rc-bg-light border-rc-bg-light text-rc-text h-11 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mb">Millibars (mb)</SelectItem>
+                      <SelectItem value="inHg">Inches of mercury (inHg)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-rc-text-muted">Barometric pressure</p>
                 </div>
               </div>
 
@@ -589,15 +630,15 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Link to Advanced Notification Settings */}
+              {/* Link to Forecast Emails (scheduled digests) */}
               <div className="pt-4 mt-6 border-t border-rc-bg-light">
                 <Button
                   variant="outline"
-                  onClick={() => router.push('/profile/notification-settings')}
+                  onClick={() => router.push('/profile/forecast-emails')}
                   className="w-full bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-blue-500/30 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 transition-all"
                 >
                   <Bell className="h-4 w-4 mr-2" />
-                  Advanced Notification Settings
+                  Forecast Email Settings
                   <span className="ml-auto text-xs bg-blue-500/20 px-2 py-1 rounded">
                     New
                   </span>
@@ -608,6 +649,9 @@ export default function ProfilePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Phone verification (SMS alerts) */}
+          <PhoneVerifyCard />
 
           {/* Save Button */}
           <div className="flex justify-end pt-4">
@@ -629,6 +673,9 @@ export default function ProfilePage() {
               )}
             </Button>
           </div>
+
+          {/* Danger zone */}
+          <DangerZoneCard />
         </div>
       </div>
     </AppShell>

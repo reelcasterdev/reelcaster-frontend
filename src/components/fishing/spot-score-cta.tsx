@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { BlueCasterSpotPage } from "@/lib/bluecaster";
+import SpotScoreCtaButton from "@/app/components/marketing/spot-score-cta-button";
 
 const STATE_LABEL: Record<string, string> = {
   peak: "Peak",
@@ -9,10 +9,10 @@ const STATE_LABEL: Record<string, string> = {
 };
 
 const STATE_TONE: Record<string, string> = {
-  peak: "text-blue-700",
-  mid: "text-emerald-700",
-  off: "text-stone-500",
-  closed: "text-stone-400",
+  peak: "text-blue-300",
+  mid: "text-emerald-300",
+  off: "text-rc-text-muted",
+  closed: "text-rc-text-muted",
 };
 
 export default function SpotScoreCta({
@@ -29,45 +29,43 @@ export default function SpotScoreCta({
       : null;
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-8">
-      <div className="border-y border-stone-200 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
+    <section
+      data-testid="section-spot-score-cta"
+      className="max-w-6xl mx-auto px-6 py-8"
+    >
+      <div className="border-y border-rc-bg-light py-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-6">
           <div>
-            <p className="font-mono text-xs tracking-widest uppercase text-slate-400 mb-2">
+            <p className="font-mono text-xs tracking-widest uppercase text-rc-text-muted mb-2">
               RC Score Now
             </p>
             {score ? (
               <div className="flex flex-col gap-1">
-                <div className="text-sm text-slate-700 font-semibold">
+                <div className="text-sm text-rc-text-light font-semibold">
                   {score.species_name}
                 </div>
                 <div
                   className={`text-xs font-mono tracking-widest uppercase ${
-                    STATE_TONE[score.state] ?? "text-slate-500"
+                    STATE_TONE[score.state] ?? "text-rc-text-muted"
                   }`}
                 >
                   {STATE_LABEL[score.state] ?? score.state}
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-slate-400">No live score</div>
+              <div className="text-xs text-rc-text-muted">No live score</div>
             )}
           </div>
           <div
             className={`text-6xl md:text-7xl font-black tracking-tight font-mono ${
-              displayScore == null ? "text-slate-300" : "text-slate-900"
+              displayScore == null ? "text-rc-text-muted" : "text-rc-text"
             }`}
           >
             {displayScore != null ? displayScore : "--"}
           </div>
         </div>
 
-        <Link
-          href={`/signup?from=fishing&spot=${spotSlug}`}
-          className="border border-slate-400 text-slate-700 text-sm px-6 py-3 uppercase tracking-widest font-medium hover:bg-slate-100 transition-colors rounded"
-        >
-          Unlock 14-Day Forecast &rarr;
-        </Link>
+        <SpotScoreCtaButton spotSlug={spotSlug} />
       </div>
     </section>
   );

@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
     customer: stripeCustomerId,
     line_items: [{ price: priceId, quantity: 1 }],
     allow_promotion_codes: true,
-    success_url: `${origin}/pricing?success=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/pricing?canceled=1`,
+    success_url: `${origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/billing/cancel`,
     metadata: {
       supabase_user_id: user.id,
       plan,
@@ -113,4 +113,43 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ url: session.url, id: session.id });
+}
+
+/**
+ * Poll-friendly status check used by /billing/success. Returns the user's
+ * current `subscription_tier`/`subscription_status` from `user_settings` so the
+ * UI can wait for the webhook to flip the row before redirecting.
+ *
+ * The `session_id` query param is accepted for symmetry but isn't required —
+ * we trust the webhook (the source of truth) to update `user_settings`. We
+ * only need to confirm the change has propagated.
+ */
+export async function GET(request: NextRequest) {
+  const user = await getUserFromRequest(request);
+  if (!user) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const sessionId = url.searchParams.get('session_id');
+
+  const { data: settings } = await admin
+    .from('user_settings')
+    .select('subscription_tier, subscription_status, subscription_period_end')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  const tier = settings?.subscription_tier ?? 'free';
+  const status = settings?.subscription_status ?? 'none';
+  const isActive =
+    (tier === 'pro_annual' || tier === 'pro_monthly') &&
+    (status === 'active' || status === 'trialing');
+
+  return NextResponse.json({
+    session_id: sessionId,
+    tier,
+    status,
+    is_active: isActive,
+    period_end: settings?.subscription_period_end ?? null,
+  });
 }
