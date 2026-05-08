@@ -12,6 +12,11 @@ export default function robots() {
           "/login",
           "/signup",
           "/explore",
+          "/privacy",
+          "/terms",
+          "/contact",
+          "/about",
+          "/faq",
         ],
         disallow: [
           "/admin/",

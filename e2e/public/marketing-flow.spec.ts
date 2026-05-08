@@ -118,6 +118,32 @@ test.describe('Public regulations', () => {
   });
 });
 
+test.describe('Public footer pages', () => {
+  const PAGES: Array<{ path: string; jsonLd?: string }> = [
+    { path: '/privacy', jsonLd: 'WebPage' },
+    { path: '/terms', jsonLd: 'WebPage' },
+    { path: '/contact', jsonLd: 'ContactPage' },
+    { path: '/about', jsonLd: 'AboutPage' },
+    { path: '/faq', jsonLd: 'FAQPage' },
+  ];
+
+  for (const { path, jsonLd } of PAGES) {
+    test(`${path} renders with title, meta description, and JSON-LD`, async ({
+      page,
+    }) => {
+      const r = await page.goto(path);
+      expect(r?.status()).toBeLessThan(400);
+      await assertHasTitle(page);
+      await assertHasMetaDescription(page);
+      if (jsonLd) {
+        await assertHasJsonLd(page, jsonLd);
+      }
+      // Marketing chrome is shared across (marketing) route group.
+      await expect(page.getByTestId('marketing-footer-legal')).toBeVisible();
+    });
+  }
+});
+
 test.describe('Sitemap + robots', () => {
   test('/sitemap.xml lists key public surfaces', async ({ request }) => {
     const r = await request.get('/sitemap.xml');
