@@ -20,9 +20,14 @@ import { test, expect } from '@playwright/test';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test('anon: home → fishing → bc → victoria → brotchie-ledge', async ({ page }) => {
-  // `/` is owned by the visitor coming-soon landing (PR #68); the public
-  // marketing surface starts one hop deeper at /fishing.
-  let r = await page.goto('/fishing');
+  // /
+  let r = await page.goto('/');
+  expect(r?.status()).toBeLessThan(400);
+  await expect(page.getByTestId('marketing-header')).toBeVisible();
+  await expect(page.getByTestId('marketing-hero-headline')).toBeVisible();
+
+  // /fishing
+  r = await page.goto('/fishing');
   expect(r?.status()).toBeLessThan(400);
   await expect(page.getByTestId('marketing-header')).toBeVisible();
 
