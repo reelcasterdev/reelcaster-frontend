@@ -43,6 +43,29 @@ test.describe(`${SPOT_URL} (signed-out preview)`, () => {
     await expect(page.getByTestId('section-spot-breakdown-panel')).toHaveCount(0);
   });
 
+  test('section-spot-regulation-alerts — visible with cards or skipped', async ({ page }) => {
+    const strip = page.getByTestId('section-spot-regulation-alerts');
+    if (!(await strip.isVisible().catch(() => false))) {
+      test.skip(true, 'no DFO notices for james-island spot dfo_area_label');
+      return;
+    }
+    await expect(strip).toBeVisible();
+    await expect(page.getByTestId('regulation-alert-card').first()).toBeVisible();
+  });
+
+  test('section-spot-nearby-spots — visible with cards or skipped', async ({ page }) => {
+    const section = page.getByTestId('section-spot-nearby-spots');
+    if (!(await section.isVisible().catch(() => false))) {
+      test.skip(true, 'no resolvable nearby spots within 50km of james-island');
+      return;
+    }
+    await expect(section).toBeVisible();
+    const card = page.getByTestId('nearby-spot-card').first();
+    await expect(card).toBeVisible();
+    const href = await card.getAttribute('href');
+    expect(href).toMatch(/^\/fishing\/[a-z]{2}\/[a-z0-9-]+\/[a-z0-9-]+$/);
+  });
+
   test('SEO basics: title + meta description', async ({ page }) => {
     await assertHasTitle(page);
     await assertHasMetaDescription(page);
