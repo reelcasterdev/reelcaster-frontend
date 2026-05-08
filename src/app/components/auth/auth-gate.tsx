@@ -18,6 +18,11 @@ const PUBLIC_PREFIXES = [
   '/explore',
   '/regulations',
   '/species',
+  '/privacy',
+  '/terms',
+  '/contact',
+  '/about',
+  '/faq',
 ]
 
 function isPublicPath(pathname: string): boolean {
