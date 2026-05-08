@@ -50,6 +50,40 @@ test.describe('/ (marketing homepage)', () => {
     await expect(page.getByTestId('species-card').first()).toBeVisible();
   });
 
+  test('regulation alerts strip — section + cards (skips when no high-signal notices)', async ({
+    page,
+  }) => {
+    await expect(page.getByTestId('marketing-header')).toBeVisible();
+    const strip = page.getByTestId('homepage-regulation-alerts');
+    if (!(await strip.isVisible().catch(() => false))) {
+      test.skip(true, 'no critical/high or closure/opening DFO notices in test instance');
+      return;
+    }
+    await expect(strip).toBeVisible();
+    await expect(strip.getByRole('heading', { level: 2 })).toContainText(/water/i);
+    await expect(page.getByTestId('regulation-alert-card').first()).toBeVisible();
+    // "All notices" link points at /regulations
+    const allNotices = strip.getByRole('link', { name: /All notices/ }).first();
+    await expect(allNotices).toHaveAttribute('href', '/regulations');
+  });
+
+  test('featured spots section — section + cards (skips when no published spots)', async ({
+    page,
+  }) => {
+    await expect(page.getByTestId('marketing-header')).toBeVisible();
+    const section = page.getByTestId('homepage-featured-spots');
+    if (!(await section.isVisible().catch(() => false))) {
+      test.skip(true, 'no published spots in test instance hierarchy');
+      return;
+    }
+    await expect(section).toBeVisible();
+    const card = page.getByTestId('spot-card').first();
+    await expect(card).toBeVisible();
+    // Card href shape: /fishing/<province>/<city>/<spot>
+    const href = await card.getAttribute('href');
+    expect(href).toMatch(/^\/fishing\/[a-z]{2}\/[a-z0-9-]+\/[a-z0-9-]+$/);
+  });
+
   test('final CTA section renders', async ({ page }) => {
     await expect(page.getByTestId('homepage-final-cta')).toBeVisible();
   });
