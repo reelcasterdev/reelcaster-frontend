@@ -11,40 +11,16 @@ import {
  * hits sign-up gate. No authentication required for any of these specs.
  */
 
-test.describe('Marketing homepage (/)', () => {
-  test('renders without auth and shows hero + sign-up CTA', async ({ page }) => {
-    const response = await page.goto('/');
+// `/` was reclaimed by the visitor coming-soon landing in PR #68. The public
+// marketing surface for unauthed visitors now starts at `/fishing`.
+test.describe('Marketing entry (/fishing)', () => {
+  test('renders without auth and shows province links', async ({ page }) => {
+    const response = await page.goto('/fishing');
     expect(response?.status()).toBeLessThan(400);
-
-    // Hero copy via test-id (resilient to copy tweaks)
-    await expect(page.getByTestId('marketing-hero-headline')).toBeVisible();
-    await expect(page.getByTestId('marketing-primary-cta')).toBeVisible();
-    await expect(page.getByTestId('marketing-primary-cta')).toHaveAttribute(
-      'href',
-      /\/signup/,
-    );
-
-    // Marketing chrome present (header + footer)
     await expect(page.getByTestId('marketing-header')).toBeVisible();
     await expect(page.getByTestId('marketing-footer')).toBeVisible();
-
-    // SEO basics
     await assertHasTitle(page);
     await assertHasMetaDescription(page);
-    await assertHasJsonLd(page, 'WebSite');
-  });
-
-  test('city carousel links into /fishing/<province>/<slug>', async ({ page }) => {
-    await page.goto('/');
-    const carousel = page.getByTestId('city-carousel');
-    const cards = carousel.getByTestId('city-card');
-    const count = await cards.count();
-    if (count === 0) {
-      test.skip(true, 'no published cities in test BC instance');
-      return;
-    }
-    const href = await cards.first().getAttribute('href');
-    expect(href).toMatch(/^\/fishing\/[a-z]{2}\/[a-z0-9-]+$/);
   });
 });
 

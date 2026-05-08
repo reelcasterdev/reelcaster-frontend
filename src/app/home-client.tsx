@@ -1,26 +1,35 @@
+'use client'
+
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useForecastData } from '@/hooks/use-forecast-data'
-import ErrorState from '@/app/components/common/error-state'
+import ErrorState from './components/common/error-state'
 import { useAuth } from '@/contexts/auth-context'
 import { UserPreferencesService } from '@/lib/user-preferences'
 
-import AppShellV2 from '@/app/components/layout/app-shell-v2'
+// Layout
+import AppShellV2 from './components/layout/app-shell-v2'
 
-import MapOverlayTopBar from '@/app/components/v2/map-overlay-top-bar'
-import DayOutlookOverlay from '@/app/components/v2/day-outlook-overlay'
-import MapLayerControls from '@/app/components/v2/map-layer-controls'
-import BottomDataPanel from '@/app/components/v2/bottom-data-panel'
-import BottomSheetMobile from '@/app/components/v2/bottom-sheet-mobile'
+// V2 overlay components
+import MapOverlayTopBar from './components/v2/map-overlay-top-bar'
+import DayOutlookOverlay from './components/v2/day-outlook-overlay'
+import MapLayerControls from './components/v2/map-layer-controls'
+import BottomDataPanel from './components/v2/bottom-data-panel'
+import BottomSheetMobile from './components/v2/bottom-sheet-mobile'
 
-import V2RightSidebar from '@/app/components/v2/v2-right-sidebar'
+// V2 sidebar components
+import V2RightSidebar from './components/v2/v2-right-sidebar'
 
-import ForecastMapSwitcher from '@/app/components/forecast/forecast-map-switcher'
+// Map
+import ForecastMapSwitcher from './components/forecast/forecast-map-switcher'
 
-import AlgorithmInfoModal from '@/app/components/forecast/algorithm-info-modal'
-import { Sparkles } from 'lucide-react'
+// Modals
+import AlgorithmInfoModal from './components/forecast/algorithm-info-modal'
 
-function ProDashboardContent() {
+// Public landing
+import ComingSoon from './components/coming-soon'
+
+function V2ForecastContent() {
   const data = useForecastData()
   const {
     selectedLocation,
@@ -46,22 +55,22 @@ function ProDashboardContent() {
     dataMetadata,
   } = data
 
+  // Map layer state
   const [activeLayers, setActiveLayers] = useState<string[]>([])
 
   const toggleLayer = (layer: string) => {
     setActiveLayers(prev =>
-      prev.includes(layer) ? prev.filter(l => l !== layer) : [...prev, layer]
+      prev.includes(layer)
+        ? prev.filter(l => l !== layer)
+        : [...prev, layer]
     )
   }
 
-  if (
-    !hasValidCoordinates &&
-    (parseFloat(new URLSearchParams(window.location.search).get('lat') || '0') !== 0 ||
-      parseFloat(new URLSearchParams(window.location.search).get('lon') || '0') !== 0)
-  ) {
+  if (!hasValidCoordinates && (parseFloat(new URLSearchParams(window.location.search).get('lat') || '0') !== 0 || parseFloat(new URLSearchParams(window.location.search).get('lon') || '0') !== 0)) {
     return <ErrorState message="Invalid coordinates provided" />
   }
 
+  // Right sidebar content
   const rightSidebar = !loading ? (
     <V2RightSidebar
       forecastData={forecastData}
@@ -77,17 +86,8 @@ function ProDashboardContent() {
 
   return (
     <AppShellV2 rightSidebar={rightSidebar}>
-      <div className="relative h-full" data-testid="pro-dashboard-root">
-        {/* Pro badge — sits above the map overlays so it's always visible. */}
-        <div className="absolute top-3 right-3 z-20 pointer-events-none hidden lg:block">
-          <span
-            data-testid="pro-badge"
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-semibold tracking-wide uppercase"
-          >
-            <Sparkles className="w-3 h-3" />
-            Pro
-          </span>
-        </div>
+      <div className="relative h-full">
+        {/* Full-screen map */}
         {loading ? (
           <div className="absolute inset-0 bg-rc-bg-darkest flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
@@ -102,7 +102,7 @@ function ProDashboardContent() {
         ) : (
           <>
             {currentLocation && (
-              <div className="absolute inset-0" data-testid="forecast-map">
+              <div className="absolute inset-0">
                 <ForecastMapSwitcher
                   key={`${selectedLocation}-${selectedHotspot}`}
                   variant="fullscreen"
@@ -118,6 +118,7 @@ function ProDashboardContent() {
               </div>
             )}
 
+            {/* Desktop overlays (pointer-events-none container) */}
             <div className="absolute inset-0 pointer-events-none hidden lg:flex flex-col z-10">
               <MapOverlayTopBar
                 selectedLocation={selectedLocation}
@@ -129,6 +130,7 @@ function ProDashboardContent() {
                 forecasts={forecastData}
                 selectedDay={selectedDay}
                 onDaySelect={setSelectedDay}
+
               />
 
               <MapLayerControls
@@ -136,6 +138,7 @@ function ProDashboardContent() {
                 onToggleLayer={toggleLayer}
               />
 
+              {/* Spacer pushes bottom panel down */}
               <div className="flex-1" />
 
               <BottomDataPanel
@@ -152,6 +155,7 @@ function ProDashboardContent() {
               />
             </div>
 
+            {/* Mobile overlays */}
             <div className="absolute inset-0 pointer-events-none lg:hidden flex flex-col z-10">
               <MapOverlayTopBar
                 selectedLocation={selectedLocation}
@@ -164,6 +168,7 @@ function ProDashboardContent() {
                 forecasts={forecastData}
                 selectedDay={selectedDay}
                 onDaySelect={setSelectedDay}
+
                 compact
               />
 
@@ -175,6 +180,7 @@ function ProDashboardContent() {
               <div className="flex-1" />
             </div>
 
+            {/* Mobile bottom sheet */}
             <div className="lg:hidden">
               <BottomSheetMobile
                 forecastData={forecastData}
@@ -202,6 +208,7 @@ function ProDashboardContent() {
         )}
       </div>
 
+      {/* Algorithm Info Modal */}
       <AlgorithmInfoModal
         isOpen={showAlgorithmModal}
         onClose={() => setShowAlgorithmModal(false)}
@@ -211,50 +218,67 @@ function ProDashboardContent() {
   )
 }
 
-function ProDashboardInner() {
+function HomePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const [defaultsLoaded, setDefaultsLoaded] = useState(false)
+  const [redirectChecked, setRedirectChecked] = useState(false)
 
+  // Redirect logged-in users to /favorite-spots once per tab session.
+  // Logged-out users fall through to the public coming-soon landing below.
   useEffect(() => {
     if (authLoading) return
     if (!user) {
-      setDefaultsLoaded(true)
+      setRedirectChecked(true)
       return
     }
 
+    if (sessionStorage.getItem('rc-visited-favorites') !== 'true') {
+      router.replace('/favorite-spots')
+      return
+    }
+
+    setRedirectChecked(true)
+  }, [authLoading, user, router])
+
+  useEffect(() => {
+    if (!redirectChecked) return
+    if (!user) return
+
     const loadDefaultLocation = async () => {
-      if (searchParams.get('location') || searchParams.get('hotspot')) {
-        setDefaultsLoaded(true)
-        return
-      }
-      try {
-        const defaultLocation = await UserPreferencesService.getDefaultLocation()
-        const params = new URLSearchParams({
-          location: defaultLocation.location,
-          hotspot: defaultLocation.hotspot,
-          lat: defaultLocation.lat.toString(),
-          lon: defaultLocation.lon.toString(),
-        })
-        if (defaultLocation.species) params.set('species', defaultLocation.species)
-        router.replace(`/dashboard?${params.toString()}`)
-      } catch (error) {
-        console.error('Error loading default location:', error)
-        const params = new URLSearchParams({
-          location: 'Victoria, Sidney',
-          hotspot: 'Waterfront',
-          lat: '48.4284',
-          lon: '-123.3656',
-        })
-        router.replace(`/dashboard?${params.toString()}`)
+      if (!searchParams.get('location') && !searchParams.get('hotspot')) {
+        try {
+          const defaultLocation = await UserPreferencesService.getDefaultLocation()
+
+          const params = new URLSearchParams({
+            location: defaultLocation.location,
+            hotspot: defaultLocation.hotspot,
+            lat: defaultLocation.lat.toString(),
+            lon: defaultLocation.lon.toString(),
+          })
+
+          if (defaultLocation.species) {
+            params.set('species', defaultLocation.species)
+          }
+
+          router.replace(`/?${params.toString()}`)
+        } catch (error) {
+          console.error('Error loading default location:', error)
+          const params = new URLSearchParams({
+            location: 'Victoria, Sidney',
+            hotspot: 'Waterfront',
+            lat: '48.4284',
+            lon: '-123.3656',
+          })
+          router.replace(`/?${params.toString()}`)
+        }
       }
     }
 
     loadDefaultLocation()
-  }, [authLoading, user, searchParams, router])
+  }, [redirectChecked, searchParams, router, user])
 
-  if (!defaultsLoaded && !searchParams.get('location') && !searchParams.get('hotspot')) {
+  if (!redirectChecked) {
     return (
       <AppShellV2 rightSidebar={null}>
         <div className="relative h-full">
@@ -272,13 +296,17 @@ function ProDashboardInner() {
     )
   }
 
-  return <ProDashboardContent />
+  if (!user) {
+    return <ComingSoon />
+  }
+
+  return <V2ForecastContent />
 }
 
-export default function ProDashboard() {
+export default function HomeClient() {
   return (
     <Suspense fallback={null}>
-      <ProDashboardInner />
+      <HomePage />
     </Suspense>
   )
 }

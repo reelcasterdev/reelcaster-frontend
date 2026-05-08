@@ -24,11 +24,10 @@ test.beforeEach(async () => {
 });
 
 test('public marketing → spot preview → signup gate', async ({ page, request }) => {
-  // 1. Marketing homepage renders for an unauthed visitor.
-  const homepage = await page.goto('/');
+  // 1. /fishing is the public marketing entry (/ is the coming-soon landing).
+  const homepage = await page.goto('/fishing');
   expect(homepage?.status()).toBeLessThan(400);
-  await expect(page.getByTestId('marketing-hero-headline')).toBeVisible();
-  await expect(page.getByTestId('marketing-primary-cta')).toHaveAttribute('href', /\/signup/);
+  await expect(page.getByTestId('marketing-header')).toBeVisible();
 
   // 2. A real published spot URL from the sitemap renders the preview banner.
   const sitemap = await request.get('/sitemap.xml');
