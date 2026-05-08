@@ -9,6 +9,17 @@ const H = 240;
 const PAD_X = 40;
 const PAD_Y = 36;
 
+// Hex values mirror the rc-* tokens used in CSS — SVG can't read CSS vars
+// directly, so we keep them in sync with `globals.css` by hand.
+const COLOR_GRID = '#3F3F3F';
+const COLOR_AXIS_TEXT = '#AAAAAA'; // rc-text-muted
+const COLOR_LINE = '#60A5FA'; // blue-400
+const COLOR_AREA = '#60A5FA';
+const COLOR_DOT = '#FFFFFF';
+const COLOR_DOT_STROKE = '#2B2B2B'; // rc-bg-dark — the card background behind the graph
+const COLOR_DOT_CURRENT = '#10B981'; // emerald-500
+const COLOR_LABEL_CURRENT = '#FFFFFF';
+
 export function SeasonPricingGraph({ currentMonth }: Props) {
   const minPrice = 5;
   const maxPrice = 15;
@@ -46,14 +57,14 @@ export function SeasonPricingGraph({ currentMonth }: Props) {
             x2={W - PAD_X}
             y1={yFor(dollars * 100)}
             y2={yFor(dollars * 100)}
-            stroke="#e7e5e4"
+            stroke={COLOR_GRID}
             strokeDasharray="3 3"
           />
           <text
             x={PAD_X - 8}
             y={yFor(dollars * 100) + 4}
             fontSize="11"
-            fill="#78716c"
+            fill={COLOR_AXIS_TEXT}
             textAnchor="end"
             fontFamily="system-ui, sans-serif"
           >
@@ -63,10 +74,10 @@ export function SeasonPricingGraph({ currentMonth }: Props) {
       ))}
 
       {/* Filled area under curve */}
-      <path d={areaPath} fill="#0f172a" fillOpacity="0.06" />
+      <path d={areaPath} fill={COLOR_AREA} fillOpacity="0.18" />
 
       {/* Line */}
-      <path d={linePath} stroke="#0f172a" strokeWidth="2.5" fill="none" />
+      <path d={linePath} stroke={COLOR_LINE} strokeWidth="2.5" fill="none" />
 
       {/* Month dots + labels */}
       {MONTHLY_PRICE_TABLE.map((m, i) => {
@@ -79,8 +90,8 @@ export function SeasonPricingGraph({ currentMonth }: Props) {
               cx={x}
               cy={y}
               r={isCurrent ? 7 : 4}
-              fill={isCurrent ? '#10b981' : '#0f172a'}
-              stroke="#fff"
+              fill={isCurrent ? COLOR_DOT_CURRENT : COLOR_DOT}
+              stroke={COLOR_DOT_STROKE}
               strokeWidth="2"
             />
             {isCurrent && (
@@ -88,7 +99,7 @@ export function SeasonPricingGraph({ currentMonth }: Props) {
                 x={x}
                 y={y - 14}
                 fontSize="11"
-                fill="#0f172a"
+                fill={COLOR_LABEL_CURRENT}
                 textAnchor="middle"
                 fontFamily="system-ui, sans-serif"
                 fontWeight="600"
@@ -100,7 +111,7 @@ export function SeasonPricingGraph({ currentMonth }: Props) {
               x={x}
               y={H - PAD_Y + 18}
               fontSize="11"
-              fill={isCurrent ? '#0f172a' : '#78716c'}
+              fill={isCurrent ? COLOR_LABEL_CURRENT : COLOR_AXIS_TEXT}
               textAnchor="middle"
               fontFamily="system-ui, sans-serif"
               fontWeight={isCurrent ? '700' : '400'}

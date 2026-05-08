@@ -8,25 +8,28 @@ export default function CityScoreCta({
   citySlug: string;
 }) {
   return (
-    <section className="max-w-6xl mx-auto px-6 py-8">
-      <div className="border-y border-stone-200 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
+    <section
+      data-testid="section-city-score-cta"
+      className="max-w-6xl mx-auto px-6 py-8"
+    >
+      <div className="border-y border-rc-bg-light py-8 flex flex-col md:flex-row items-center justify-between gap-6">
         {/* RC Score teaser */}
         <div className="flex items-center gap-4">
           <div>
-            <p className="font-mono text-xs tracking-widest uppercase text-slate-400 mb-2">
+            <p className="font-mono text-xs tracking-widest uppercase text-rc-text-muted mb-2">
               RC Score Today
             </p>
             <div className="flex items-end gap-1" aria-hidden="true">
               {[40, 65, 85, 55, 70].map((h, i) => (
                 <div
                   key={i}
-                  className={`w-3 rounded-sm bg-slate-300${score == null ? " opacity-30" : ""}`}
+                  className={`w-3 rounded-sm bg-rc-text-muted${score == null ? " opacity-30" : ""}`}
                   style={{ height: `${h * 0.4}px` }}
                 />
               ))}
             </div>
           </div>
-          <div className="text-4xl font-black text-slate-300 tracking-tight font-mono">
+          <div className="text-4xl font-black text-rc-text-muted tracking-tight font-mono">
             {score != null ? score : "--"}
           </div>
         </div>
@@ -34,7 +37,7 @@ export default function CityScoreCta({
         {/* CTA */}
         <Link
           href={`/signup?from=fishing&city=${citySlug}`}
-          className="border border-slate-400 text-slate-700 text-sm px-6 py-3 uppercase tracking-widest font-medium hover:bg-slate-100 transition-colors rounded"
+          className="border border-rc-bg-light text-rc-text-light text-sm px-6 py-3 uppercase tracking-widest font-medium hover:border-blue-500/40 hover:bg-rc-bg-dark transition-colors rounded"
         >
           Unlock 14-Day Forecast &rarr;
         </Link>

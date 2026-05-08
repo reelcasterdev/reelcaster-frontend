@@ -35,6 +35,12 @@ interface CreateAlertProfileInput {
   active_hours?: { start: string; end: string };
   logic_mode?: 'AND' | 'OR';
   cooldown_hours?: number;
+  // Phase 6 simple Score Alert flow
+  alert_kind?: 'composite' | 'score';
+  target_bluecaster_spot_slug?: string | null;
+  target_species?: string | null;
+  score_threshold?: number | null;
+  delivery_channels?: ('email' | 'sms')[];
 }
 
 interface UpdateAlertProfileInput extends Partial<CreateAlertProfileInput> {
@@ -283,15 +289,47 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check profile limit (max 10 per user)
+    // Tier-aware limit: free users get 1 alert, paid get 10.
     const { count } = await supabaseAdmin
       .from('user_alert_profiles')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    if (count !== null && count >= 10) {
-      return NextResponse.json({ error: 'Maximum of 10 alert profiles allowed' }, { status: 400 });
+    const { data: settings } = await supabaseAdmin
+      .from('user_settings')
+      .select('subscription_tier, subscription_status')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const isPaid =
+      (settings?.subscription_tier === 'pro_monthly' || settings?.subscription_tier === 'pro_annual') &&
+      (settings?.subscription_status === 'active' || settings?.subscription_status === 'trialing');
+    const limit = isPaid ? 10 : 1;
+
+    if (count !== null && count >= limit) {
+      return NextResponse.json(
+        {
+          error: isPaid
+            ? 'Maximum of 10 alert profiles allowed'
+            : 'Free tier supports 1 alert. Upgrade to Pro Intel for unlimited.',
+          upgrade_required: !isPaid,
+        },
+        { status: 400 },
+      );
     }
+
+    // SMS delivery requires a verified phone — strip 'sms' if not verified.
+    let deliveryChannels = body.delivery_channels ?? ['email'];
+    if (deliveryChannels.includes('sms')) {
+      const { data: phoneCheck } = await supabaseAdmin
+        .from('user_settings')
+        .select('phone_verified')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (!phoneCheck?.phone_verified) {
+        deliveryChannels = deliveryChannels.filter((c) => c !== 'sms');
+      }
+    }
+    if (deliveryChannels.length === 0) deliveryChannels = ['email'];
 
     // Create profile
     const { data: profile, error } = await supabaseAdmin
@@ -306,6 +344,11 @@ export async function POST(request: NextRequest) {
         active_hours: body.active_hours || null,
         logic_mode: body.logic_mode || 'AND',
         cooldown_hours: body.cooldown_hours || 12,
+        alert_kind: body.alert_kind ?? 'composite',
+        target_bluecaster_spot_slug: body.target_bluecaster_spot_slug ?? null,
+        target_species: body.target_species ?? null,
+        score_threshold: body.score_threshold ?? null,
+        delivery_channels: deliveryChannels,
       })
       .select()
       .single();

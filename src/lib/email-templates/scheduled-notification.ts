@@ -308,7 +308,7 @@ export function generateScheduledNotificationEmail(
                 You're receiving this because you enabled fishing notifications in your preferences.
               </p>
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://reelcaster.com'}/profile/notification-settings" style="color: #3b82f6; text-decoration: none;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://reelcaster.com'}/profile/forecast-emails" style="color: #3b82f6; text-decoration: none;">
                   Manage Preferences
                 </a>
                 &nbsp;|&nbsp;
@@ -336,5 +336,7 @@ export function generateNotificationSubject(data: ScheduledNotificationEmailData
   const scoreLabel = getScoreLabel(bestDay.score);
   const dayName = formatDate(bestDay.date).split(',')[0]; // Get weekday
 
-  return `🎣 ${scoreLabel} Fishing Expected ${dayName} - ${bestDay.score}/100${locationName ? ` in ${locationName}` : ''}`;
+  // Phase 6: prefix scheduled digests with "Forecast:" so they don't get
+  // confused with real-time "Alert:" emails in the inbox.
+  return `Forecast: ${scoreLabel} fishing ${dayName} — ${bestDay.score}/100${locationName ? ` in ${locationName}` : ''}`;
 }

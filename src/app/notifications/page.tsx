@@ -174,7 +174,7 @@ export default function NotificationsPage() {
               </button>
             )}
             <button
-              onClick={() => router.push('/profile/notification-settings')}
+              onClick={() => router.push('/profile/forecast-emails')}
               className="flex items-center gap-1 px-3 py-1.5 text-sm text-rc-text-muted hover:text-rc-text transition-colors"
             >
               <Settings className="w-4 h-4" />

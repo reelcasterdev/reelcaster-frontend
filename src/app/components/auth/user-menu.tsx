@@ -1,6 +1,6 @@
 'use client'
 
-import { User, LogOut, Settings } from 'lucide-react'
+import { User, LogOut, Settings, CreditCard } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,17 +12,32 @@ import {
 import { useAuth } from '@/contexts/auth-context'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { useRouter } from 'next/navigation'
+import { useSubscription } from '@/hooks/use-subscription'
+import { useUpgradeFlow } from '@/hooks/use-upgrade-flow'
 
 export function UserMenu() {
   const { user, signOut } = useAuth()
   const { trackEvent } = useAnalytics()
   const router = useRouter()
+  const { isPaid } = useSubscription()
+  const { openPortal, loading: portalLoading } = useUpgradeFlow()
 
   const handleSignOut = async () => {
     trackEvent('Sign Out', {
       timestamp: new Date().toISOString(),
     })
     await signOut()
+  }
+
+  const handleManageBilling = async () => {
+    trackEvent('Manage Subscription Clicked', {
+      timestamp: new Date().toISOString(),
+    })
+    try {
+      await openPortal()
+    } catch (e) {
+      console.error('Failed to open billing portal', e)
+    }
   }
 
   if (!user) return null
@@ -47,6 +62,17 @@ export function UserMenu() {
           <Settings className="mr-2 h-4 w-4" />
           Profile Settings
         </DropdownMenuItem>
+        {isPaid && (
+          <DropdownMenuItem
+            onClick={handleManageBilling}
+            disabled={portalLoading}
+            className="cursor-pointer"
+            data-testid="manage-subscription"
+          >
+            <CreditCard className="mr-2 h-4 w-4" />
+            {portalLoading ? 'Opening…' : 'Manage subscription'}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
           Sign out

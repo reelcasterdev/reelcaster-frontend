@@ -8,18 +8,24 @@ export default function CityLocalIntel({
   if (!md) return null;
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12" aria-label="Local fishing tips">
-      <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 mb-6">
+    <section
+      data-testid="section-city-local-intel"
+      className="max-w-6xl mx-auto px-6 py-12"
+      aria-label="Local fishing tips"
+    >
+      <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text mb-6">
         Local Intel
       </h2>
 
-      <div className="bg-slate-800 text-stone-200 rounded-lg p-6 md:p-8">
+      {/* Distinct callout: deeper than the surrounding rc-bg-darkest page so the
+          terminal-style block still reads as a separate "field notes" panel. */}
+      <div className="bg-rc-bg-darkest border border-rc-bg-light text-rc-text-light rounded-lg p-6 md:p-8">
         <div className="font-mono text-sm leading-relaxed">
           <ReactMarkdown
             components={{
               p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
               strong: ({ children }) => (
-                <strong className="font-bold text-white">{children}</strong>
+                <strong className="font-bold text-rc-text">{children}</strong>
               ),
               ul: ({ children }) => (
                 <ul className="list-disc list-inside space-y-1 mb-3">

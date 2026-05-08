@@ -968,3 +968,31 @@ Always act like senior engineer and create smaller and reusable components. Make
 - No need to create new document everytime we change something. We just need to update the CLAUDE.md with anything important regarding the system. and existing docs shouuld be updated if the changes were related.
 - use supabase mcp when trying to access anything in supabase.
 - don't build to check everything unless explicitly asked
+
+## Journey testing (Phase E, 2026-05-08)
+
+End-to-end Playwright suite covering 14 user journeys (Public → Free → Pro) lives at `e2e/journeys/`. The suite assumes two seed scripts have run:
+
+- `bluecaster/scripts/seed-demo-content.ts` — populates 6 species profiles, flips `is_published=true` on 2 spots, links spot↔species, sets city hero images + featured species. See `bluecaster/CLAUDE.md`.
+- `scripts/seed-demo-users.ts` — creates `free@reelcaster.test` + `pro@reelcaster.test` with seeded `user_settings` and 5 favorite_spots on the pro user.
+
+Run locally:
+```sh
+# Both seeds (one-time, idempotent)
+cd ../bluecaster && SUPABASE_URL=... SUPABASE_SERVICE_KEY=... npx tsx scripts/seed-demo-content.ts
+cd ../reelcaster-frontend && npx tsx scripts/seed-demo-users.ts   # prints test passwords on first run; copy into .env.test
+
+# Servers (BC dev :3001 + FE dev :3004 auto-started by playwright.config.ts webServer)
+cd ../bluecaster && npm run dev
+
+# Suite
+pnpm test:e2e e2e/journeys/
+```
+
+The journey suite is layered on top of:
+- `e2e/sections/` — Phase 8 section-presence (49 tests).
+- `e2e/api/contracts.spec.ts` — Phase 0/3/4 tier-gating contracts.
+- `e2e/api/bluecaster.spec.ts` — BC public-endpoint contracts.
+- `e2e/api/journeys.spec.ts` — post-seed assertions (Phase C.5).
+
+See `e2e/journeys/README.md` for prereqs, env-var checklist, and the resolved 6h-vs-0d signed-out-clip note.

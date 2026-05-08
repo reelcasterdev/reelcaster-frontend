@@ -293,23 +293,358 @@ export async function fetchHierarchy(): Promise<BlueCasterHierarchy | null> {
   }
 }
 
+/**
+ * @deprecated Use `fetchPublicCities()` (Phase 1 public endpoint) instead.
+ * Kept for back-compat with callers that still expect the admin shape.
+ */
 export async function fetchPublishedCities() {
+  // Reroute to the new public endpoint and adapt shape so old callers keep working.
+  const items = await fetchPublicCities({ status: "published", limit: 100 });
+  return items.map((c) => ({
+    slug: c.slug,
+    city: { name: c.name, slug: c.city_slug },
+    hero_image_url: c.hero_image_url,
+    seo_meta_description: c.seo_meta_description,
+    published_at: c.published_at,
+    province: c.province,
+  }));
+}
+
+// =============================================================================
+// Phase 7 — by-coordinates enrichment
+// =============================================================================
+
+export interface BlueCasterByCoordinates {
+  query: { lat: number; lng: number; radius_km: number };
+  nearest_city: {
+    id: string;
+    name: string;
+    slug: string;
+    lat: number;
+    lng: number;
+    distance_km: number;
+  } | null;
+  region: { name: string; slug: string | null } | null;
+  province: { code: string; name: string | null } | null;
+  nearest_tide_station: {
+    id: string;
+    name: string;
+    source: string;
+    source_id: string;
+    time_offset_minutes: number | null;
+    distance_km: number;
+  } | null;
+  dfo: {
+    area_id: string | null;
+    subarea_id: string | null;
+    name: string | null;
+    region: string | null;
+    managed_species: string[];
+    match: "bbox" | "nearest_spot_fallback";
+  } | null;
+  nearby_spots: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    lat: number;
+    lng: number;
+    distance_km: number;
+  }>;
+  suggested_species: {
+    species: Array<{ slug: string; rank: number; confidence: number }>;
+    updated_at: string;
+  };
+}
+
+export async function fetchSpotsByCoordinates(
+  lat: number,
+  lng: number,
+  radiusKm = 50,
+): Promise<BlueCasterByCoordinates | null> {
   const baseUrl = process.env.BLUECASTER_API_URL;
   const apiKey = process.env.BLUECASTER_API_KEY;
-  if (!baseUrl || !apiKey) return [];
+  if (!baseUrl || !apiKey) return null;
 
   try {
     const res = await fetch(
-      `${baseUrl}/api/v1/admin/city-pages?status=published`,
+      `${baseUrl}/api/v1/spots/by-coordinates?lat=${lat}&lng=${lng}&radius_km=${radiusKm}`,
       {
         headers: { "x-api-key": apiKey },
-        next: { revalidate: 300 },
-      }
+        cache: "no-store",
+      },
     );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.pages ?? [];
+    if (!res.ok) return null;
+    return (await res.json()) as BlueCasterByCoordinates;
   } catch {
-    return [];
+    return null;
   }
+}
+
+// =============================================================================
+// Phase 8 — search
+// =============================================================================
+
+export interface BlueCasterSearchResult {
+  type: "spot" | "city" | "species";
+  id: string;
+  name: string;
+  slug: string | null;
+  lat?: number;
+  lng?: number;
+  subtitle: string;
+  href: string | null;
+  city_slug?: string | null;
+  province_code?: string | null;
+}
+
+export interface BlueCasterSearchResponse {
+  query: string;
+  results: BlueCasterSearchResult[];
+  counts: { spots: number; cities: number; species: number };
+}
+
+export async function searchBlueCaster(
+  q: string,
+  type: "spot" | "city" | "species" | "all" = "all",
+): Promise<BlueCasterSearchResponse | null> {
+  const baseUrl = process.env.BLUECASTER_API_URL;
+  const apiKey = process.env.BLUECASTER_API_KEY;
+  if (!baseUrl || !apiKey) return null;
+
+  const url = new URL(`${baseUrl}/api/v1/search`);
+  url.searchParams.set("q", q);
+  url.searchParams.set("type", type);
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { "x-api-key": apiKey },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as BlueCasterSearchResponse;
+  } catch {
+    return null;
+  }
+}
+
+// =============================================================================
+// Phase 1 — public endpoints (cities list, province cities, city spots, species, multi-day score)
+// =============================================================================
+
+function bcEnv(): { baseUrl: string; apiKey: string } | null {
+  const baseUrl = process.env.BLUECASTER_API_URL;
+  const apiKey = process.env.BLUECASTER_API_KEY;
+  if (!baseUrl || !apiKey) return null;
+  return { baseUrl, apiKey };
+}
+
+async function bcGet<T>(
+  path: string,
+  query: Record<string, string | number | undefined> = {},
+  revalidate = 300,
+): Promise<T | null> {
+  const env = bcEnv();
+  if (!env) return null;
+  const url = new URL(`${env.baseUrl}${path}`);
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
+  }
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { "x-api-key": env.apiKey },
+      next: { revalidate },
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+// ── Public cities list ─────────────────────────────────────────────
+
+export interface BlueCasterPublicCity {
+  slug: string;
+  name: string | null;
+  city_slug: string | null;
+  lat: number | null;
+  lng: number | null;
+  province: string | null;
+  province_name: string | null;
+  region_label: string | null;
+  hero_image_url: string | null;
+  hero_image_alt: string | null;
+  seo_title: string | null;
+  seo_meta_description: string | null;
+  published_at: string | null;
+  featured: boolean;
+}
+
+export interface FetchPublicCitiesOpts {
+  province?: string;
+  status?: "published" | "draft" | "archived";
+  order?: "alpha" | "featured";
+  limit?: number;
+}
+
+export async function fetchPublicCities(
+  opts: FetchPublicCitiesOpts = {},
+): Promise<BlueCasterPublicCity[]> {
+  const data = await bcGet<{ cities: BlueCasterPublicCity[] }>("/api/v1/cities", {
+    province: opts.province,
+    status: opts.status,
+    order: opts.order,
+    limit: opts.limit,
+  });
+  return data?.cities ?? [];
+}
+
+// ── Province → cities ──────────────────────────────────────────────
+
+export interface BlueCasterProvinceCitiesResponse {
+  province: { code: string; name: string; type: string | null };
+  cities: BlueCasterPublicCity[];
+  meta: { total: number; returned: number };
+}
+
+export async function fetchProvinceCities(
+  code: string,
+  opts: { limit?: number } = {},
+): Promise<BlueCasterProvinceCitiesResponse | null> {
+  return bcGet<BlueCasterProvinceCitiesResponse>(
+    `/api/v1/provinces/${encodeURIComponent(code)}/cities`,
+    { limit: opts.limit },
+  );
+}
+
+// ── City → spots ───────────────────────────────────────────────────
+
+export interface BlueCasterCitySpot {
+  id: string;
+  name: string;
+  slug: string;
+  lat: number;
+  lng: number;
+}
+
+export async function fetchCitySpots(
+  citySlug: string,
+): Promise<BlueCasterCitySpot[]> {
+  const data = await bcGet<{ spots: BlueCasterCitySpot[] }>(
+    `/api/v1/cities/${encodeURIComponent(citySlug)}/spots`,
+  );
+  return data?.spots ?? [];
+}
+
+// ── Species ────────────────────────────────────────────────────────
+
+export interface BlueCasterSpeciesSummary {
+  id: string;
+  slug: string;
+  name: string;
+  scientific_name: string | null;
+  family: string | null;
+  seasonal_calendar: unknown;
+}
+
+export async function fetchSpeciesList(
+  opts: { limit?: number; q?: string } = {},
+): Promise<BlueCasterSpeciesSummary[]> {
+  const data = await bcGet<{ species: BlueCasterSpeciesSummary[] }>(
+    "/api/v1/species",
+    { limit: opts.limit, q: opts.q },
+  );
+  return data?.species ?? [];
+}
+
+export interface BlueCasterSpeciesDetail {
+  species: BlueCasterSpeciesSummary & {
+    behavior_profile: unknown;
+  };
+  featured_cities: Array<{
+    page_slug: string;
+    name: string | null;
+    city_slug: string | null;
+    province: string | null;
+    blurb: string | null;
+  }>;
+  top_spots: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    lat: number;
+    lng: number;
+    rank: number | null;
+    confidence: number | null;
+    peak_season_months: number[];
+  }>;
+  meta: { featured_cities_count: number; top_spots_count: number };
+}
+
+export async function fetchSpecies(
+  slug: string,
+): Promise<BlueCasterSpeciesDetail | null> {
+  return bcGet<BlueCasterSpeciesDetail>(
+    `/api/v1/species/${encodeURIComponent(slug)}`,
+  );
+}
+
+// ── Multi-day / multi-species spot forecast ────────────────────────
+
+export interface BlueCasterMultiDayForecast {
+  spot_id: string;
+  species_ids: string[];
+  forecast_version: number;
+  days: Array<{
+    date: string; // YYYY-MM-DD
+    species: Record<
+      string,
+      {
+        best_score: number | null;
+        best_hour_utc: string | null;
+        hours: Array<{
+          hour_utc: string;
+          stocks: Array<{
+            stock_id: string;
+            score: number;
+            factor_contributions: unknown;
+            regulatory_state: string | null;
+          }>;
+        }>;
+      }
+    >;
+  }>;
+  meta: {
+    days_requested: number;
+    days_returned: number;
+    species_count: number;
+    first_hour_utc: string;
+    last_hour_utc: string;
+  };
+}
+
+export interface FetchSpotForecastOpts {
+  /** Comma-separated species ids OR a single id. Required. */
+  species: string | string[];
+  /** Forecast horizon in days (1..14). Omit for legacy single-hour mode. */
+  days?: number;
+  /** ISO datetime, defaults to now. */
+  datetime?: string;
+}
+
+export async function fetchSpotForecast(
+  spotId: string,
+  opts: FetchSpotForecastOpts,
+): Promise<BlueCasterMultiDayForecast | null> {
+  const speciesParam = Array.isArray(opts.species) ? opts.species.join(",") : opts.species;
+  return bcGet<BlueCasterMultiDayForecast>(
+    `/api/v1/fishing-spots/${encodeURIComponent(spotId)}/score`,
+    {
+      species: speciesParam,
+      days: opts.days,
+      datetime: opts.datetime,
+    },
+    900,
+  );
 }

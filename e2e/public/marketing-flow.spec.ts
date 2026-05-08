@@ -1,0 +1,122 @@
+import { test, expect } from '@playwright/test';
+import {
+  assertHasMetaDescription,
+  assertCanonicalUrl,
+  assertHasJsonLd,
+  assertHasTitle,
+} from '../helpers/seo';
+
+/**
+ * Phase 2 marketing flow: signed-out user lands on /, browses to city/spot/species,
+ * hits sign-up gate. No authentication required for any of these specs.
+ */
+
+// `/` was reclaimed by the visitor coming-soon landing in PR #68. The public
+// marketing surface for unauthed visitors now starts at `/fishing`.
+test.describe('Marketing entry (/fishing)', () => {
+  test('renders without auth and shows province links', async ({ page }) => {
+    const response = await page.goto('/fishing');
+    expect(response?.status()).toBeLessThan(400);
+    await expect(page.getByTestId('marketing-header')).toBeVisible();
+    await expect(page.getByTestId('marketing-footer')).toBeVisible();
+    await assertHasTitle(page);
+    await assertHasMetaDescription(page);
+  });
+});
+
+test.describe('Fishing province + city + spot pages', () => {
+  test('/fishing/bc renders province index', async ({ page }) => {
+    const r = await page.goto('/fishing/bc');
+    expect(r?.status()).toBeLessThan(400);
+    await assertHasTitle(page);
+  });
+
+  test('/fishing/bc/victoria renders city page with SEO meta', async ({ page }) => {
+    const r = await page.goto('/fishing/bc/victoria');
+    if (r?.status() === 404) {
+      test.skip(true, 'Victoria not published in test instance');
+      return;
+    }
+    expect(r?.status()).toBeLessThan(400);
+    await assertHasTitle(page);
+    await assertHasMetaDescription(page);
+    await assertCanonicalUrl(page);
+  });
+
+  test('signed-out spot page shows preview banner', async ({ page }) => {
+    // Probe a published spot via the sitemap so we don't hard-code a slug.
+    const sitemap = await page.request.get('/sitemap.xml');
+    const xml = await sitemap.text();
+    const spotMatch = xml.match(
+      /<loc>https?:\/\/[^/]+(\/fishing\/[a-z]{2}\/[a-z0-9-]+\/[a-z0-9-]+)<\/loc>/,
+    );
+    if (!spotMatch) {
+      test.skip(true, 'no spot URLs in sitemap');
+      return;
+    }
+    await page.goto(spotMatch[1]);
+    await expect(page.getByTestId('signed-out-spot-banner')).toBeVisible({
+      timeout: 5000,
+    });
+  });
+});
+
+test.describe('Species pages', () => {
+  test('/species lists species', async ({ page }) => {
+    const r = await page.goto('/species');
+    expect(r?.status()).toBeLessThan(400);
+    const list = page.getByTestId('species-list');
+    await expect(list).toBeVisible();
+    await assertHasTitle(page);
+    await assertHasJsonLd(page, 'CollectionPage');
+  });
+
+  test('/species/<slug> renders detail page', async ({ page }) => {
+    await page.goto('/species');
+    const firstCard = page.getByTestId('species-card').first();
+    const cardCount = await page.getByTestId('species-card').count();
+    if (cardCount === 0) {
+      test.skip(true, 'no species seeded');
+      return;
+    }
+    const href = await firstCard.getAttribute('href');
+    expect(href).toMatch(/^\/species\/[a-z0-9-]+$/);
+    await page.goto(href!);
+    await assertHasTitle(page);
+    await assertHasJsonLd(page, 'Article');
+  });
+});
+
+test.describe('Public regulations', () => {
+  test('/regulations is reachable + indexed', async ({ page }) => {
+    const r = await page.goto('/regulations');
+    expect(r?.status()).toBeLessThan(400);
+    await assertHasTitle(page);
+    await assertHasMetaDescription(page);
+    await assertHasJsonLd(page, 'GovernmentService');
+  });
+});
+
+test.describe('Sitemap + robots', () => {
+  test('/sitemap.xml lists key public surfaces', async ({ request }) => {
+    const r = await request.get('/sitemap.xml');
+    expect(r.status()).toBe(200);
+    const xml = await r.text();
+    expect(xml).toContain('<?xml');
+    expect(xml).toContain('https://reelcaster.com/');
+    expect(xml).toContain('/regulations');
+    expect(xml).toContain('/species');
+    // At least one fishing URL present (province or city)
+    expect(xml).toMatch(/\/fishing\/[a-z]{2}/);
+  });
+
+  test('/robots.txt blocks gated surfaces', async ({ request }) => {
+    const r = await request.get('/robots.txt');
+    expect(r.status()).toBe(200);
+    const body = await r.text();
+    expect(body.toLowerCase()).toContain('user-agent');
+    expect(body).toMatch(/Disallow:\s*\/dashboard/);
+    expect(body).toMatch(/Disallow:\s*\/profile\//);
+    expect(body).toMatch(/Disallow:\s*\/api\//);
+  });
+});

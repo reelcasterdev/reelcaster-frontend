@@ -17,8 +17,11 @@ export default function CityAccessPoints({
   if (!points || points.length === 0) return null;
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
-      <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 mb-6">
+    <section
+      data-testid="section-city-access-points"
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
+      <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text mb-6">
         Access Points
       </h2>
 
@@ -26,12 +29,12 @@ export default function CityAccessPoints({
         {points.map((point) => (
           <div
             key={point.id}
-            className="bg-white border border-stone-200 rounded-lg px-4 py-3 flex items-center justify-between"
+            className="bg-rc-bg-dark border border-rc-bg-light rounded-lg px-4 py-3 flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               {/* Location pin icon */}
               <svg
-                className="w-4 h-4 text-slate-400 shrink-0"
+                className="w-4 h-4 text-rc-text-muted shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -50,16 +53,16 @@ export default function CityAccessPoints({
                 />
               </svg>
               <div>
-                <span className="text-sm text-slate-900 font-medium">
+                <span className="text-sm text-rc-text font-medium">
                   {point.name}
                 </span>
                 {point.notes && (
-                  <p className="text-xs text-slate-500 mt-0.5">{point.notes}</p>
+                  <p className="text-xs text-rc-text-muted mt-0.5">{point.notes}</p>
                 )}
               </div>
             </div>
 
-            <span className="text-xs text-slate-500 shrink-0 ml-3">
+            <span className="text-xs text-rc-text-muted shrink-0 ml-3">
               {TYPE_LABELS[point.type] ?? point.type}
             </span>
           </div>
