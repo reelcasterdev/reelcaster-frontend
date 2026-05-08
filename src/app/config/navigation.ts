@@ -6,6 +6,7 @@ import {
   Database,
   Anchor,
   LayoutDashboard,
+  User,
   LucideIcon,
 } from 'lucide-react'
 import { ComponentType, SVGProps } from 'react'
@@ -55,6 +56,12 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     href: '/profile/catch-log',
     icon: Anchor,
   },
+  {
+    id: 'profile',
+    label: 'Profile',
+    href: '/profile',
+    icon: User,
+  },
 ]
 
 /**
@@ -94,9 +101,14 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 }
 
 /**
- * Check if a route is active based on current pathname
+ * Check if a route is active based on current pathname.
+ * `/` and `/profile` use exact-match because more specific routes
+ * (`/profile/catch-log`) live underneath and own their own nav entry.
  */
+const EXACT_MATCH_ROUTES = new Set(['/', '/profile'])
+
 export function isRouteActive(href: string, pathname: string): boolean {
   if (href === '/') return pathname === '/' || pathname === ''
+  if (EXACT_MATCH_ROUTES.has(href)) return pathname === href
   return pathname.startsWith(href)
 }
