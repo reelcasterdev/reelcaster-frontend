@@ -1,19 +1,12 @@
-import MarketingHeader from '@/app/components/marketing/marketing-header'
-import MarketingFooter from '@/app/components/marketing/marketing-footer'
-
-// /fishing is public SEO content. Lives outside the (marketing) route group
-// for legacy URL stability, but renders the same marketing chrome so the
-// header/footer match the homepage and /species pages.
+// /fishing is public SEO content. City pages render with the standard
+// marketing chrome (dark `bg-rc-bg-darkest` body + `<MarketingHeader>` +
+// `<MarketingFooter>`) — that wrapping moved INTO the city branch of
+// `[...slug]/page.tsx` so the spot branch can render its own light
+// editorial layout without two stacked headers.
 export default function FishingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-rc-bg-darkest text-rc-text flex flex-col">
-      <MarketingHeader />
-      <main className="flex-1">{children}</main>
-      <MarketingFooter />
-    </div>
-  );
+  return <>{children}</>;
 }

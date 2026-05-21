@@ -1,6 +1,16 @@
 // BlueCaster API client
 // The API returns a nested response; we normalize it for components
 
+import type {
+  SpotPageInitial,
+  Forecast14dPayload,
+} from "./bluecaster/live-spot-types";
+
+export type {
+  SpotPageInitial,
+  Forecast14dPayload,
+} from "./bluecaster/live-spot-types";
+
 export interface BlueCasterCityPage {
   page: {
     slug: string;
@@ -204,6 +214,44 @@ export async function fetchSpotPage(
   if (!baseUrl || !apiKey) throw new Error("BlueCaster env vars not set");
 
   const res = await fetch(`${baseUrl}/api/v1/spots/${slug}/page`, {
+    headers: { "x-api-key": apiKey },
+    next: { revalidate: 60 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`BlueCaster API error: ${res.status}`);
+  return res.json();
+}
+
+// ── Live spot page (composite live-data payload) ───────────────────────
+//
+// `/spot-page` returns the today-only initial slice (~40 KB); `/forecast-14d`
+// returns the full 14-day extended grid (~65 KB) and is lazy-fetched from
+// the client component after first paint. Shape: see lib/bluecaster/live-spot-types.
+
+export async function fetchSpotLivePage(
+  slug: string
+): Promise<SpotPageInitial | null> {
+  const baseUrl = process.env.BLUECASTER_API_URL;
+  const apiKey = process.env.BLUECASTER_API_KEY;
+  if (!baseUrl || !apiKey) throw new Error("BlueCaster env vars not set");
+
+  const res = await fetch(`${baseUrl}/api/v1/spots/${slug}/spot-page`, {
+    headers: { "x-api-key": apiKey },
+    next: { revalidate: 60 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`BlueCaster API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchSpotForecast14d(
+  slug: string
+): Promise<Forecast14dPayload | null> {
+  const baseUrl = process.env.BLUECASTER_API_URL;
+  const apiKey = process.env.BLUECASTER_API_KEY;
+  if (!baseUrl || !apiKey) throw new Error("BlueCaster env vars not set");
+
+  const res = await fetch(`${baseUrl}/api/v1/spots/${slug}/forecast-14d`, {
     headers: { "x-api-key": apiKey },
     next: { revalidate: 60 },
   });
