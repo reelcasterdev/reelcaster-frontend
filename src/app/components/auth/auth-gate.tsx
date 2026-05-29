@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/auth-context'
 
 // Routes whose path EXACTLY equals one of these are public (used for the root
 // marketing homepage, where prefix-matching '/' would match everything).
-const PUBLIC_EXACT = ['/']
+const PUBLIC_EXACT = ['/', '/coming-soon']
 
 // Routes whose path starts with one of these are public.
 const PUBLIC_PREFIXES = [
