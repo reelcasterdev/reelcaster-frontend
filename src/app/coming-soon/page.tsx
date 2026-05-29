@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Montserrat } from 'next/font/google'
+import NotifyForm from './notify-form'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -42,6 +43,10 @@ export default function ComingSoonPage() {
       >
         Fishing Intelligence. Coming Soon.
       </p>
+      <p className="max-w-md text-sm sm:text-base text-white/80">
+        Get notified when ReelCaster launches in British Columbia.
+      </p>
+      <NotifyForm />
     </main>
   )
 }
