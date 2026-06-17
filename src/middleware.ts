@@ -3,18 +3,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Coming-soon wall. Every public-facing route is rewritten to /coming-soon.
 // These prefixes stay reachable so the team can still operate the system:
 // the coming-soon page itself, the API, admin, and the auth/login flow.
-const ALLOW_PREFIXES = ['/coming-soon', '/api', '/admin', '/auth', '/login', '/signup']
+// `/explore` is publicly live (soft-launched) while the rest stays walled.
+const ALLOW_PREFIXES = ['/coming-soon', '/api', '/admin', '/auth', '/login', '/signup', '/explore']
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const allowed = ALLOW_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + '/'),
   )
-  // Local-only preview of the in-progress /explore page — stays behind the
-  // wall in production, reachable when running `pnpm dev`.
-  const devPreview =
-    process.env.NODE_ENV === 'development' && pathname.startsWith('/explore')
-  if (allowed || devPreview) return NextResponse.next()
+  if (allowed) return NextResponse.next()
 
   const url = req.nextUrl.clone()
   url.pathname = '/coming-soon'
