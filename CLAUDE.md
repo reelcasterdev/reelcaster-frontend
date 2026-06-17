@@ -175,6 +175,19 @@ Users can toggle between map types using the **Map Type** switcher above the map
 - **Integration**: `src/app/page.tsx` - Integrated between location selector and forecast header
 - **Data Flow**: Uses existing `openMeteoData` state for timeline playback
 
+## Explore relief map (`/explore`)
+
+The Explore page renders a **bathymetric color-relief nautical chart** (ported from BlueCaster's `test/map/1` / "bathy-relief" system) instead of a generic base map — **no `NEXT_PUBLIC_MAPBOX_TOKEN` required**. It uses **MapLibre GL** (`react-map-gl/maplibre`, already-installed `maplibre-gl`), not Mapbox.
+
+- **Self-hosted tiles**: relief raster (WebP) + depth contours + land are versioned PMTiles archives on BlueCaster's public Supabase CDN, served per-z/x/y by our own proxy `src/app/api/map/tiles/[set]/[z]/[x]/[y]/route.ts` (uses `pmtiles`; immutable 1-yr cache). Registry: `src/lib/map/tile-sets.ts` — **a BlueCaster re-bake (new version key) must be mirrored here** (bump the version const + the keys referenced in `relief-style.ts`).
+- **Style**: `src/lib/map/relief-style.ts` — `buildReliefStyle(origin)` is a **verbatim port of BlueCaster's** `lib/bluecaster/map/relief-style.ts`, kept at full `/test/map/1` parity (relief + contours + contour-labels + land + DFO subarea grid + RCAs + WDFW (hidden) + marine structures + tide stations + US/CA border + multi-tier place labels). Keep it in sync with the BlueCaster source on any chart change. Called with `origin=""` so all URLs are root-relative same-origin. Glyphs (`public/fonts/Open Sans Semibold/`) + the overlay GeoJSON (`public/*_salish.geojson`, `public/region_places.geojson`) are copied from BlueCaster; **every symbol layer must set `text-font: ["Open Sans Semibold"]`** (only shipped fontstack). `next.config.ts` long-caches `/fonts/*` + `/:file.geojson`.
+- **Markers**: native GL **clustered** circle/symbol layers (not DOM markers) — `src/app/explore/components/explore-map.tsx` + `src/app/explore/lib/spot-geojson.ts`. Pins match BlueCaster's MapExplorer 1:1: `scoreColor()` continuous 5-stop scale (`#059669`/`#65a30d`/`#ca8a04`/`#ea580c`/`#e11d48`, unscored `#9ca3af`), color/opacity/label/txtColor baked into feature props, zoom-interpolated radius (11→14→16), white numerals (unscored = grey `·`), cobalt `#1F40E0` selection stroke + hover stroke bump, cobalt count-stepped clusters. `getClusterExpansionZoom` + `easeTo` on cluster click. (The rail/drawer keep the light-editorial 4-tier `TIER_PILL` system — that's the reelcaster design language, intentionally separate from the map pins.)
+- **Map controls** (`src/app/explore/components/map-controls.tsx`, floating bottom-center/left) — mirror BlueCaster's MapExplorer toggles, state owned by `explore-shell.tsx`:
+  - **Relief** + **Labels** — flip `visibility` on the relief/contour layers and the `places-t*` layers (`setLayoutProperty` in `explore-map.tsx`).
+  - **Currents** — animated tidal-current particle field (`src/app/explore/lib/use-currents.ts`, ported from BlueCaster's `useCurrentsArrows`; a transparent canvas over the map). Data via the same-origin proxy `src/app/api/bluecaster/currents/field/route.ts` → BlueCaster's auth-free `/api/map/currents/field` (note: that path is **not** under `/api/v1`, so the proxy hits `BLUECASTER_API_URL/api/map/...` directly).
+  - **Species filter** — re-scores pins + rail by a single species using `RailSpot.scoresBySpecies` (per-species peak, 0–100, added in `explore-data.ts`); options come from `ExploreData.species`. `displaySpots` in the shell applies it (overrides `score`/`bestSpeciesId`/`driverSpecies`, re-sorts).
+- **Opens on Victoria**: `buildExploreData` defaults `defaultCitySlug` to the pilot city (`victoria-bc`) when covered (else best-scoring), so the page lands on the bathymetry-rich Juan de Fuca coastline.
+
 ## Important Development Notes
 
 ### Component Creation
@@ -259,6 +272,10 @@ When working with APIs:
 ### Design System
 
 ReelCaster uses a custom dark theme design system built on Tailwind CSS v4. **Always use the `rc-*` color tokens** for consistency across the application.
+
+#### Light editorial design system (canonical, Figma-sourced — Explore page)
+
+`src/styles/rc-tokens.css` holds the canonical `--rc-*` token system ported from the Figma "Explore + Spot" source of truth (same values as bluecaster's `/admin/design/design-system` page): brand `#1E40E0`, ink `#0B1220/#2A3344/#8A92A4`, white panels on `#F0EFED`, score tiers (good ≥75 / fair 55–74 / poor <55), 8pt spacing, Inter + IBM Plex Mono. It is mapped to Tailwind utilities in `globals.css` (`bg-rc-panel`, `text-rc-ink`, `border-rc-rule`, `bg-rc-good-bg text-rc-good-ink`, `font-rc-mono`, `shadow-rc-panel`, …) plus semantic classes (`.rc-label`, `.rc-title-lg`, `.rc-score--good`). The Explore page (`src/app/explore/`) is its first consumer; the dark tokens below remain the legacy app theme until the app-wide migration. New light-theme surfaces should build on these tokens, never ad-hoc hex values.
 
 #### Color Tokens (Defined in `globals.css`)
 

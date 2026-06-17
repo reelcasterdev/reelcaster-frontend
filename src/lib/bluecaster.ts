@@ -288,6 +288,66 @@ export async function fetchPublishedSpots(): Promise<
   }
 }
 
+// ── Bulk map spots (scores + conditions) ───────────────────────────
+// Shapes mirror bluecaster lib/bluecaster/map/spots-scores.ts and
+// spots-conditions.ts. Hour scores are 0..1 — multiply by 100 exactly
+// once, in src/app/explore/lib/explore-data.ts.
+
+export interface MapHourScore {
+  s: number; // score 0..1
+  r: 0;
+}
+
+export interface MapSpeciesStrip {
+  peak: number; // best hourly score across the day (0..1)
+  peak_hour: number; // local hour 0..23 of the peak
+  hours: (MapHourScore | null)[]; // length 24, null = unavailable
+  season: "peak" | "mid" | "off";
+}
+
+export interface MapCondCell {
+  wkt: number | null; // wind speed (kt)
+  wdir: number | null; // wind direction (deg, FROM)
+  wav: number | null; // sea/wave height (m)
+  tide: number | null; // tide height (m)
+  tph: string | null; // tide phase (e.g. "flood_late", "slack_high")
+}
+
+export type MapCondStrip = (MapCondCell | null)[]; // length 24
+
+export interface MapSpotEntry {
+  id: string;
+  slug: string;
+  name: string;
+  lat: number;
+  lng: number;
+  city_slug: string | null;
+  best_species_id: string | null;
+  scores: Record<string, MapSpeciesStrip>;
+  conditions: MapCondStrip | null;
+}
+
+export interface MapSpotsPayload {
+  date: string; // YYYY-MM-DD in America/Vancouver
+  tz: string;
+  forecast_version: number;
+  hours_utc: string[]; // 24 ISO instants; index i = local hour i
+  species: Record<string, { id: string; slug: string; name: string }>;
+  spots: MapSpotEntry[];
+}
+
+export async function fetchMapSpots(opts: {
+  bbox?: string; // "w,s,e,n"
+  city?: string;
+  date?: string; // YYYY-MM-DD
+}): Promise<MapSpotsPayload | null> {
+  return bcGet<MapSpotsPayload>("/api/v1/map/spots", {
+    bbox: opts.bbox,
+    city: opts.city,
+    date: opts.date,
+  });
+}
+
 // ── Hierarchy (regions index) ───────────────────────────────────────
 
 export interface BlueCasterHierarchy {
