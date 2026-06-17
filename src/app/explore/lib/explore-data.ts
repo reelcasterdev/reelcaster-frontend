@@ -1,0 +1,426 @@
+// Explore page data model: joins the BlueCaster hierarchy (location tree)
+// with the bulk map-spots payload (scores + conditions) into the shapes the
+// rail, pins, and drawer render. Score scale: the API returns 0..1 — it is
+// multiplied to 0..100 HERE and nowhere else.
+
+import type {
+  BlueCasterHierarchy,
+  MapSpotsPayload,
+  MapSpotEntry,
+  MapCondCell,
+} from "@/lib/bluecaster";
+import { COVERED_PROVINCES } from "@/lib/regions";
+
+// ── Score tiers ─────────────────────────────────────────────────────
+
+export type Tier = "good" | "fair" | "poor" | "none";
+
+export function tierFor(score: number | null): Tier {
+  if (score === null) return "none";
+  if (score >= 75) return "good";
+  if (score >= 55) return "fair";
+  return "poor";
+}
+
+/** Tailwind classes for the tier pill ("85 GOOD") on cards and the drawer. */
+export const TIER_PILL: Record<Tier, string> = {
+  good: "bg-rc-good-bg text-rc-good-ink",
+  fair: "bg-rc-fair-bg text-rc-fair-ink",
+  poor: "bg-rc-poor-bg text-rc-poor-ink",
+  none: "bg-rc-surface text-rc-ink-mute",
+};
+
+/** Tier-colored text (numerals, bars). */
+export const TIER_TEXT: Record<Tier, string> = {
+  good: "text-rc-good",
+  fair: "text-rc-fair",
+  poor: "text-rc-poor",
+  none: "text-rc-ink-mute",
+};
+
+// Map-pin tier fills moved to GL paint expressions — see
+// src/app/explore/lib/spot-geojson.ts (TIER_HEX).
+
+// ── Rail spot ───────────────────────────────────────────────────────
+
+export interface RailConditions {
+  wind: string | null; // "12 kn SW"
+  sea: string | null; // "Light Chop"
+  tide: string | null; // "+2.4m ▲"
+}
+
+export interface RailSpot {
+  id: string;
+  slug: string;
+  name: string;
+  lat: number;
+  lng: number;
+  citySlug: string;
+  cityName: string;
+  regionSlug: string;
+  regionName: string;
+  provinceCode: string;
+  /** 0–100 peak score for the best species today, null = unscored. */
+  score: number | null;
+  /** Best species id — keys the forecast-14d hourly grid for the strip. */
+  bestSpeciesId: string | null;
+  driverSpecies: string | null;
+  /** Local hour (0–23) of the peak. */
+  peakHour: number | null;
+  /** Distance from the city center, km (drawer sub line). */
+  distanceKm: number | null;
+  conditions: RailConditions;
+  /** Best-species hourly scores 0–100, null = unavailable that hour. */
+  hours24: (number | null)[];
+  /** Per-species peak score (0–100) keyed by species id — powers the filter. */
+  scoresBySpecies: Record<string, number>;
+}
+
+/** A species present in the loaded scores — populates the map filter dropdown. */
+export interface SpeciesOption {
+  id: string;
+  name: string;
+}
+
+// ── Location selector tree ──────────────────────────────────────────
+
+export interface CityNode {
+  slug: string;
+  name: string;
+  lat: number;
+  lng: number;
+  regionSlug: string;
+  regionName: string;
+  provinceCode: string;
+  spotCount: number;
+  bestScore: number | null;
+}
+
+export interface RegionNode {
+  slug: string;
+  name: string;
+  provinceCode: string;
+  cities: CityNode[];
+}
+
+export interface ProvinceNode {
+  code: string;
+  name: string;
+  regions: RegionNode[];
+}
+
+export interface ExploreData {
+  /** Local (America/Vancouver) date the scores are for. */
+  date: string;
+  spots: RailSpot[];
+  locations: ProvinceNode[];
+  /** Best-scoring covered city — the rail's default selection. */
+  defaultCitySlug: string | null;
+  /** Species that appear in the scores, sorted by name (filter dropdown). */
+  species: SpeciesOption[];
+}
+
+// ── Formatters ──────────────────────────────────────────────────────
+
+const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+
+export function compass(deg: number): string {
+  return COMPASS[Math.round(((deg % 360) + 360) % 360 / 45) % 8];
+}
+
+export function fmtPeak(hour: number | null): string | null {
+  if (hour === null) return null;
+  return `${String(hour).padStart(2, "0")}:00`;
+}
+
+function fmtWind(c: MapCondCell): string | null {
+  if (c.wkt === null) return null;
+  const dir = c.wdir !== null ? ` ${compass(c.wdir)}` : "";
+  return `${Math.round(c.wkt)} kn${dir}`;
+}
+
+function seaState(wav: number | null): string | null {
+  if (wav === null) return null;
+  if (wav < 0.2) return "Calm";
+  if (wav < 0.5) return "Light";
+  if (wav < 1.0) return "Light Chop";
+  if (wav < 2.0) return "Moderate";
+  return "Rough";
+}
+
+function fmtTide(c: MapCondCell): string | null {
+  if (c.tide === null) return null;
+  const h = `${c.tide >= 0 ? "+" : ""}${c.tide.toFixed(1)}m`;
+  if (!c.tph) return h;
+  if (c.tph.startsWith("flood")) return `${h} ▲`;
+  if (c.tph.startsWith("ebb")) return `${h} ▼`;
+  return `${h} ·`; // slack
+}
+
+export function formatConditions(cell: MapCondCell | null): RailConditions {
+  if (!cell) return { wind: null, sea: null, tide: null };
+  return {
+    wind: fmtWind(cell),
+    sea: seaState(cell.wav),
+    tide: fmtTide(cell),
+  };
+}
+
+/** Current local hour (0–23) in the payload's timezone. */
+export function currentLocalHour(tz: string): number {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: tz,
+      hour: "2-digit",
+      hour12: false,
+    }).format(new Date()),
+  ) % 24;
+}
+
+function haversineKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ── Scoring derivation (shared by build + day re-scoring) ───────────
+
+type SpeciesDict = Record<string, { id: string; slug: string; name: string }>;
+
+interface ScoringFields {
+  score: number | null;
+  bestSpeciesId: string | null;
+  driverSpecies: string | null;
+  peakHour: number | null;
+  conditions: RailConditions;
+  hours24: (number | null)[];
+  scoresBySpecies: Record<string, number>;
+}
+
+const EMPTY_SCORING: ScoringFields = {
+  score: null,
+  bestSpeciesId: null,
+  driverSpecies: null,
+  peakHour: null,
+  conditions: { wind: null, sea: null, tide: null },
+  hours24: new Array(24).fill(null),
+  scoresBySpecies: {},
+};
+
+/**
+ * Pull a spot's display fields out of a map/spots entry. `atHour` is the
+ * conditions hour to read; pass the current local hour for "today" and an
+ * out-of-range hour (e.g. -1) for future dates so it falls back to the
+ * peak hour (there is no "now" on a future day).
+ */
+function deriveScoring(
+  entry: MapSpotEntry | undefined,
+  speciesDict: SpeciesDict,
+  atHour: number,
+): ScoringFields {
+  if (!entry) return EMPTY_SCORING;
+  const strip = entry.best_species_id
+    ? entry.scores[entry.best_species_id]
+    : undefined;
+  const score = strip ? Math.round(strip.peak * 100) : null;
+  const cell =
+    entry.conditions?.[atHour] ??
+    (strip ? entry.conditions?.[strip.peak_hour] : null) ??
+    null;
+  // Peak score per species (0–100) so the map filter can re-color by species.
+  const scoresBySpecies: Record<string, number> = {};
+  for (const [sid, sp] of Object.entries(entry.scores ?? {})) {
+    scoresBySpecies[sid] = Math.round(sp.peak * 100);
+  }
+  return {
+    score,
+    bestSpeciesId: entry.best_species_id,
+    driverSpecies: entry.best_species_id
+      ? (speciesDict[entry.best_species_id]?.name ?? null)
+      : null,
+    peakHour: strip?.peak_hour ?? null,
+    conditions: formatConditions(cell),
+    hours24: strip
+      ? strip.hours.map((h) => (h ? Math.round(h.s * 100) : null))
+      : new Array(24).fill(null),
+    scoresBySpecies,
+  };
+}
+
+/**
+ * Re-derive scores/conditions for an existing rail-spot set from a payload
+ * fetched for a different date (forecast-day taps). Location metadata is
+ * preserved; only the score-bearing fields change. Spots absent from the
+ * new payload go unscored.
+ */
+export function rescoreSpots(
+  base: RailSpot[],
+  payload: MapSpotsPayload,
+  isToday: boolean,
+): RailSpot[] {
+  const byId = new Map(payload.spots.map((s) => [s.id, s]));
+  const bySlug = new Map(payload.spots.map((s) => [s.slug, s]));
+  const nowHour = currentLocalHour(payload.tz);
+  return base.map((spot) => {
+    const entry = byId.get(spot.id) ?? bySlug.get(spot.slug);
+    const s = deriveScoring(entry, payload.species, isToday ? nowHour : -1);
+    return {
+      ...spot,
+      score: s.score,
+      bestSpeciesId: s.bestSpeciesId,
+      driverSpecies: s.driverSpecies,
+      peakHour: s.peakHour,
+      conditions: s.conditions,
+      hours24: s.hours24,
+      scoresBySpecies: s.scoresBySpecies,
+    };
+  });
+}
+
+// ── Build ───────────────────────────────────────────────────────────
+
+export function buildExploreData(
+  hierarchy: BlueCasterHierarchy | null,
+  payload: MapSpotsPayload | null,
+): ExploreData {
+  const spots: RailSpot[] = [];
+  const locations: ProvinceNode[] = [];
+
+  const byId = new Map(payload?.spots.map((s) => [s.id, s]) ?? []);
+  const bySlug = new Map(payload?.spots.map((s) => [s.slug, s]) ?? []);
+  const speciesDict = payload?.species ?? {};
+  const nowHour = payload ? currentLocalHour(payload.tz) : 0;
+
+  for (const country of hierarchy?.countries ?? []) {
+    for (const sp of country.states_provinces) {
+      if (!(COVERED_PROVINCES as readonly string[]).includes(sp.code)) continue;
+      const provinceNode: ProvinceNode = {
+        code: sp.code,
+        name: sp.name,
+        regions: [],
+      };
+
+      for (const region of sp.regions) {
+        const regionNode: RegionNode = {
+          slug: region.slug,
+          name: region.name,
+          provinceCode: sp.code,
+          cities: [],
+        };
+
+        for (const city of region.cities) {
+          let spotCount = 0;
+          let bestScore: number | null = null;
+
+          for (const spot of city.spots) {
+            if (!spot.is_published) continue;
+            const entry = byId.get(spot.id) ?? bySlug.get(spot.slug);
+            const s = deriveScoring(entry, speciesDict, nowHour);
+
+            spots.push({
+              id: spot.id,
+              slug: spot.slug,
+              name: spot.name,
+              lat: spot.lat,
+              lng: spot.lng,
+              citySlug: city.slug,
+              cityName: city.name,
+              regionSlug: region.slug,
+              regionName: region.name,
+              provinceCode: sp.code,
+              score: s.score,
+              bestSpeciesId: s.bestSpeciesId,
+              driverSpecies: s.driverSpecies,
+              peakHour: s.peakHour,
+              distanceKm:
+                Number.isFinite(city.lat) && Number.isFinite(city.lng)
+                  ? Math.round(haversineKm(city.lat, city.lng, spot.lat, spot.lng))
+                  : null,
+              conditions: s.conditions,
+              hours24: s.hours24,
+              scoresBySpecies: s.scoresBySpecies,
+            });
+
+            spotCount++;
+            if (s.score !== null && (bestScore === null || s.score > bestScore)) {
+              bestScore = s.score;
+            }
+          }
+
+          if (spotCount > 0) {
+            regionNode.cities.push({
+              slug: city.slug,
+              name: city.name,
+              lat: city.lat,
+              lng: city.lng,
+              regionSlug: region.slug,
+              regionName: region.name,
+              provinceCode: sp.code,
+              spotCount,
+              bestScore,
+            });
+          }
+        }
+
+        if (regionNode.cities.length > 0) {
+          regionNode.cities.sort(
+            (a, b) => (b.bestScore ?? -1) - (a.bestScore ?? -1),
+          );
+          provinceNode.regions.push(regionNode);
+        }
+      }
+
+      if (provinceNode.regions.length > 0) locations.push(provinceNode);
+    }
+  }
+
+  // Spots sort by score desc (nulls last) within the whole set; the rail
+  // filters by city, so per-city order falls out of this.
+  spots.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+
+  // The page opens on the flagship/pilot city (Victoria) when it's covered, so
+  // it lands on the bathymetry-rich Juan de Fuca coastline rather than whichever
+  // city happens to score highest that day. Falls back to best-scoring otherwise.
+  const PREFERRED_DEFAULT_CITY = "victoria-bc";
+  let bestScoringSlug: string | null = null;
+  let best = -1;
+  let hasPreferred = false;
+  for (const prov of locations) {
+    for (const region of prov.regions) {
+      for (const city of region.cities) {
+        if (city.slug === PREFERRED_DEFAULT_CITY) hasPreferred = true;
+        if ((city.bestScore ?? -1) > best) {
+          best = city.bestScore ?? -1;
+          bestScoringSlug = city.slug;
+        }
+      }
+    }
+  }
+  const defaultCitySlug = hasPreferred ? PREFERRED_DEFAULT_CITY : bestScoringSlug;
+
+  // Species that actually carry scores somewhere — the filter dropdown options.
+  const speciesSeen = new Set<string>();
+  for (const spot of spots) {
+    for (const sid of Object.keys(spot.scoresBySpecies)) speciesSeen.add(sid);
+  }
+  const species: SpeciesOption[] = [...speciesSeen]
+    .map((id) => ({ id, name: speciesDict[id]?.name ?? id }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return {
+    date: payload?.date ?? "",
+    spots,
+    locations,
+    defaultCitySlug,
+    species,
+  };
+}

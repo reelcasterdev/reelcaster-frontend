@@ -10,7 +10,11 @@ export function middleware(req: NextRequest) {
   const allowed = ALLOW_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + '/'),
   )
-  if (allowed) return NextResponse.next()
+  // Local-only preview of the in-progress /explore page — stays behind the
+  // wall in production, reachable when running `pnpm dev`.
+  const devPreview =
+    process.env.NODE_ENV === 'development' && pathname.startsWith('/explore')
+  if (allowed || devPreview) return NextResponse.next()
 
   const url = req.nextUrl.clone()
   url.pathname = '/coming-soon'

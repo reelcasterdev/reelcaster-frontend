@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
-import { fetchHierarchy } from "@/lib/bluecaster";
-import { COVERED_PROVINCES } from "@/lib/regions";
-import ExploreCanvas, { type ExploreSpot, type ExploreProvince } from "./explore-canvas";
+import { fetchHierarchy, fetchMapSpots } from "@/lib/bluecaster";
+import { buildExploreData } from "./lib/explore-data";
+import ExploreShell from "./explore-shell";
 
 const SITE_URL = "https://reelcaster.com";
+
+// Covers BC + WA + OR — the same extent the old province pills spanned.
+const COVERED_BBOX_ALL = "-139.06,41.99,-114.03,60";
 
 export const metadata: Metadata = {
   title: "Explore | ReelCaster",
   description:
-    "Interactive fishing canvas — browse covered spots in BC, WA, and OR. Open any pin for live conditions and the RC score breakdown.",
+    "Interactive fishing map — browse covered spots in BC, WA, and OR with live scores, conditions, and the day's best windows.",
   alternates: { canonical: `${SITE_URL}/explore` },
   openGraph: {
     title: "Explore | ReelCaster",
     description:
-      "Interactive fishing canvas — browse covered spots and see live RC scores.",
+      "Interactive fishing map — browse covered spots and see live RC scores.",
     url: `${SITE_URL}/explore`,
     siteName: "ReelCaster",
     type: "website",
@@ -23,44 +26,12 @@ export const metadata: Metadata = {
 };
 
 export default async function ExplorePage() {
-  const hierarchy = await fetchHierarchy();
+  const [hierarchy, payload] = await Promise.all([
+    fetchHierarchy(),
+    fetchMapSpots({ bbox: COVERED_BBOX_ALL }),
+  ]);
 
-  const provinces: ExploreProvince[] = [];
-  const spots: ExploreSpot[] = [];
+  const data = buildExploreData(hierarchy, payload);
 
-  if (hierarchy) {
-    for (const country of hierarchy.countries) {
-      for (const sp of country.states_provinces) {
-        const isCovered = COVERED_PROVINCES.includes(sp.code as "BC" | "WA" | "OR");
-        provinces.push({
-          code: sp.code,
-          name: sp.name,
-          country_code: country.code,
-          is_covered: isCovered,
-        });
-        if (!isCovered) continue;
-
-        for (const region of sp.regions) {
-          for (const city of region.cities) {
-            for (const spot of city.spots) {
-              if (!spot.is_published) continue;
-              spots.push({
-                id: spot.id,
-                slug: spot.slug,
-                name: spot.name,
-                lat: spot.lat,
-                lng: spot.lng,
-                city_slug: city.slug,
-                city_name: city.name,
-                province_code: sp.code,
-                region_slug: region.slug,
-              });
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return <ExploreCanvas spots={spots} provinces={provinces} />;
+  return <ExploreShell data={data} bbox={COVERED_BBOX_ALL} />;
 }
