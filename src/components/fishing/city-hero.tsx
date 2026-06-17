@@ -4,9 +4,13 @@ import type { BlueCasterCityPage } from "@/lib/bluecaster";
 export default function CityHero({ data }: { data: BlueCasterCityPage }) {
   const { hero } = data.page;
   const { city, province } = data.hierarchy;
+  const hasImage = Boolean(hero.image_url);
 
   return (
-    <section className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+    <section
+      data-testid="section-city-hero"
+      className="relative w-full h-[400px] md:h-[500px] overflow-hidden"
+    >
       {/* Background */}
       {hero.image_url ? (
         <Image
@@ -18,17 +22,19 @@ export default function CityHero({ data }: { data: BlueCasterCityPage }) {
           sizes="100vw"
         />
       ) : (
-        <div className="absolute inset-0 bg-slate-800" />
+        <div className="absolute inset-0 bg-rc-bg-light" />
       )}
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+      {/* Dark overlay only when there's a photo to dim */}
+      {hasImage && (
+        <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+      )}
 
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-end h-full max-w-6xl mx-auto px-6 pb-10 md:pb-14">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-3">
-          <ol className="flex items-center gap-0 text-stone-300 text-xs tracking-[0.25em] uppercase font-medium">
+          <ol className="flex items-center gap-0 text-rc-text-light text-xs tracking-[0.25em] uppercase font-medium">
             <li>
               <span>{province.name}</span>
             </li>

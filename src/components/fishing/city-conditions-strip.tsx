@@ -12,7 +12,7 @@ export default function CityConditionsStrip({
   const items: { label: string; value: string }[] = [];
 
   if (conditions.temp_c != null) {
-    items.push({ label: "Temperature", value: `${conditions.temp_c}\u00B0C` });
+    items.push({ label: "Temperature", value: `${conditions.temp_c}°C` });
   }
   if (conditions.wind_kn != null) {
     let windStr = `${conditions.wind_kn}kn`;
@@ -22,7 +22,7 @@ export default function CityConditionsStrip({
     items.push({ label: "Wind", value: windStr });
   }
   if (conditions.water_temp_c != null) {
-    items.push({ label: "Water", value: `${conditions.water_temp_c}\u00B0C` });
+    items.push({ label: "Water", value: `${conditions.water_temp_c}°C` });
   }
   if (conditions.tide_high != null) {
     items.push({
@@ -46,21 +46,25 @@ export default function CityConditionsStrip({
   if (items.length === 0) return null;
 
   return (
-    <section className="bg-stone-100 border-y border-stone-200" aria-label="Current fishing conditions">
+    <section
+      data-testid="section-city-conditions-strip"
+      className="bg-rc-bg-light border-y border-rc-bg-light"
+      aria-label="Current fishing conditions"
+    >
       <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6 overflow-x-auto">
-        <div className="flex items-center gap-6 font-mono text-xs tracking-wider text-slate-600 whitespace-nowrap">
+        <div className="flex items-center gap-6 font-mono text-xs tracking-wider text-rc-text-light whitespace-nowrap">
           {items.map((item) => (
             <span key={item.label}>
-              <span className="text-slate-400">{item.label}</span>{" "}
-              <span className="text-slate-700 font-semibold">{item.value}</span>
+              <span className="text-rc-text-muted">{item.label}</span>{" "}
+              <span className="text-rc-text font-semibold">{item.value}</span>
             </span>
           ))}
         </div>
 
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span
-            className="font-mono text-xs tracking-wider text-emerald-600 font-semibold uppercase"
+            className="font-mono text-xs tracking-wider text-emerald-300 font-semibold uppercase"
             aria-label="Data updated live"
           >
             Live

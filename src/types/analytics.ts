@@ -196,6 +196,10 @@ export type AnalyticsEventName =
   // Feature Access
   | 'Premium Feature Accessed'
   | 'Upgrade Prompt Shown'
+  // Paywall + Billing
+  | 'Paywall Shown'
+  | 'Paywall CTA Clicked'
+  | 'Manage Subscription Clicked'
   // Performance
   | 'Page Load Time'
   | 'API Call'

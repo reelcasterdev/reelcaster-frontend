@@ -19,12 +19,15 @@ export default function SpotLocalExperts({
   if (!experts || experts.length === 0) return null;
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
+    <section
+      data-testid="section-spot-local-experts"
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
       <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900">
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text">
           Verified by Local Guides
         </h2>
-        <p className="text-sm text-slate-500 mt-1 font-mono tracking-wide">
+        <p className="text-sm text-rc-text-muted mt-1 font-mono tracking-wide">
           Spots, species, and access notes reviewed and confirmed by working guides.
         </p>
       </div>
@@ -33,24 +36,24 @@ export default function SpotLocalExperts({
         {experts.map((expert) => (
           <li
             key={expert.review_session_id}
-            className="border border-stone-200 bg-white p-5 rounded-lg flex flex-col gap-3"
+            className="border border-rc-bg-light bg-rc-bg-dark p-5 rounded-lg flex flex-col gap-3"
           >
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center text-slate-700 font-black text-lg uppercase">
+              <div className="w-12 h-12 rounded-full bg-rc-bg-light flex items-center justify-center text-rc-text font-black text-lg uppercase">
                 {expert.guide_name.charAt(0)}
               </div>
               <div className="min-w-0">
-                <div className="text-slate-900 font-semibold truncate">
+                <div className="text-rc-text font-semibold truncate">
                   {expert.guide_name}
                 </div>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-slate-400">
+                <div className="font-mono text-[10px] uppercase tracking-widest text-rc-text-muted">
                   Reviewed {formatRelative(expert.submitted_at)}
                 </div>
               </div>
             </div>
-            <div className="text-sm text-slate-600 border-t border-stone-100 pt-3">
+            <div className="text-sm text-rc-text-light border-t border-rc-bg-light pt-3">
               Verified{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-rc-text">
                 {expert.verified_spot_count}
               </span>{" "}
               {expert.verified_spot_count === 1 ? "spot" : "spots"} in this area.

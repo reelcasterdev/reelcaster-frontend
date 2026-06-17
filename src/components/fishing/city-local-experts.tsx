@@ -17,8 +17,11 @@ export default function CityLocalExperts({
   if (!charters || charters.length === 0) return null;
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
-      <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 mb-6">
+    <section
+      data-testid="section-city-local-experts"
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
+      <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text mb-6">
         Local Experts
       </h2>
 
@@ -26,10 +29,10 @@ export default function CityLocalExperts({
         {charters.map((charter) => (
           <div
             key={charter.id}
-            className="bg-white border border-stone-200 rounded-lg overflow-hidden"
+            className="bg-rc-bg-dark border border-rc-bg-light rounded-lg overflow-hidden"
           >
             {/* Photo */}
-            <div className="aspect-[4/3] bg-slate-200 relative overflow-hidden">
+            <div className="aspect-[4/3] bg-rc-bg-light relative overflow-hidden">
               {charter.photo_url ? (
                 <Image
                   src={charter.photo_url}
@@ -41,7 +44,7 @@ export default function CityLocalExperts({
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <svg
-                    className="w-12 h-12 text-slate-300"
+                    className="w-12 h-12 text-rc-text-muted"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -65,18 +68,18 @@ export default function CityLocalExperts({
 
             {/* Body */}
             <div className="p-4">
-              <h3 className="text-base font-semibold text-slate-900">
+              <h3 className="text-base font-semibold text-rc-text">
                 {charter.name}
               </h3>
 
               {charter.business_type && (
-                <span className="inline-block mt-1 border border-slate-300 text-slate-600 text-[10px] px-2 py-0.5 uppercase tracking-widest font-medium rounded-full">
+                <span className="inline-block mt-1 border border-rc-bg-light text-rc-text-light text-[10px] px-2 py-0.5 uppercase tracking-widest font-medium rounded-full">
                   {formatBusinessType(charter.business_type)}
                 </span>
               )}
 
               {charter.rating != null && charter.review_count != null && (
-                <p className="text-sm text-slate-600 mt-2">
+                <p className="text-sm text-rc-text-light mt-2">
                   <span aria-label={`${charter.rating} out of 5 stars`}>
                     {charter.rating}&starf;
                   </span>{" "}
@@ -88,7 +91,7 @@ export default function CityLocalExperts({
                 {charter.phone && (
                   <a
                     href={`tel:${charter.phone}`}
-                    className="text-sm text-blue-700 hover:underline"
+                    className="text-sm text-blue-400 hover:underline"
                   >
                     {charter.phone}
                   </a>
@@ -98,7 +101,7 @@ export default function CityLocalExperts({
                     href={charter.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-blue-700 hover:underline"
+                    className="text-sm text-blue-400 hover:underline"
                   >
                     Website
                   </a>

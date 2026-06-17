@@ -4,14 +4,38 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 
-const PUBLIC_PREFIXES = ['/login', '/signup', '/auth/', '/fishing', '/pricing', '/explore']
+// Routes whose path EXACTLY equals one of these are public (used for the root
+// marketing homepage, where prefix-matching '/' would match everything).
+const PUBLIC_EXACT = ['/', '/coming-soon']
+
+// Routes whose path starts with one of these are public.
+const PUBLIC_PREFIXES = [
+  '/login',
+  '/signup',
+  '/auth/',
+  '/fishing',
+  '/pricing',
+  '/explore',
+  '/regulations',
+  '/species',
+  '/privacy',
+  '/terms',
+  '/contact',
+  '/about',
+  '/faq',
+]
+
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_EXACT.includes(pathname)) return true
+  return PUBLIC_PREFIXES.some(p => pathname.startsWith(p))
+}
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
-  const isPublicRoute = PUBLIC_PREFIXES.some(p => pathname.startsWith(p))
+  const isPublicRoute = isPublicPath(pathname)
 
   useEffect(() => {
     if (!loading && !user && !isPublicRoute) {

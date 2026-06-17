@@ -20,7 +20,9 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/')
+      // Phase 3 will replace target with /dashboard?onboarding=1 once the
+      // onboarding modal lands. For now /dashboard hosts the V2 forecast.
+      router.replace('/dashboard?onboarding=1')
     }
   }, [user, loading, router])
 

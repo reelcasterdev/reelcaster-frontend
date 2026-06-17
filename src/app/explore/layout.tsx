@@ -1,10 +1,25 @@
+import { Inter, IBM_Plex_Mono } from "next/font/google";
+
+// The Explore page is the first consumer of the light rc-* design system
+// (see src/styles/rc-tokens.css). Inter + IBM Plex Mono load only on this
+// route; hoist to the root layout when the rest of the app migrates.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex-mono",
+});
+
 export default function ExploreLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-rc-bg-darkest text-rc-text">
+    <div
+      data-theme="rc-light"
+      className={`${inter.variable} ${plexMono.variable} h-dvh overflow-hidden bg-rc-page text-rc-ink font-rc-sans`}
+    >
       {children}
     </div>
   );

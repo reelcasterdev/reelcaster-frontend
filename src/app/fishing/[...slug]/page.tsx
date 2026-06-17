@@ -3,14 +3,20 @@ import type { Metadata } from "next";
 import {
   fetchCityPage,
   fetchSpotPage,
+  fetchSpotLivePage,
+  fetchSpecies,
   type BlueCasterCityPage,
   type BlueCasterSpotPage,
+  type SpotPageInitial,
 } from "@/lib/bluecaster";
+import MarketingHeader from "@/app/components/marketing/marketing-header";
+import MarketingFooter from "@/app/components/marketing/marketing-footer";
 import CityHero from "@/components/fishing/city-hero";
 import CityConditionsStrip from "@/components/fishing/city-conditions-strip";
 import CityAbout from "@/components/fishing/city-about";
 import CityTechniques from "@/components/fishing/city-techniques";
 import CityScoreCta from "@/components/fishing/city-score-cta";
+import CitySpots from "@/components/fishing/city-spots";
 import CitySpeciesTable from "@/components/fishing/city-species-table";
 import CitySeasonalGuide from "@/components/fishing/city-seasonal-guide";
 import CityLocalIntel from "@/components/fishing/city-local-intel";
@@ -18,15 +24,10 @@ import CityAccessPoints from "@/components/fishing/city-access-points";
 import CityLocalExperts from "@/components/fishing/city-local-experts";
 import CityFaq from "@/components/fishing/city-faq";
 import CityJsonLd from "@/components/fishing/city-json-ld";
-import SpotHero from "@/components/fishing/spot-hero";
-import SpotScoreCta from "@/components/fishing/spot-score-cta";
-import SpotForecastStrip from "@/components/fishing/spot-forecast-strip";
-import SpotSeasonalAbundance from "@/components/fishing/spot-seasonal-abundance";
-import SpotAccessPoints from "@/components/fishing/spot-access-points";
-import SpotLocalExperts from "@/components/fishing/spot-local-experts";
+import CityRegulationAlerts from "@/components/fishing/city-regulation-alerts";
+import CityCatchReports from "@/components/fishing/city-catch-reports";
 import SpotJsonLd from "@/components/fishing/spot-json-ld";
-import SpotBreakdownPanel from "@/components/fishing/spot-breakdown-panel";
-import SpotPaywallTeaser from "@/components/fishing/spot-paywall-teaser";
+import LiveSpotPage from "@/components/fishing/live-spot-page";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -36,10 +37,30 @@ const SITE_URL = "https://reelcaster.com";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const [, citySlug, spotSlug] = slug;
+  const [, citySlug, spotSlug, speciesSlug] = slug;
   if (!citySlug) return {};
 
   try {
+    // 4 segments: spot + species filter — species-tailored meta
+    if (spotSlug && speciesSlug) {
+      const [spotData, speciesData] = await Promise.all([
+        fetchSpotPage(spotSlug),
+        fetchSpecies(speciesSlug),
+      ]);
+      if (!spotData || spotData.page.status !== "published" || !speciesData) return {};
+      const canonical = `${SITE_URL}/fishing/${slug.join("/")}`;
+      const speciesName = speciesData.species.name;
+      const spotTitle = `${speciesName} Fishing at ${spotData.spot.name} | ReelCaster`;
+      const description = `When and where to catch ${speciesName} at ${spotData.spot.name}. Seasonal abundance, regulations, and local conditions from ReelCaster.`;
+      return buildMetadata(
+        spotTitle,
+        description,
+        canonical,
+        spotData.page.seo.og_image_url ?? spotData.page.hero.image_url,
+        spotData.page.hero.image_alt ?? spotData.page.hero.h1,
+      );
+    }
+
     if (spotSlug) {
       const data = await fetchSpotPage(spotSlug);
       if (!data || data.page.status !== "published") return {};
@@ -99,18 +120,23 @@ function buildMetadata(
 
 export default async function FishingPage({ params }: PageProps) {
   const { slug } = await params;
-  const [provinceCode, citySlug, spotSlug, ...rest] = slug;
+  const [provinceCode, citySlug, spotSlug, speciesSlug, ...rest] = slug;
 
   if (!provinceCode || !citySlug || rest.length > 0) {
     notFound();
   }
 
   if (spotSlug) {
-    return <SpotPage spotSlug={spotSlug} />;
+    return <SpotPage spotSlug={spotSlug} speciesSlug={speciesSlug ?? null} />;
   }
 
   return <CityPage citySlug={citySlug} />;
 }
+
+// ── City branch ─────────────────────────────────────────────────────────
+// Renders inside the dark `rc-*` marketing chrome (header + footer). This
+// wrapping used to live in `fishing/layout.tsx` but moved here so the spot
+// branch can opt out and bring its own light editorial layout.
 
 async function CityPage({ citySlug }: { citySlug: string }) {
   let data: BlueCasterCityPage | null;
@@ -125,89 +151,98 @@ async function CityPage({ citySlug }: { citySlug: string }) {
   }
 
   return (
-    <>
-      <CityJsonLd data={data} />
-      <article>
-        <CityHero data={data} />
-        <CityConditionsStrip conditions={data.conditions_now} />
-        <CityAbout md={data.page.about_md} cityName={data.hierarchy.city.name} />
-        <CityTechniques techniques={data.page.techniques} />
-        <CityScoreCta score={data.rc_score_today} citySlug={data.page.slug} />
-        <CitySpeciesTable
-          rows={data.species_table}
-          regulatoryAreas={data.regulatory_areas}
-        />
-        <CitySeasonalGuide quarters={data.seasonal_guide} />
-        <CityLocalIntel md={data.page.local_intel_md} />
-        <CityAccessPoints points={data.access_points} />
-        <CityLocalExperts charters={data.charters} />
-        <CityFaq faq={data.page.faq} />
-      </article>
+    <div className="min-h-screen bg-rc-bg-darkest text-rc-text flex flex-col">
+      <MarketingHeader />
+      <main className="flex-1">
+        <CityJsonLd data={data} />
+        <article>
+          <CityHero data={data} />
+          <CityConditionsStrip conditions={data.conditions_now} />
+          <CityRegulationAlerts regulatoryAreas={data.regulatory_areas} />
+          <CityAbout md={data.page.about_md} cityName={data.hierarchy.city.name} />
+          <CityTechniques techniques={data.page.techniques} />
+          <CityScoreCta score={data.rc_score_today} citySlug={data.page.slug} />
+          <CitySpots
+            citySlug={data.hierarchy.city.slug}
+            cityName={data.hierarchy.city.name}
+            provinceCode={data.hierarchy.province.code}
+          />
+          <CitySpeciesTable
+            rows={data.species_table}
+            regulatoryAreas={data.regulatory_areas}
+          />
+          <CitySeasonalGuide quarters={data.seasonal_guide} />
+          <CityCatchReports
+            citySlug={data.hierarchy.city.slug}
+            cityName={data.hierarchy.city.name}
+          />
+          <CityLocalIntel md={data.page.local_intel_md} />
+          <CityAccessPoints points={data.access_points} />
+          <CityLocalExperts charters={data.charters} />
+          <CityFaq faq={data.page.faq} />
+        </article>
 
-      <footer className="max-w-5xl mx-auto px-6 py-12 border-t border-stone-200 text-center">
-        <p className="text-xs text-slate-400">
-          Data provided by ReelCaster. Regulations are reference only &mdash; always verify with DFO.
-        </p>
-      </footer>
-    </>
+        <footer className="max-w-5xl mx-auto px-6 py-12 border-t border-rc-bg-light text-center">
+          <p className="text-xs text-rc-text-muted">
+            Data provided by ReelCaster. Regulations are reference only &mdash; always verify with DFO.
+          </p>
+        </footer>
+      </main>
+      <MarketingFooter />
+    </div>
   );
 }
 
-async function SpotPage({ spotSlug }: { spotSlug: string }) {
-  let data: BlueCasterSpotPage | null;
+// ── Spot branch ─────────────────────────────────────────────────────────
+// Renders the live-spot UI ported from BlueCaster's /test/oak-bay-flats-spot
+// reference page. Light editorial theme, owns its own top nav (back-to-map +
+// ReelCaster mark + action buttons + species chip bar + units selector) and
+// its own footer ("Tight Lines!" + brand mark). NO marketing chrome wrap.
+//
+// We still fetch the thin /page payload for `<SpotJsonLd>` + the legacy
+// publish-status gate; the heavy live payload comes from /spot-page and
+// drives every visible value.
+//
+// The `speciesSlug` 4-segment URL form is currently rendered identically to
+// the bare spot URL — the active-species selector lives in the live page's
+// top nav and isn't driven by URL state yet. Forwarding `speciesSlug` is
+// reserved for a future "deep-link a species" wiring inside LiveSpotPage.
+
+async function SpotPage({
+  spotSlug,
+}: {
+  spotSlug: string;
+  speciesSlug: string | null;
+}) {
+  // Two fetches:
+  //   - `live` drives the visible page. Works against any spot in
+  //     `fishing_spots` — does NOT require a curated `spot_pages` row.
+  //   - `thin` is enrichment for SEO JSON-LD. Only present for spots that
+  //     have been through the SEO-page wizard. Renders when available; the
+  //     page works fine without it.
+  // If `live` 404s the spot doesn't exist; that's the only true 404 here.
+  let thin: BlueCasterSpotPage | null = null;
+  let live: SpotPageInitial | null;
   try {
-    data = await fetchSpotPage(spotSlug);
+    [thin, live] = await Promise.all([
+      fetchSpotPage(spotSlug).catch(() => null),
+      fetchSpotLivePage(spotSlug),
+    ]);
   } catch {
     notFound();
   }
 
-  if (!data || data.page.status !== "published") {
+  if (!live) {
     notFound();
   }
 
-  // Species options for the forecast filter — derived from the seasonal_abundance
-  // list so the dropdown matches the species table the user just looked at.
-  const speciesOptions = data.seasonal_abundance.map((r) => ({
-    id: r.species_id,
-    name: r.species_name,
-  }));
+  const hasPublishedSeoPage =
+    thin != null && thin.page.status === "published";
 
   return (
     <>
-      <SpotJsonLd data={data} />
-      <article>
-        <SpotHero data={data} />
-        <CityAbout md={data.page.about_md} cityName={data.spot.name} />
-        <CityTechniques techniques={data.page.techniques} />
-        <SpotScoreCta score={data.rc_score_now} spotSlug={data.page.slug} />
-        <SpotForecastStrip
-          forecast={data.forecast}
-          speciesOptions={speciesOptions}
-        />
-        <SpotBreakdownPanel scoreNow={data.rc_score_now} />
-        <SpotPaywallTeaser
-          spotSlug={data.page.slug}
-          speciesSlug={
-            speciesOptions.length > 0
-              ? data.seasonal_abundance.find(
-                  (r) => r.species_id === speciesOptions[0].id,
-                )?.species_slug ?? null
-              : null
-          }
-        />
-        <CitySpeciesTable rows={data.species_table} regulatoryAreas={[]} />
-        <SpotSeasonalAbundance rows={data.seasonal_abundance} />
-        <CityLocalIntel md={data.page.local_intel_md} />
-        <SpotAccessPoints points={data.access_points} />
-        <SpotLocalExperts experts={data.local_experts} />
-        <CityFaq faq={data.page.faq} />
-      </article>
-
-      <footer className="max-w-5xl mx-auto px-6 py-12 border-t border-stone-200 text-center">
-        <p className="text-xs text-slate-400">
-          Data provided by ReelCaster. Regulations are reference only &mdash; always verify with DFO.
-        </p>
-      </footer>
+      {hasPublishedSeoPage && thin && <SpotJsonLd data={thin} />}
+      <LiveSpotPage data={live} />
     </>
   );
 }

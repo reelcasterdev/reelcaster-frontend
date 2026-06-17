@@ -15,6 +15,8 @@ export interface UserPreferences {
   tempUnit?: 'C' | 'F'
   precipUnit?: 'mm' | 'inches'
   heightUnit?: 'ft' | 'm'
+  distanceUnit?: 'km' | 'miles'
+  pressureUnit?: 'mb' | 'inHg'
 }
 
 export interface NotificationPreferences {
@@ -91,6 +93,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   tempUnit: 'C',
   precipUnit: 'mm',
   heightUnit: 'm',
+  distanceUnit: 'km',
+  pressureUnit: 'mb',
 }
 
 export class UserPreferencesService {

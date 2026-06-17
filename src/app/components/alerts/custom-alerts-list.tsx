@@ -27,6 +27,7 @@ import {
   Edit,
   Trash2,
   History,
+  Copy,
 } from 'lucide-react'
 import type { AlertProfile, AlertTriggers } from '@/lib/custom-alert-engine'
 import { formatDistanceToNow } from 'date-fns'
@@ -36,6 +37,7 @@ interface CustomAlertsListProps {
   onEdit: (profile: AlertProfile) => void
   onDelete: (profileId: string) => void
   onToggleActive: (profileId: string, isActive: boolean) => void
+  onDuplicate?: (profile: AlertProfile) => void
 }
 
 const TRIGGER_ICONS: Record<string, React.ReactNode> = {
@@ -109,6 +111,7 @@ export function CustomAlertsList({
   onEdit,
   onDelete,
   onToggleActive,
+  onDuplicate,
 }: CustomAlertsListProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
@@ -192,14 +195,28 @@ export function CustomAlertsList({
                     size="sm"
                     onClick={() => onEdit(profile)}
                     className="h-8 px-2"
+                    aria-label="Edit alert"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
+                  {onDuplicate && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDuplicate(profile)}
+                      className="h-8 px-2"
+                      aria-label="Duplicate alert"
+                      data-testid="alert-duplicate"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setDeleteConfirm(profile.id)}
                     className="h-8 px-2 text-destructive hover:text-destructive"
+                    aria-label="Delete alert"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

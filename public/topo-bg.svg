@@ -1,0 +1,61 @@
+<!--
+  Topographic-style background pattern.
+  Nested concentric contours represent peaks; long meandering paths suggest slope contours.
+  Tuned to be very faint so it reads as ambient texture behind page content.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <rect width="640" height="640" fill="#FFFFFF"/>
+  <g fill="none" stroke="#D4D4D8" stroke-width="0.7" stroke-opacity="0.3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Peak A — top-left, nested concentric ellipses (slight rotation for organic feel) -->
+    <g transform="translate(150 150) rotate(-12)">
+      <ellipse rx="22" ry="16"/>
+      <ellipse rx="38" ry="28"/>
+      <ellipse rx="56" ry="42"/>
+      <ellipse rx="78" ry="58"/>
+      <ellipse rx="104" ry="78"/>
+      <ellipse rx="134" ry="100"/>
+    </g>
+
+    <!-- Peak B — upper-right, smaller -->
+    <g transform="translate(490 130) rotate(20)">
+      <ellipse rx="18" ry="13"/>
+      <ellipse rx="32" ry="24"/>
+      <ellipse rx="50" ry="38"/>
+      <ellipse rx="72" ry="55"/>
+      <ellipse rx="98" ry="74"/>
+    </g>
+
+    <!-- Peak C — lower-right -->
+    <g transform="translate(440 470) rotate(-25)">
+      <ellipse rx="24" ry="17"/>
+      <ellipse rx="42" ry="30"/>
+      <ellipse rx="64" ry="46"/>
+      <ellipse rx="90" ry="64"/>
+      <ellipse rx="120" ry="86"/>
+    </g>
+
+    <!-- Peak D — lower-left, depression-style (smaller, fewer rings) -->
+    <g transform="translate(110 480) rotate(8)">
+      <ellipse rx="16" ry="12"/>
+      <ellipse rx="30" ry="22"/>
+      <ellipse rx="48" ry="36"/>
+      <ellipse rx="68" ry="52"/>
+    </g>
+
+    <!-- Long meandering slope contours that bend around the peaks -->
+    <path d="M -20 320 Q 70 340 150 310 Q 230 280 320 320 Q 410 360 490 330 Q 570 305 660 325"/>
+    <path d="M -20 340 Q 70 362 150 332 Q 230 302 320 342 Q 410 382 490 352 Q 570 327 660 347"/>
+    <path d="M -20 360 Q 70 384 150 354 Q 230 324 320 364 Q 410 404 490 374 Q 570 349 660 369"/>
+
+    <!-- Saddle ridge between peaks A and B -->
+    <path d="M 260 100 Q 300 130 340 100 Q 360 90 380 100"/>
+    <path d="M 250 90 Q 300 140 360 90 Q 390 75 410 90"/>
+
+    <!-- Lower meandering contour wrapping the bottom -->
+    <path d="M -20 600 Q 80 575 180 605 Q 290 635 400 600 Q 510 570 620 595"/>
+    <path d="M -20 620 Q 80 595 180 625 Q 290 655 400 620 Q 510 590 620 615"/>
+
+    <!-- Connecting valley between C and D -->
+    <path d="M 200 470 Q 250 450 290 460 Q 310 470 320 480"/>
+  </g>
+</svg>

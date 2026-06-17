@@ -1,0 +1,27 @@
+import { NextResponse, type NextRequest } from 'next/server'
+
+// Coming-soon wall. Every public-facing route is rewritten to /coming-soon.
+// These prefixes stay reachable so the team can still operate the system:
+// the coming-soon page itself, the API, admin, and the auth/login flow.
+const ALLOW_PREFIXES = ['/coming-soon', '/api', '/admin', '/auth', '/login', '/signup']
+
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+  const allowed = ALLOW_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p + '/'),
+  )
+  // Local-only preview of the in-progress /explore page — stays behind the
+  // wall in production, reachable when running `pnpm dev`.
+  const devPreview =
+    process.env.NODE_ENV === 'development' && pathname.startsWith('/explore')
+  if (allowed || devPreview) return NextResponse.next()
+
+  const url = req.nextUrl.clone()
+  url.pathname = '/coming-soon'
+  return NextResponse.rewrite(url)
+}
+
+export const config = {
+  // Skip Next internals and static assets (any path containing a dot).
+  matcher: ['/((?!_next/|favicon.ico|robots.txt|sitemap.xml|.*\\..*).*)'],
+}

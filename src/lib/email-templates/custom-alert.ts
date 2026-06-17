@@ -14,6 +14,10 @@ interface CustomAlertEmailParams {
   logicMode: 'AND' | 'OR';
   forecastUrl: string;
   manageAlertsUrl: string;
+  /** Score-alert mode produces a polished subject like "Chinook peak today at Pedder Bay — 82 at 11am". */
+  alertKind?: 'composite' | 'score';
+  scoreThreshold?: number | null;
+  speciesName?: string | null;
 }
 
 interface EmailContent {
@@ -123,17 +127,32 @@ export function generateCustomAlertEmail(params: CustomAlertEmailParams): EmailC
     logicMode,
     forecastUrl,
     manageAlertsUrl,
+    alertKind,
+    speciesName,
   } = params;
 
-  const timestamp = conditionSnapshot.timestamp
-    ? formatTimestamp(conditionSnapshot.timestamp)
-    : formatTimestamp(new Date().toISOString());
+  const triggeredAt = conditionSnapshot.timestamp
+    ? new Date(conditionSnapshot.timestamp)
+    : new Date();
+  const timestamp = formatTimestamp(triggeredAt.toISOString());
 
   const triggerCount = matchedTriggers.length;
   const triggerText = triggerCount === 1 ? 'condition' : 'conditions';
 
-  // Generate subject
-  const subject = `🎣 Alert: ${alertName} - ${triggerCount} ${triggerText} matched at ${locationName}`;
+  // Phase 6: prefix all real-time triggers with "Alert:" so users can
+  // disambiguate them from scheduled "Forecast:" digests at a glance.
+  let subject: string;
+  if (alertKind === 'score' && conditionSnapshot.fishing_score !== undefined) {
+    const speciesLabel = speciesName ?? 'Fishing';
+    const score = Math.round(conditionSnapshot.fishing_score);
+    const hourLabel = triggeredAt.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      hour12: true,
+    }).toLowerCase().replace(' ', '');
+    subject = `Alert: ${speciesLabel} peak today at ${locationName} — ${score} at ${hourLabel}`;
+  } else {
+    subject = `Alert: ${alertName} — ${triggerCount} ${triggerText} matched at ${locationName}`;
+  }
 
   // Generate trigger rows
   const triggerRows = matchedTriggers

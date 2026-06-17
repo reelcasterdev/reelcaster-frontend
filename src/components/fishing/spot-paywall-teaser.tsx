@@ -29,16 +29,19 @@ export default function SpotPaywallTeaser({
   }`;
 
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
-      <div className="bg-white border border-stone-200 rounded-lg p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+    <section
+      data-testid="section-spot-paywall-teaser"
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
+      <div className="bg-rc-bg-dark border border-rc-bg-light rounded-lg p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
         <div>
-          <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-2">
+          <p className="font-mono text-xs uppercase tracking-widest text-rc-text-muted mb-2">
             Pro Intel · Season Pass
           </p>
-          <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 mb-2">
+          <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-rc-text mb-2">
             See the full 14-day picture
           </h2>
-          <p className="text-sm md:text-base text-slate-600 max-w-xl">
+          <p className="text-sm md:text-base text-rc-text-light max-w-xl">
             Unlock day-by-day forecasts, unlimited alerts, and custom spot
             profiles. Monthly seasonal pricing from $5/mo or save with a Season
             Pass.
@@ -48,7 +51,7 @@ export default function SpotPaywallTeaser({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="self-start md:self-auto inline-flex items-center justify-center px-5 py-3 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition-colors whitespace-nowrap"
+          className="self-start md:self-auto inline-flex items-center justify-center px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
         >
           Unlock Pro Intel
         </button>
@@ -56,20 +59,20 @@ export default function SpotPaywallTeaser({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="paywall-title"
           onClick={() => setOpen(false)}
         >
           <div
-            className="relative w-full max-w-md bg-white rounded-lg shadow-xl border border-stone-200 p-6"
+            className="relative w-full max-w-md bg-rc-bg-dark rounded-lg shadow-xl border border-rc-bg-light p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-slate-700"
+              className="absolute top-3 right-3 text-rc-text-muted hover:text-rc-text"
               aria-label="Close"
             >
               <svg
@@ -85,21 +88,21 @@ export default function SpotPaywallTeaser({
               </svg>
             </button>
 
-            <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-2">
+            <p className="font-mono text-xs uppercase tracking-widest text-rc-text-muted mb-2">
               ReelCaster Pro Intel
             </p>
             <h3
               id="paywall-title"
-              className="text-xl font-black uppercase tracking-tight text-slate-900 mb-3"
+              className="text-xl font-black uppercase tracking-tight text-rc-text mb-3"
             >
               Unlock the full forecast
             </h3>
 
-            <ul className="space-y-2 text-sm text-slate-700 mb-6">
+            <ul className="space-y-2 text-sm text-rc-text-light mb-6">
               {FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-2">
                   <span
-                    className="text-emerald-500 mt-0.5"
+                    className="text-emerald-400 mt-0.5"
                     aria-hidden="true"
                   >
                     ✓
@@ -111,11 +114,11 @@ export default function SpotPaywallTeaser({
 
             <Link
               href={pricingHref}
-              className="block text-center px-5 py-3 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition-colors"
+              className="block text-center px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
             >
               See Pro Intel pricing
             </Link>
-            <p className="mt-3 text-center text-xs text-slate-400">
+            <p className="mt-3 text-center text-xs text-rc-text-muted">
               Available in BC, WA, and OR. Drop a waitlist pin for other
               regions.
             </p>

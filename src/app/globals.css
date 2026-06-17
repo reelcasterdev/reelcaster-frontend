@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../styles/rc-tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,6 +9,41 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* rc design system (light editorial, ported from the Figma source of
+     truth via bluecaster) — see src/styles/rc-tokens.css. The dark
+     rc-bg / rc-text tokens below are the legacy app theme; both coexist
+     until the app-wide migration. */
+  --color-rc-brand: var(--rc-brand);
+  --color-rc-brand-hover: var(--rc-brand-hover);
+  --color-rc-brand-soft: var(--rc-brand-soft);
+  --color-rc-brand-soft2: var(--rc-brand-soft2);
+  --color-rc-badge: var(--rc-badge);
+  --color-rc-ink: var(--rc-ink);
+  --color-rc-ink-soft: var(--rc-ink-soft);
+  --color-rc-ink-mute: var(--rc-ink-mute);
+  --color-rc-panel: var(--rc-panel);
+  --color-rc-surface: var(--rc-surface);
+  --color-rc-page: var(--rc-bg);
+  --color-rc-rule: var(--rc-rule);
+  --color-rc-rule-soft: var(--rc-rule-soft);
+  --color-rc-good: var(--rc-good);
+  --color-rc-good-bg: var(--rc-good-bg);
+  --color-rc-good-ink: var(--rc-good-ink);
+  --color-rc-good-soft: var(--rc-good-soft);
+  --color-rc-good-border: var(--rc-good-border);
+  --color-rc-fair: var(--rc-fair);
+  --color-rc-fair-bg: var(--rc-fair-bg);
+  --color-rc-fair-ink: var(--rc-fair-ink);
+  --color-rc-fair-border: var(--rc-fair-border);
+  --color-rc-poor: var(--rc-poor);
+  --color-rc-poor-bg: var(--rc-poor-bg);
+  --color-rc-poor-ink: var(--rc-poor-ink);
+  --font-rc-sans: var(--rc-font-sans);
+  --font-rc-mono: var(--rc-font-mono);
+  --shadow-rc-panel: var(--rc-shadow-panel);
+  --shadow-rc-bar: var(--rc-shadow-bar);
+  --shadow-rc-pin: var(--rc-shadow-pin);
 
   /* Reelcaster custom colors */
   --color-rc-bg-darkest: #1E1E1E;

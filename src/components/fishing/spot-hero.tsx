@@ -6,9 +6,13 @@ export default function SpotHero({ data }: { data: BlueCasterSpotPage }) {
   const { hero } = data.page;
   const { spot } = data;
   const { hierarchy } = data;
+  const hasImage = Boolean(hero.image_url);
 
   return (
-    <section className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+    <section
+      data-testid="section-spot-hero"
+      className="relative w-full h-[400px] md:h-[500px] overflow-hidden"
+    >
       {hero.image_url ? (
         <Image
           src={hero.image_url}
@@ -19,14 +23,16 @@ export default function SpotHero({ data }: { data: BlueCasterSpotPage }) {
           sizes="100vw"
         />
       ) : (
-        <div className="absolute inset-0 bg-slate-800" />
+        <div className="absolute inset-0 bg-rc-bg-light" />
       )}
 
-      <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+      {hasImage && (
+        <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+      )}
 
       <div className="relative z-10 flex flex-col justify-end h-full max-w-6xl mx-auto px-6 pb-10 md:pb-14">
         <nav aria-label="Breadcrumb" className="mb-3">
-          <ol className="flex items-center gap-0 text-stone-300 text-xs tracking-[0.25em] uppercase font-medium">
+          <ol className="flex items-center gap-0 text-rc-text-light text-xs tracking-[0.25em] uppercase font-medium">
             {hero.breadcrumb.map((crumb, i) => {
               const isLast = i === hero.breadcrumb.length - 1;
               return (
@@ -54,13 +60,13 @@ export default function SpotHero({ data }: { data: BlueCasterSpotPage }) {
           {hero.h1}
         </h1>
 
-        <ul className="flex flex-wrap gap-3 mt-5 text-stone-200 text-xs tracking-widest uppercase font-medium">
+        <ul className="flex flex-wrap gap-3 mt-5 text-rc-text-light text-xs tracking-widest uppercase font-medium">
           {hierarchy?.city.name && (
             <li>
-              <span className="text-stone-400">in</span>{" "}
+              <span className="text-rc-text-muted">in</span>{" "}
               <Link
                 href={`/fishing/${hierarchy.province.code}/${hierarchy.city.slug}`}
-                className="border-b border-stone-400 hover:text-white"
+                className="border-b border-rc-text-muted hover:text-white"
               >
                 {hierarchy.city.name}
               </Link>
@@ -68,18 +74,18 @@ export default function SpotHero({ data }: { data: BlueCasterSpotPage }) {
           )}
           {spot.depth_avg_m != null && (
             <li>
-              <span className="text-stone-400">depth</span>{" "}
+              <span className="text-rc-text-muted">depth</span>{" "}
               <span>{spot.depth_avg_m.toFixed(0)}m avg</span>
             </li>
           )}
           {spot.dfo_area_label && (
             <li>
-              <span className="text-stone-400">{spot.dfo_area_label}</span>
+              <span className="text-rc-text-muted">{spot.dfo_area_label}</span>
             </li>
           )}
           {spot.tidal_station_name && (
             <li>
-              <span className="text-stone-400">tides</span>{" "}
+              <span className="text-rc-text-muted">tides</span>{" "}
               <span>{spot.tidal_station_name}</span>
             </li>
           )}

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
   MAIN_NAV_ITEMS,
@@ -49,6 +49,7 @@ function NavItemCard({ item, isActive }: NavItemCardProps) {
     <li>
       <Link
         href={item.href}
+        data-testid={`nav-${item.id}`}
         className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 ${
           isActive
             ? 'bg-rc-bg-dark text-rc-text shadow-lg shadow-black/30'
@@ -112,6 +113,17 @@ export default function IconSidebar({
       {/* Main Navigation */}
       <nav className="flex-1 py-4 overflow-y-auto" aria-label="Main navigation">
         <ul className="space-y-2 px-2">
+          <li>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('openGlobalSearch'))}
+              className="w-full flex flex-col items-center justify-center p-3 rounded-xl text-rc-text-muted hover:text-rc-text-light transition-colors"
+              title="Search (⌘K)"
+              aria-label="Open search"
+            >
+              <Search className="w-6 h-6 mb-2" />
+              <span className="text-xs font-medium text-center leading-tight">Search</span>
+            </button>
+          </li>
           {MAIN_NAV_ITEMS.map(item => (
             <NavItemCard
               key={item.id}
